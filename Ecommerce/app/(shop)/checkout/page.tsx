@@ -13,7 +13,8 @@ import { useAuthStore } from '@/lib/stores/authStore';
 import { createOrder, CreateOrderPayload } from '@/lib/api/orders';
 import { handleApiError } from '@/lib/api/client';
 import { formatCurrency } from '@/lib/utils/formatters';
-import { FiCreditCard, FiLock, FiTruck } from 'react-icons/fi';
+import { FiCreditCard, FiLock, FiTruck, FiDollarSign } from 'react-icons/fi';
+import { HiQrCode } from 'react-icons/hi2';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -31,8 +32,7 @@ export default function CheckoutPage() {
   const [formData, setFormData] = useState({
     // Shipping Information
     email: '',
-    firstName: '',
-    lastName: '',
+    fullName: '', // Họ và tên (gộp firstName và lastName)
     company: '',
     address: '',
     apartment: '',
@@ -41,23 +41,16 @@ export default function CheckoutPage() {
     zipCode: '',
     country: 'United States',
     phone: '',
-    // Payment Information
-    cardNumber: '',
-    cardName: '',
-    expiryDate: '',
-    cvv: '',
-    // Billing same as shipping
-    billingSameAsShipping: true,
   });
   const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('standard');
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'zalopay'>('cod');
 
   useEffect(() => {
     if (user) {
       setFormData((prev) => ({
         ...prev,
         email: prev.email || user.email,
-        firstName: prev.firstName || user.firstName,
-        lastName: prev.lastName || user.lastName,
+        fullName: prev.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
       }));
     }
   }, [user]);
@@ -69,8 +62,21 @@ export default function CheckoutPage() {
   ];
 
   const subtotal = getTotalPrice();
-  const standardShippingCost = useMemo(() => (subtotal > 749 ? 0 : 49.99), [subtotal]);
-  const expressShippingCost = 99.99;
+  // Tính phí giao hàng: COD luôn có phí, ZaloPay miễn phí
+  const standardShippingCost = useMemo(() => {
+    // COD: luôn có phí (trừ khi đơn > 749 thì miễn phí)
+    // ZaloPay: miễn phí
+    if (paymentMethod === 'zalopay') return 0;
+    return subtotal > 749 ? 0 : 50; // 50 VND cho COD
+  }, [subtotal, paymentMethod]);
+  
+  const expressShippingCost = useMemo(() => {
+    // COD: phí express
+    // ZaloPay: miễn phí
+    if (paymentMethod === 'zalopay') return 0;
+    return 100; // 100 VND cho COD express
+  }, [paymentMethod]);
+  
   const shipping = useMemo(
     () => (shippingMethod === 'express' ? expressShippingCost : standardShippingCost),
     [shippingMethod, expressShippingCost, standardShippingCost]
@@ -87,6 +93,28 @@ export default function CheckoutPage() {
     }));
   };
 
+  // Parse fullName thành firstName và lastName (từ cuối là tên, phần còn lại là họ)
+  const parseFullName = (fullName: string): { firstName: string; lastName: string } => {
+    const trimmed = fullName.trim();
+    if (!trimmed) {
+      return { firstName: '', lastName: '' };
+    }
+    
+    const parts = trimmed.split(/\s+/);
+    if (parts.length === 1) {
+      // Chỉ có 1 từ -> coi là tên
+      return { firstName: parts[0], lastName: '' };
+    } else if (parts.length === 2) {
+      // 2 từ -> họ và tên
+      return { firstName: parts[0], lastName: parts[1] };
+    } else {
+      // Nhiều hơn 2 từ -> từ cuối là tên, phần còn lại là họ
+      const lastName = parts[parts.length - 1];
+      const firstName = parts.slice(0, parts.length - 1).join(' ');
+      return { firstName, lastName };
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) {
@@ -95,9 +123,12 @@ export default function CheckoutPage() {
     }
     setIsProcessing(true);
 
+    // Parse fullName thành firstName và lastName
+    const { firstName, lastName } = parseFullName(formData.fullName);
+
     const shippingAddress = {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
+      firstName,
+      lastName,
       company: formData.company || undefined,
       addressLine1: formData.address,
       addressLine2: formData.apartment || undefined,
@@ -105,22 +136,21 @@ export default function CheckoutPage() {
       state: formData.state,
       postalCode: formData.zipCode,
       country: formData.country,
-      phone: formData.phone,
+      // phone removed - now stored separately as customer_phone
       email: formData.email,
     };
 
-    const billingAddress = formData.billingSameAsShipping
-      ? { ...shippingAddress }
-      : { ...shippingAddress };
+    const billingAddress = { ...shippingAddress }; // Billing same as shipping
 
     const payload: CreateOrderPayload = {
       customer_id: isAuthenticated && user ? user.id : undefined,
       customer_email: formData.email,
-      customer_name: `${formData.firstName} ${formData.lastName}`.trim(),
+      customer_name: formData.fullName.trim(),
+      customer_phone: formData.phone, // Required for phone-based order lookup
       shipping_address: shippingAddress,
       billing_address: billingAddress,
       shipping_method: shippingMethod,
-      payment_method: 'card',
+      payment_method: paymentMethod, // 'cod' hoặc 'zalopay'
       items: items.map((item) => ({
         product_id: item.productId,
         quantity: item.quantity,
@@ -138,7 +168,8 @@ export default function CheckoutPage() {
         sessionStorage.setItem('lastOrder', JSON.stringify(order));
       }
 
-      router.push(`/checkout/success?orderNumber=${encodeURIComponent(order.order_number)}`);
+      // Redirect to success page with order number
+      router.push(`/checkout/success?orderNumber=${encodeURIComponent(order.orderNumber)}`);
     } catch (error) {
       toast.error(handleApiError(error));
       setIsProcessing(false);
@@ -182,42 +213,18 @@ export default function CheckoutPage() {
           {/* Checkout Form */}
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Contact Information */}
-              <div className="rounded-lg bg-white p-6 shadow-md">
-                <h2 className="mb-6 text-xl font-bold text-gray-900">Contact Information</h2>
-                <div className="space-y-4">
-                  <Input
-                    label="Email"
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="your@email.com"
-                    required
-                  />
-                </div>
-              </div>
-
               {/* Shipping Information */}
               <div className="rounded-lg bg-white p-6 shadow-md">
                 <h2 className="mb-6 text-xl font-bold text-gray-900">Shipping Information</h2>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <Input
-                      label="First Name"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      required
-                    />
-                    <Input
-                      label="Last Name"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
+                  <Input
+                    label="Họ và tên"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Ví dụ: Nguyễn Văn A"
+                  />
 
                   <Input
                     label="Company (optional)"
@@ -265,14 +272,26 @@ export default function CheckoutPage() {
                     />
                   </div>
 
-                  <Input
-                    label="Phone"
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    required
-                  />
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <Input
+                      label="Email"
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="your@email.com"
+                      required
+                    />
+                    <Input
+                      label="Phone"
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="0901234567"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -325,9 +344,14 @@ export default function CheckoutPage() {
                   </label>
                 </div>
 
-                {subtotal > 749 && (
+                {paymentMethod === 'cod' && subtotal > 749 && (
                   <div className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">
-                    🎉 You qualify for FREE standard shipping!
+                    🎉 Đơn hàng trên 749.000₫ được miễn phí vận chuyển (COD)!
+                  </div>
+                )}
+                {paymentMethod === 'zalopay' && (
+                  <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+                    ✓ ZaloPay: Miễn phí vận chuyển cho mọi đơn hàng
                   </div>
                 )}
               </div>
@@ -335,65 +359,86 @@ export default function CheckoutPage() {
               {/* Payment Information */}
               <div className="rounded-lg bg-white p-6 shadow-md">
                 <div className="mb-6 flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gray-900">Payment Information</h2>
+                  <h2 className="text-xl font-bold text-gray-900">Phương thức thanh toán</h2>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <FiLock className="text-green-600" />
-                    <span>Secure Payment</span>
+                    <span>Thanh toán an toàn</span>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <Input
-                    label="Card Number"
-                    name="cardNumber"
-                    value={formData.cardNumber}
-                    onChange={handleInputChange}
-                    placeholder="1234 5678 9012 3456"
-                    required
-                  />
+                <div className="space-y-3">
+                  {/* Ship COD Option */}
+                  <label className={`flex cursor-pointer items-start justify-between rounded-lg border-2 p-4 transition-colors ${
+                    paymentMethod === 'cod' 
+                      ? 'border-brand-purple-600 bg-purple-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}>
+                    <div className="flex items-start">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="cod"
+                        checked={paymentMethod === 'cod'}
+                        onChange={() => setPaymentMethod('cod')}
+                        className="mt-1 h-4 w-4 text-brand-purple-600"
+                      />
+                      <div className="ml-3">
+                        <div className="flex items-center gap-2">
+                          <FiDollarSign className={paymentMethod === 'cod' ? 'text-brand-purple-600' : 'text-gray-600'} />
+                          <span className="font-medium text-gray-900">Ship COD (Thanh toán khi nhận hàng)</span>
+                        </div>
+                        <p className="mt-1 text-sm text-gray-600">
+                          Bạn sẽ thanh toán khi nhận được hàng. Phí giao hàng sẽ được cộng vào tổng tiền.
+                        </p>
+                        {paymentMethod === 'cod' && shipping > 0 && (
+                          <p className="mt-2 text-sm font-medium text-brand-purple-600">
+                            Phí giao hàng: {formatCurrency(shipping)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </label>
 
-                  <Input
-                    label="Name on Card"
-                    name="cardName"
-                    value={formData.cardName}
-                    onChange={handleInputChange}
-                    required
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      label="Expiry Date"
-                      name="expiryDate"
-                      value={formData.expiryDate}
-                      onChange={handleInputChange}
-                      placeholder="MM/YY"
-                      required
-                    />
-                    <Input
-                      label="CVV"
-                      name="cvv"
-                      value={formData.cvv}
-                      onChange={handleInputChange}
-                      placeholder="123"
-                      type="password"
-                      maxLength={4}
-                      required
-                    />
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      name="billingSameAsShipping"
-                      checked={formData.billingSameAsShipping}
-                      onChange={handleInputChange}
-                      className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-purple-600 focus:ring-2 focus:ring-brand-purple-500"
-                    />
-                    <label className="ml-2 text-sm text-gray-700">
-                      Billing address same as shipping address
-                    </label>
-                  </div>
+                  {/* ZaloPay Option */}
+                  <label className={`flex cursor-pointer items-start justify-between rounded-lg border-2 p-4 transition-colors ${
+                    paymentMethod === 'zalopay' 
+                      ? 'border-brand-purple-600 bg-purple-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}>
+                    <div className="flex items-start">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="zalopay"
+                        checked={paymentMethod === 'zalopay'}
+                        onChange={() => setPaymentMethod('zalopay')}
+                        className="mt-1 h-4 w-4 text-brand-purple-600"
+                      />
+                      <div className="ml-3">
+                        <div className="flex items-center gap-2">
+                          <HiQrCode className={paymentMethod === 'zalopay' ? 'text-brand-purple-600' : 'text-gray-600'} />
+                          <span className="font-medium text-gray-900">ZaloPay (Thanh toán trực tuyến)</span>
+                        </div>
+                        <p className="mt-1 text-sm text-gray-600">
+                          Thanh toán nhanh chóng qua ứng dụng ZaloPay bằng cách quét mã QR. Miễn phí vận chuyển.
+                        </p>
+                        {paymentMethod === 'zalopay' && (
+                          <p className="mt-2 text-sm font-medium text-green-600">
+                            ✓ Miễn phí vận chuyển
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </label>
                 </div>
+
+                {paymentMethod === 'zalopay' && (
+                  <div className="mt-4 rounded-lg bg-blue-50 p-4">
+                    <p className="text-sm text-blue-800">
+                      💡 Sau khi đặt hàng, bạn sẽ được chuyển đến trang thanh toán ZaloPay để quét mã QR.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}
@@ -404,7 +449,12 @@ export default function CheckoutPage() {
                 isLoading={isProcessing}
                 className="font-semibold"
               >
-                {isProcessing ? 'Processing Payment...' : `Pay ${formatCurrency(total)}`}
+                {isProcessing 
+                  ? (paymentMethod === 'zalopay' ? 'Đang chuyển đến ZaloPay...' : 'Đang xử lý đơn hàng...')
+                  : paymentMethod === 'cod' 
+                    ? `Đặt hàng - ${formatCurrency(total)}`
+                    : `Thanh toán ZaloPay - ${formatCurrency(total)}`
+                }
               </Button>
 
               <p className="text-center text-sm text-gray-600">

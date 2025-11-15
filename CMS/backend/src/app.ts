@@ -15,26 +15,26 @@ import productRoutes from './routes/products';
 import productCategoryRoutes from './routes/productCategories';
 import brandRoutes from './routes/brands';
 import assetRoutes from './routes/assets';
-import usersRoutes from './routes/users';
+import usersRoutes from './routes/users'; // Admin users for post authors
 import settingsRoutes from './routes/settings';
 import mediaRoutes from './routes/media';
 import healthRoutes from './routes/health';
 import menuLocationRoutes from './routes/menuLocations';
 import menuItemRoutes from './routes/menuItems';
-import cartRoutes from './routes/cart';
-import orderRoutes from './routes/orders';
-import wishlistRoutes from './routes/wishlist';
-import reviewRoutes from './routes/reviews';
+// import cartRoutes from './routes/cart'; // Disabled: Customer cart management not needed
+import orderRoutes from './routes/orders'; // Admin order management (not customer management)
+// import wishlistRoutes from './routes/wishlist'; // Disabled: Customer wishlist management not needed
+// import reviewRoutes from './routes/reviews'; // Disabled: Customer review management not needed
 import trackingScriptRoutes from './routes/trackingScripts';
 import homepageRoutes from './routes/homepage';
 import sliderRoutes from './routes/sliders';
 import publicPostsRoutes from './routes/publicPosts';
 import publicHomepageRoutes from './routes/publicHomepage';
 import publicProductsRoutes from './routes/publicProducts';
-import publicAuthRoutes from './routes/publicAuth';
-import publicUserRoutes from './routes/publicUser';
-import publicOrdersRoutes from './routes/publicOrders';
-import publicCartRoutes from './routes/publicCart';
+// import publicAuthRoutes from './routes/publicAuth'; // Disabled: Customer authentication not needed
+// import publicUserRoutes from './routes/publicUser'; // Disabled: Customer user management not needed
+// import publicOrdersRoutes from './routes/publicOrders'; // Disabled: Customer orders not needed
+// import publicCartRoutes from './routes/publicCart'; // Disabled: Customer cart not needed
 
 dotenv.config();
 
@@ -84,23 +84,23 @@ app.use('/api/product-categories', productCategoryRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/assets', assetRoutes);
-app.use('/api/users', usersRoutes);
+app.use('/api/users', usersRoutes); // Admin users for post authors
 app.use('/api/settings', settingsRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/public/posts', publicPostsRoutes);
 app.use('/api/public/homepage', publicHomepageRoutes);
 app.use('/api/public/products', publicProductsRoutes);
-app.use('/api/public/auth', publicAuthRoutes);
-app.use('/api/public/user', publicUserRoutes);
-app.use('/api/public/orders', publicOrdersRoutes);
-app.use('/api/public/cart', publicCartRoutes);
+// app.use('/api/public/auth', publicAuthRoutes); // Disabled: Customer authentication not needed
+// app.use('/api/public/user', publicUserRoutes); // Disabled: Customer user management not needed
+// app.use('/api/public/orders', publicOrdersRoutes); // Disabled: Customer orders not needed
+// app.use('/api/public/cart', publicCartRoutes); // Disabled: Customer cart not needed
 app.use('/api/menu-locations', menuLocationRoutes);
 app.use('/api/menu-items', menuItemRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/wishlist', wishlistRoutes);
-app.use('/api/reviews', reviewRoutes);
+// app.use('/api/cart', cartRoutes); // Disabled: Customer cart management not needed
+app.use('/api/orders', orderRoutes); // Admin order management (not customer management)
+// app.use('/api/wishlist', wishlistRoutes); // Disabled: Customer wishlist management not needed
+// app.use('/api/reviews', reviewRoutes); // Disabled: Customer review management not needed
 app.use('/api/tracking-scripts', trackingScriptRoutes);
 app.use('/api/homepage', homepageRoutes);
 app.use('/api/sliders', sliderRoutes);

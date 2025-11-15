@@ -110,7 +110,7 @@ node run-migration.js
 
 ### Option 2: Direct SQL (pgAdmin hoặc psql)
 ```bash
-psql -U postgres -d cms_db -f src/migrations/010_menu_system.sql
+psql -U postgres -d spa_cms_db -f src/migrations/010_menu_system.sql
 ```
 
 ### Option 3: Qua Backend API (nếu có migrate endpoint)

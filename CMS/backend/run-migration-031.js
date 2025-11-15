@@ -14,7 +14,7 @@ async function runMigration() {
     const urlParts = process.env.DATABASE_URL.split('/');
     dbName = urlParts[urlParts.length - 1]?.split('?')[0];
   }
-  dbName = dbName || 'cms_db' || 'cms_pressup' || 'postgres';
+  dbName = dbName || 'spa_cms_db' || 'cms_pressup' || 'postgres';
   const dbUser = process.env.DB_USER || 'postgres';
 
   // Build connection string

@@ -12,9 +12,9 @@
 
   DB_HOST=localhost
   DB_PORT=5432
-  DB_NAME=cms_db
-  DB_USER=cms_user
-  DB_PASSWORD=cms_password
+  DB_NAME=spa_cms_db
+  DB_USER=spa_cms_user
+  DB_PASSWORD=spa_cms_password
 
   JWT_SECRET=điền_chuỗi_bảo_mật
   SESSION_SECRET=điền_chuỗi_bảo_mật

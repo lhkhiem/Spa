@@ -53,7 +53,7 @@ export const API_ENDPOINTS = {
   ORDERS: {
     LIST: '/public/orders',
     DETAIL: (orderId: string) => `/public/orders/${orderId}`,
-    CREATE: '/public/orders',
+    CREATE: '/orders', // Public route - create order (no auth required)
     CANCEL: (orderId: string) => `/public/orders/${orderId}/cancel`,
   },
 

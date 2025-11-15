@@ -16,17 +16,45 @@ const numericOrderFields = [
 
 const normalizeOrderRow = (order: any) => {
   if (!order) return;
+  
+  // Normalize numeric fields
   numericOrderFields.forEach((field) => {
     if (order[field] !== undefined && order[field] !== null) {
       order[field] = Number(order[field]);
     }
   });
+  
+  // Normalize status fields
   if (order.payment_status) {
     order.payment_status = String(order.payment_status);
   }
   if (order.status) {
     order.status = String(order.status);
   }
+  
+  // Parse JSONB fields if they're strings
+  if (order.shipping_address) {
+    if (typeof order.shipping_address === 'string') {
+      try {
+        order.shipping_address = JSON.parse(order.shipping_address);
+      } catch (error) {
+        // keep original string if parse fails
+        console.warn('[normalizeOrderRow] Failed to parse shipping_address:', error);
+      }
+    }
+  }
+  
+  if (order.billing_address) {
+    if (typeof order.billing_address === 'string') {
+      try {
+        order.billing_address = JSON.parse(order.billing_address);
+      } catch (error) {
+        // keep original string if parse fails
+        console.warn('[normalizeOrderRow] Failed to parse billing_address:', error);
+      }
+    }
+  }
+  
   return order;
 };
 
@@ -121,7 +149,16 @@ export const getOrders = async (req: Request, res: Response) => {
     // Get items for each order
     for (const order of orders) {
       const itemsQuery = `
-        SELECT * FROM order_items
+        SELECT 
+          id,
+          product_id,
+          product_name,
+          product_sku as sku,
+          quantity,
+          unit_price,
+          total_price,
+          variant_info
+        FROM order_items
         WHERE order_id = :order_id
         ORDER BY created_at ASC
       `;
@@ -169,7 +206,16 @@ export const getOrderById = async (req: Request, res: Response) => {
 
     // Get order items
     const itemsQuery = `
-      SELECT * FROM order_items
+      SELECT 
+        id,
+        product_id,
+        product_name,
+        product_sku as sku,
+        quantity,
+        unit_price,
+        total_price,
+        variant_info
+      FROM order_items
       WHERE order_id = :order_id
       ORDER BY created_at ASC
     `;
@@ -209,7 +255,16 @@ export const getOrderByNumber = async (req: Request, res: Response) => {
 
     // Get order items
     const itemsQuery = `
-      SELECT * FROM order_items
+      SELECT 
+        id,
+        product_id,
+        product_name,
+        product_sku as sku,
+        quantity,
+        unit_price,
+        total_price,
+        variant_info
+      FROM order_items
       WHERE order_id = :order_id
       ORDER BY created_at ASC
     `;
@@ -235,6 +290,7 @@ export const createOrder = async (req: Request, res: Response) => {
       customer_id,
       customer_email,
       customer_name,
+      customer_phone, // Required for phone-based order lookup
       shipping_address,
       billing_address,
       shipping_method,
@@ -244,8 +300,8 @@ export const createOrder = async (req: Request, res: Response) => {
     } = req.body;
 
     // Validation
-    if (!customer_email || !customer_name || !shipping_address || !billing_address || !payment_method) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!customer_email || !customer_name || !customer_phone || !shipping_address || !billing_address || !payment_method) {
+      return res.status(400).json({ error: 'Missing required fields: customer_email, customer_name, customer_phone, shipping_address, billing_address, payment_method' });
     }
 
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -299,17 +355,21 @@ export const createOrder = async (req: Request, res: Response) => {
 
       const total = subtotal + taxAmount + shippingCost;
 
+      // customer_phone is required and provided separately (not in shipping_address)
+      // Use customer_phone directly
+      const phoneNumber = customer_phone;
+
       // Create order
       const orderQuery = `
         INSERT INTO orders (
-          id, order_number, customer_id, customer_email, customer_name,
+          id, order_number, customer_id, customer_email, customer_name, customer_phone,
           shipping_address, billing_address,
           subtotal, tax_amount, shipping_cost, discount_amount, total,
           shipping_method, payment_method, payment_status, status, notes,
           created_at, updated_at
         )
         VALUES (
-          :id, :order_number, :customer_id, :customer_email, :customer_name,
+          :id, :order_number, :customer_id, :customer_email, :customer_name, :customer_phone,
           :shipping_address::jsonb, :billing_address::jsonb,
           :subtotal, :tax_amount, :shipping_cost, :discount_amount, :total,
           :shipping_method, :payment_method, 'pending', 'pending', :notes,
@@ -324,6 +384,7 @@ export const createOrder = async (req: Request, res: Response) => {
           customer_id: customer_id || null,
           customer_email,
           customer_name,
+          customer_phone: phoneNumber,
           shipping_address: JSON.stringify(shipping_address),
           billing_address: JSON.stringify(billing_address),
           subtotal,
@@ -448,6 +509,146 @@ export const createOrder = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Failed to create order:', error);
     res.status(500).json({ error: error.message || 'Failed to create order' });
+  }
+};
+
+// Get orders by phone number (public endpoint for order lookup)
+export const getOrdersByPhone = async (req: Request, res: Response) => {
+  try {
+    const { phone } = req.params;
+    
+    console.log('[getOrdersByPhone] Called with phone:', phone);
+
+    if (!phone) {
+      console.log('[getOrdersByPhone] Phone is missing');
+      return res.status(400).json({ 
+        success: false,
+        error: 'Vui lòng nhập số điện thoại',
+        message: 'Vui lòng nhập số điện thoại để tra cứu đơn hàng'
+      });
+    }
+
+    // Normalize phone number (remove spaces, dashes, parentheses) - căn cứ vào customer_phone
+    const normalizedPhone = phone.replace(/[\s\-\(\)]/g, '');
+
+    // Simple query - căn cứ vào customer_phone với exact match và LIKE
+    const orderQuery = `
+      SELECT 
+        o.id,
+        o.order_number,
+        o.customer_name,
+        o.customer_email,
+        o.customer_phone,
+        o.subtotal,
+        o.tax_amount,
+        o.shipping_cost,
+        o.discount_amount,
+        o.total,
+        o.status,
+        o.payment_status,
+        o.payment_method,
+        o.tracking_number,
+        o.shipping_address,
+        o.created_at,
+        o.shipped_at,
+        o.delivered_at
+      FROM orders o
+      WHERE o.customer_phone IS NOT NULL
+        AND (
+          o.customer_phone = :phone 
+          OR o.customer_phone LIKE :phone_like
+        )
+      ORDER BY o.created_at DESC
+      LIMIT 50
+    `;
+    
+    console.log('[getOrdersByPhone] Querying with phone:', phone, 'normalized:', normalizedPhone);
+    
+    const orders: any = await sequelize.query(orderQuery, {
+      replacements: { 
+        phone,
+        phone_like: `%${normalizedPhone}%`
+      },
+      type: QueryTypes.SELECT
+    });
+    
+    // Filter by normalized phone in code (more reliable than SQL REPLACE)
+    const filteredOrders = orders.filter((order: any) => {
+      if (!order.customer_phone) return false;
+      const orderPhoneNormalized = order.customer_phone.replace(/[\s\-\(\)]/g, '');
+      return order.customer_phone === phone || orderPhoneNormalized === normalizedPhone;
+    });
+
+    console.log('[getOrdersByPhone] Found orders before filter:', orders?.length || 0);
+    console.log('[getOrdersByPhone] Found orders after filter:', filteredOrders?.length || 0);
+
+    if (!filteredOrders || filteredOrders.length === 0) {
+      console.log('[getOrdersByPhone] No orders found for phone:', phone);
+      return res.status(404).json({ 
+        success: false,
+        message: 'Không tìm thấy đơn hàng nào với số điện thoại này',
+        error: 'Không tìm thấy đơn hàng nào với số điện thoại này'
+      });
+    }
+
+    // Get items for each order
+    for (const order of filteredOrders) {
+      try {
+        // Normalize order row first (before adding items)
+        normalizeOrderRow(order);
+        
+        const itemsQuery = `
+          SELECT 
+            oi.id,
+            oi.product_id,
+            oi.product_name,
+            oi.product_sku as sku,
+            oi.quantity,
+            oi.unit_price,
+            oi.total_price,
+            oi.variant_info
+          FROM order_items oi
+          WHERE oi.order_id = :order_id
+          ORDER BY oi.created_at ASC
+        `;
+        const items: any = await sequelize.query(itemsQuery, {
+          replacements: { order_id: order.id },
+          type: QueryTypes.SELECT
+        });
+        order.items = items.map((item: any) => normalizeOrderItem(item));
+      } catch (itemError: any) {
+        console.error(`[getOrdersByPhone] Error processing items for order ${order.id}:`, itemError);
+        console.error(`[getOrdersByPhone] Item error message:`, itemError?.message);
+        console.error(`[getOrdersByPhone] Item error stack:`, itemError?.stack);
+        
+        // Still normalize order even if items fail
+        try {
+          normalizeOrderRow(order);
+        } catch (normalizeError: any) {
+          console.error(`[getOrdersByPhone] Error normalizing order ${order.id}:`, normalizeError);
+        }
+        
+        order.items = []; // Set empty items if error
+      }
+    }
+
+    res.json({
+      success: true,
+      data: filteredOrders,
+      count: filteredOrders.length
+    });
+  } catch (error: any) {
+    console.error('[getOrdersByPhone] Error:', error);
+    console.error('[getOrdersByPhone] Error message:', error?.message);
+    console.error('[getOrdersByPhone] Error stack:', error?.stack);
+    
+    // Return detailed error for debugging
+    res.status(500).json({ 
+      success: false,
+      error: 'Lỗi khi tìm kiếm đơn hàng',
+      message: 'Đã xảy ra lỗi khi tra cứu đơn hàng. Vui lòng thử lại sau.',
+      details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+    });
   }
 };
 

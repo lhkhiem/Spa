@@ -11,9 +11,9 @@ dotenv.config();
 const sequelize = new Sequelize({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
-  username: process.env.DB_USER || 'cms_user',
-  password: process.env.DB_PASSWORD || 'cms_password',
-  database: process.env.DB_NAME || 'cms_db',
+  username: process.env.DB_USER || 'spa_cms_user',
+  password: process.env.DB_PASSWORD || 'spa_cms_password',
+  database: process.env.DB_NAME || 'spa_cms_db',
   dialect: 'postgres',
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
 });

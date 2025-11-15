@@ -115,10 +115,10 @@ To activate the Product Management module:
 cd backend
 
 # Set environment variable (Windows PowerShell)
-$env:PGPASSWORD="cms_password"
+$env:PGPASSWORD="spa_cms_password"
 
 # Run migration
-psql -h localhost -U cms_user -d cms_db -f "src/migrations/002_products_schema.sql"
+psql -h localhost -U spa_cms_user -d spa_cms_db -f "src/migrations/002_products_schema.sql"
 
 # OR if using npm script (add to package.json)
 npm run migrate:products

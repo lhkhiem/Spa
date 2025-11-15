@@ -9,8 +9,8 @@ if (!dbName && process.env.DATABASE_URL) {
   const urlParts = process.env.DATABASE_URL.split('/');
   dbName = urlParts[urlParts.length - 1]?.split('?')[0];
 }
-dbName = dbName || 'cms_db' || 'cms_pressup' || 'postgres';
-const dbUser = process.env.DB_USER || 'cms_user';
+dbName = dbName || 'spa_cms_db' || 'cms_pressup' || 'postgres';
+const dbUser = process.env.DB_USER || 'spa_cms_user';
 
 const connectionString = process.env.DATABASE_URL || `postgresql://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}`;
 

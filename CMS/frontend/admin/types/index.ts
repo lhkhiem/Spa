@@ -219,6 +219,7 @@ export interface Order {
   customer_id?: string | null;
   customer_email: string;
   customer_name: string;
+  customer_phone?: string; // Phone number for order lookup
   shipping_address: any; // JSONB
   billing_address: any; // JSONB
   subtotal: number;

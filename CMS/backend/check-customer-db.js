@@ -5,9 +5,9 @@ require('dotenv').config();
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'cms_db',
-  user: process.env.DB_USER || 'cms_user',
-  password: process.env.DB_PASSWORD || 'cms_password',
+  database: process.env.DB_NAME || 'spa_cms_db',
+  user: process.env.DB_USER || 'spa_cms_user',
+  password: process.env.DB_PASSWORD || 'spa_cms_password',
 });
 
 async function checkDatabase() {

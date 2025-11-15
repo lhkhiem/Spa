@@ -28,8 +28,8 @@ NODE_ENV=production
 # Database
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=cms_db
-DB_USER=cms_user
+DB_NAME=spa_cms_db
+DB_USER=spa_cms_user
 DB_PASSWORD=your_secure_password
 
 # CORS Origins

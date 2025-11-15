@@ -4,20 +4,17 @@ const path = require('path');
 require('dotenv').config();
 
 async function runMigration() {
-  // Get database connection from env or use provided password
-  const dbPassword = process.env.DB_PASSWORD || 'lhkhiem1990';
+  const dbPassword = process.env.DB_PASSWORD || 'spa_cms_password';
   const dbHost = process.env.DB_HOST || 'localhost';
   const dbPort = process.env.DB_PORT || 5432;
-  // Try to get database name from DATABASE_URL or use common names
   let dbName = process.env.DB_NAME;
   if (!dbName && process.env.DATABASE_URL) {
     const urlParts = process.env.DATABASE_URL.split('/');
     dbName = urlParts[urlParts.length - 1]?.split('?')[0];
   }
-  dbName = dbName || 'spa_cms_db' || 'cms_pressup' || 'postgres';
-  const dbUser = process.env.DB_USER || 'postgres';
+  dbName = dbName || 'spa_cms_db';
+  const dbUser = process.env.DB_USER || 'spa_cms_user';
 
-  // Build connection string
   const connectionString = process.env.DATABASE_URL || `postgresql://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}`;
 
   const client = new Client({
@@ -28,23 +25,23 @@ async function runMigration() {
     await client.connect();
     console.log('✅ Connected to database');
 
-    // Read migration file
-    const migrationPath = path.join(__dirname, 'src/migrations/032_education_resources_topics_tags.sql');
+    const migrationPath = path.join(__dirname, 'src/migrations/033_remove_product_groups.sql');
     if (!fs.existsSync(migrationPath)) {
       throw new Error(`Migration file not found: ${migrationPath}`);
     }
     const sql = fs.readFileSync(migrationPath, 'utf8');
 
-    console.log('📄 Running migration: 032_education_resources_topics_tags.sql');
+    console.log('📄 Running migration: 033_remove_product_groups.sql');
+    console.log('   This will convert group-based structure to direct product-category relationships\n');
     
-    // Run migration
     await client.query(sql);
     
     console.log('✅ Migration completed successfully!');
-    console.log('📋 Created junction tables:');
-    console.log('   - education_resource_topics');
-    console.log('   - education_resource_tags');
-    console.log('   - Added indexes for better performance');
+    console.log('📋 Changes made:');
+    console.log('   - Added product_id column to product_product_categories');
+    console.log('   - Migrated data from group_id to product_id');
+    console.log('   - Removed group_id column from product_product_categories');
+    console.log('   - Added indexes and constraints');
 
   } catch (error) {
     console.error('❌ Migration failed:', error.message);

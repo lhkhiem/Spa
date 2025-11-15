@@ -9,6 +9,7 @@ export interface Order {
   customer_id?: string | null;
   customer_email: string;
   customer_name: string;
+  customer_phone: string; // Required for phone-based order lookup
   shipping_address: any; // JSONB
   billing_address: any; // JSONB
   subtotal: number;
@@ -38,6 +39,7 @@ export interface CreateOrderDTO {
   customer_id?: string;
   customer_email: string;
   customer_name: string;
+  customer_phone: string; // Required for phone-based order lookup
   shipping_address: any;
   billing_address: any;
   shipping_method?: string;

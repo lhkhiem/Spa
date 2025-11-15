@@ -374,7 +374,7 @@ Migration đã chạy thành công:
 Nếu có vấn đề, check:
 1. Backend logs: `backend/` terminal
 2. Frontend console: Browser DevTools
-3. Database: `psql -U cms_user -d cms_db`
+3. Database: `psql -U spa_cms_user -d spa_cms_db`
 4. API endpoints: http://localhost:3011/api/menu-locations
 
 Enjoy your new Menu Management System! 🚀

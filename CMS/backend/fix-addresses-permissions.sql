@@ -1,5 +1,5 @@
 -- Fix permissions for addresses table
--- Run this as postgres superuser: psql -U postgres -d cms_db -f fix-addresses-permissions.sql
+-- Run this as postgres superuser: psql -U postgres -d spa_cms_db -f fix-addresses-permissions.sql
 
 -- Grant permissions on addresses table to PUBLIC (all users)
 GRANT ALL PRIVILEGES ON TABLE addresses TO PUBLIC;
@@ -16,10 +16,10 @@ BEGIN
         RAISE NOTICE 'Granted permissions to postgres user';
     END IF;
     
-    -- Grant to cms_user if exists
-    IF EXISTS (SELECT FROM pg_user WHERE usename = 'cms_user') THEN
-        GRANT ALL PRIVILEGES ON TABLE addresses TO cms_user;
-        RAISE NOTICE 'Granted permissions to cms_user';
+    -- Grant to spa_cms_user if exists
+    IF EXISTS (SELECT FROM pg_user WHERE usename = 'spa_cms_user') THEN
+        GRANT ALL PRIVILEGES ON TABLE addresses TO spa_cms_user;
+        RAISE NOTICE 'Granted permissions to spa_cms_user';
     END IF;
 END $$;
 

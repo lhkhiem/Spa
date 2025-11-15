@@ -19,10 +19,10 @@ import {
   Tag,
   PackageOpen,
   Menu,
-  ShoppingCart,
-  Receipt,
-  Heart,
-  Star,
+  // ShoppingCart, // Disabled: Customer cart management not needed
+  Receipt, // Orders for admin management
+  // Heart, // Disabled: Customer wishlist management not needed
+  // Star, // Disabled: Customer review management not needed
   Code,
   Sparkles,
   MessageSquareQuote,
@@ -95,6 +95,7 @@ const navigation = [
       },
     ],
   },
+  // E-Commerce section - Only Orders (admin management, not customer management)
   {
     title: 'E-Commerce',
     items: [
@@ -103,21 +104,22 @@ const navigation = [
         href: '/dashboard/orders',
         icon: Receipt,
       },
-      {
-        title: 'Shopping Cart',
-        href: '/dashboard/cart',
-        icon: ShoppingCart,
-      },
-      {
-        title: 'Wishlists',
-        href: '/dashboard/wishlist',
-        icon: Heart,
-      },
-      {
-        title: 'Reviews',
-        href: '/dashboard/reviews',
-        icon: Star,
-      },
+      // Disabled: Customer management features not needed
+      // {
+      //   title: 'Shopping Cart',
+      //   href: '/dashboard/cart',
+      //   icon: ShoppingCart,
+      // },
+      // {
+      //   title: 'Wishlists',
+      //   href: '/dashboard/wishlist',
+      //   icon: Heart,
+      // },
+      // {
+      //   title: 'Reviews',
+      //   href: '/dashboard/reviews',
+      //   icon: Star,
+      // },
     ],
   },
   {

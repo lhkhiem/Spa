@@ -27,6 +27,7 @@ export interface CreateOrderPayload {
   customer_id?: string | null;
   customer_email: string;
   customer_name: string;
+  customer_phone: string; // Required for phone-based order lookup
   shipping_address: OrderAddressPayload;
   billing_address: OrderAddressPayload;
   shipping_method: 'standard' | 'express' | string;
@@ -165,8 +166,13 @@ export const fetchOrder = async (orderId: string): Promise<Order> => {
  * Create a new order
  */
 export const createOrder = async (payload: CreateOrderPayload): Promise<Order> => {
-  const response = await apiClient.post<OrderResponse>(API_ENDPOINTS.ORDERS.CREATE, payload);
-  return response.data.data;
+  const response = await apiClient.post<OrderDTO | OrderResponse>(API_ENDPOINTS.ORDERS.CREATE, payload);
+  
+  // Backend returns OrderDTO directly (not wrapped in { data: ... })
+  // Handle both cases: direct OrderDTO or wrapped OrderResponse
+  const orderDTO: OrderDTO = 'data' in response.data ? response.data.data : response.data as OrderDTO;
+  
+  return mapOrderDTOToOrder(orderDTO);
 };
 
 /**

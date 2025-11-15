@@ -4,11 +4,16 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
-// Public routes - create order
+// Public routes - create order and lookup
+// IMPORTANT: Specific routes (/phone/:phone, /number/:order_number) must come before generic routes (/:id)
 router.post('/', orderController.createOrder);
 router.get('/number/:order_number', orderController.getOrderByNumber);
+router.get('/phone/:phone', (req, res, next) => {
+  console.log('[Orders Router] /phone/:phone route matched, phone:', req.params.phone);
+  next();
+}, orderController.getOrdersByPhone); // Lookup orders by phone number
 
-// Protected routes - require auth
+// Protected routes - require auth (admin only)
 router.get('/', authMiddleware, orderController.getOrders);
 router.get('/:id', authMiddleware, orderController.getOrderById);
 router.put('/:id', authMiddleware, orderController.updateOrder);

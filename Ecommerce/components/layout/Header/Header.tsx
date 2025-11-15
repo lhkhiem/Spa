@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX, FiChevronDown } from 'react-icons/fi';
+import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX, FiChevronDown, FiPackage } from 'react-icons/fi';
 import { useCartStore } from '@/lib/stores/cartStore';
 import { useAuthStore } from '@/lib/stores/authStore';
 import MegaMenu from './MegaMenu';
@@ -299,13 +299,13 @@ export default function Header() {
                 <FiSearch className="h-5 w-5" />
               </button>
 
-              {/* Account / Login */}
+              {/* Order Lookup by Phone */}
               <Link 
-                href={isAuthenticated && user ? "/account" : "/login"} 
+                href="/order-lookup" 
                 className="text-white hover:text-gray-200"
-                title={isAuthenticated && user ? "Tài khoản" : "Đăng nhập"}
+                title="Tra cứu đơn hàng"
               >
-                <FiUser className="h-5 w-5" />
+                <FiPackage className="h-5 w-5" />
               </Link>
 
               {/* Cart */}

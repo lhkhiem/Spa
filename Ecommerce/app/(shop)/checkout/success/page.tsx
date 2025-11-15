@@ -1,23 +1,42 @@
+'use client';
+
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/ui/Button/Button';
-import { FiCheckCircle, FiMail, FiPackage } from 'react-icons/fi';
+import { FiCheckCircle, FiMail, FiPackage, FiPhone } from 'react-icons/fi';
 
-export const metadata = {
-  title: 'Order Confirmed - Universal Companies',
-  description: 'Thank you for your order!',
-};
+function CheckoutSuccessContent() {
+  const searchParams = useSearchParams();
+  const [orderNumber, setOrderNumber] = useState<string>('');
+  const [orderData, setOrderData] = useState<any>(null);
 
-type CheckoutSuccessPageProps = {
-  searchParams?: {
-    orderNumber?: string;
-  };
-};
-
-export default function CheckoutSuccessPage({ searchParams }: CheckoutSuccessPageProps) {
-  const fallbackOrder = 'UC-' + Math.random().toString(36).substring(2, 9).toUpperCase();
-  const orderNumber = searchParams?.orderNumber
-    ? decodeURIComponent(searchParams.orderNumber)
-    : fallbackOrder;
+  useEffect(() => {
+    // Lấy order number từ URL params
+    const orderNum = searchParams?.get('orderNumber');
+    if (orderNum) {
+      setOrderNumber(decodeURIComponent(orderNum));
+    } else {
+      // Lấy order data từ sessionStorage nếu có
+      if (typeof window !== 'undefined') {
+        const lastOrder = sessionStorage.getItem('lastOrder');
+        if (lastOrder) {
+          try {
+            const order = JSON.parse(lastOrder);
+            setOrderData(order);
+            if (order.order_number) {
+              setOrderNumber(order.order_number);
+              return;
+            }
+          } catch (e) {
+            console.error('Failed to parse order data:', e);
+          }
+        }
+      }
+      // Fallback nếu không có order number
+      setOrderNumber('UC-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+    }
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-16">
@@ -28,18 +47,18 @@ export default function CheckoutSuccessPage({ searchParams }: CheckoutSuccessPag
             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
               <FiCheckCircle className="h-12 w-12 text-green-600" />
             </div>
-            <h1 className="mb-2 text-3xl font-bold text-gray-900">Order Confirmed!</h1>
+            <h1 className="mb-2 text-3xl font-bold text-gray-900">Đặt hàng thành công!</h1>
             <p className="text-lg text-gray-600">
-              Thank you for your purchase. Your order has been successfully placed.
+              Cảm ơn bạn đã mua sắm. Đơn hàng của bạn đã được đặt thành công.
             </p>
           </div>
 
           {/* Order Details */}
           <div className="mb-8 rounded-lg bg-white p-8 shadow-md">
             <div className="mb-6 border-b border-gray-200 pb-6">
-              <h2 className="mb-2 text-xl font-bold text-gray-900">Order Number</h2>
+              <h2 className="mb-2 text-xl font-bold text-gray-900">Mã đơn hàng</h2>
               <p className="text-2xl font-mono font-semibold text-brand-purple-600">
-                {orderNumber}
+                {orderNumber || 'Đang tải...'}
               </p>
             </div>
 
@@ -49,10 +68,9 @@ export default function CheckoutSuccessPage({ searchParams }: CheckoutSuccessPag
                   <FiMail className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Check your email</h3>
+                  <h3 className="font-semibold text-gray-900">Kiểm tra email</h3>
                   <p className="text-sm text-gray-600">
-                    We've sent a confirmation email with your order details and tracking
-                    information.
+                    Chúng tôi đã gửi email xác nhận với chi tiết đơn hàng và thông tin theo dõi.
                   </p>
                 </div>
               </div>
@@ -62,10 +80,22 @@ export default function CheckoutSuccessPage({ searchParams }: CheckoutSuccessPag
                   <FiPackage className="h-6 w-6 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Track your order</h3>
+                  <h3 className="font-semibold text-gray-900">Tra cứu đơn hàng</h3>
                   <p className="text-sm text-gray-600">
-                    You can track your order status in your account dashboard or through the link
-                    in your confirmation email.
+                    Bạn có thể tra cứu trạng thái đơn hàng bằng số điện thoại đã sử dụng khi đặt hàng 
+                    hoặc qua link trong email xác nhận.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100">
+                  <FiPhone className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">Sử dụng số điện thoại</h3>
+                  <p className="text-sm text-gray-600">
+                    Nhập số điện thoại bạn đã sử dụng khi đặt hàng để xem chi tiết và trạng thái đơn hàng.
                   </p>
                 </div>
               </div>
@@ -74,14 +104,14 @@ export default function CheckoutSuccessPage({ searchParams }: CheckoutSuccessPag
 
           {/* What's Next */}
           <div className="mb-8 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 p-8">
-            <h2 className="mb-4 text-xl font-bold text-gray-900">What happens next?</h2>
+            <h2 className="mb-4 text-xl font-bold text-gray-900">Tiếp theo sẽ như thế nào?</h2>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-purple-600 text-xs text-white">
                   1
                 </span>
                 <p className="text-gray-700">
-                  We'll process your order and prepare it for shipping
+                  Chúng tôi sẽ xử lý đơn hàng và chuẩn bị giao hàng
                 </p>
               </li>
               <li className="flex items-start gap-3">
@@ -89,7 +119,7 @@ export default function CheckoutSuccessPage({ searchParams }: CheckoutSuccessPag
                   2
                 </span>
                 <p className="text-gray-700">
-                  You'll receive a shipping confirmation email with tracking details
+                  Bạn sẽ nhận được email xác nhận giao hàng với thông tin theo dõi
                 </p>
               </li>
               <li className="flex items-start gap-3">
@@ -97,7 +127,7 @@ export default function CheckoutSuccessPage({ searchParams }: CheckoutSuccessPag
                   3
                 </span>
                 <p className="text-gray-700">
-                  Your order will arrive within 5-7 business days (or 2-3 for express shipping)
+                  Đơn hàng sẽ được giao trong vòng 5-7 ngày làm việc (hoặc 2-3 ngày với giao hàng nhanh)
                 </p>
               </li>
             </ul>
@@ -105,27 +135,44 @@ export default function CheckoutSuccessPage({ searchParams }: CheckoutSuccessPag
 
           {/* Actions */}
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Link href="/account" className="flex-1">
+            <Link href="/order-lookup" className="flex-1">
               <Button variant="outline" fullWidth>
-                View Order Status
+                Tra cứu đơn hàng
               </Button>
             </Link>
             <Link href="/products" className="flex-1">
-              <Button fullWidth>Continue Shopping</Button>
+              <Button fullWidth>Tiếp tục mua sắm</Button>
             </Link>
           </div>
 
           {/* Support */}
           <div className="mt-8 text-center text-sm text-gray-600">
             <p>
-              Need help?{' '}
+              Cần hỗ trợ?{' '}
               <Link href="/contact" className="text-brand-purple-600 hover:underline">
-                Contact our support team
+                Liên hệ đội ngũ hỗ trợ
               </Link>
             </p>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 py-16">
+        <div className="container-custom">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="mb-4 text-5xl animate-pulse">📦</div>
+            <h1 className="text-xl font-semibold text-gray-900">Đang tải...</h1>
+          </div>
+        </div>
+      </div>
+    }>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }

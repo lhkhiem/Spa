@@ -119,7 +119,14 @@ export default function OrderDetailPage() {
       const response = await axios.get(buildApiUrl(`/api/orders/${id}`), {
         withCredentials: true,
       });
-      setOrder(normalizeOrder(response.data));
+      const normalized = normalizeOrder(response.data);
+      // Debug: Check if customer_phone is present
+      console.log('Order data:', {
+        customer_phone: normalized.customer_phone,
+        customer_email: normalized.customer_email,
+        customer_name: normalized.customer_name,
+      });
+      setOrder(normalized);
     } catch (err: any) {
       console.error('Failed to fetch order detail:', err);
       const message =
@@ -291,22 +298,85 @@ export default function OrderDetailPage() {
                 <span>Subtotal</span>
                 <span>{toCurrency(order.subtotal)}</span>
               </div>
+              {order.discount_amount > 0 && (
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span>Discount</span>
+                  <span className="text-red-600">-{toCurrency(order.discount_amount)}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between text-muted-foreground">
                 <span>Shipping</span>
-                <span>{toCurrency(order.shipping_cost)}</span>
+                <span>{order.shipping_cost === 0 ? 'Free' : toCurrency(order.shipping_cost)}</span>
               </div>
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span>Tax</span>
-                <span>{toCurrency(order.tax_amount)}</span>
-              </div>
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span>Discount</span>
-                <span>-{toCurrency(order.discount_amount)}</span>
-              </div>
-              <div className="mt-3 flex items-center justify-between text-base font-semibold text-card-foreground">
+              {order.tax_amount > 0 && (
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span>Tax</span>
+                  <span>{toCurrency(order.tax_amount)}</span>
+                </div>
+              )}
+              <div className="mt-3 flex items-center justify-between text-base font-semibold text-card-foreground border-t border-border pt-3">
                 <span>Total</span>
                 <span>{toCurrency(order.total)}</span>
               </div>
+            </div>
+          </div>
+
+          {/* Payment & Shipping Details */}
+          <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-card-foreground">
+              Payment & Shipping Details
+            </h2>
+            <div className="space-y-3 text-sm">
+              <div>
+                <span className="text-muted-foreground">Payment Status:</span>
+                <div className="mt-1">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    order.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
+                    order.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    order.payment_status === 'failed' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {order.payment_status === 'paid' ? 'Đã thanh toán' :
+                     order.payment_status === 'pending' ? 'Chờ thanh toán' :
+                     order.payment_status === 'failed' ? 'Thanh toán thất bại' :
+                     order.payment_status === 'refunded' ? 'Đã hoàn tiền' :
+                     order.payment_status}
+                  </span>
+                </div>
+              </div>
+              {order.payment_method && (
+                <div>
+                  <span className="text-muted-foreground">Payment Method:</span>
+                  <p className="mt-1 font-medium text-foreground">
+                    {order.payment_method === 'cod' ? 'Ship COD (Thanh toán khi nhận hàng)' :
+                     order.payment_method === 'zalopay' ? 'ZaloPay (Thanh toán trực tuyến)' :
+                     order.payment_method === 'card' ? 'Thẻ tín dụng/Ghi nợ' :
+                     order.payment_method}
+                  </p>
+                </div>
+              )}
+              {order.shipping_method && (
+                <div>
+                  <span className="text-muted-foreground">Shipping Method:</span>
+                  <p className="mt-1 font-medium text-foreground">
+                    {order.shipping_method === 'standard' ? 'Giao hàng tiêu chuẩn (5-7 ngày)' :
+                     order.shipping_method === 'express' ? 'Giao hàng nhanh (2-3 ngày)' :
+                     order.shipping_method}
+                  </p>
+                </div>
+              )}
+              <div>
+                <span className="text-muted-foreground">Shipping Cost:</span>
+                <p className="mt-1 font-medium text-foreground">
+                  {order.shipping_cost === 0 ? 'Miễn phí' : toCurrency(order.shipping_cost)}
+                </p>
+              </div>
+              {order.tracking_number && (
+                <div>
+                  <span className="text-muted-foreground">Tracking Number:</span>
+                  <p className="mt-1 font-medium text-foreground">{order.tracking_number}</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -321,15 +391,60 @@ export default function OrderDetailPage() {
               <div className="text-muted-foreground">
                 {order.customer_email}
               </div>
+              <div className="text-muted-foreground">
+                {order.customer_phone || '—'}
+              </div>
             </div>
-            <div className="space-y-1 text-xs text-muted-foreground">
-              <div>Status: {order.status}</div>
-              <div>Payment: {order.payment_status}</div>
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Status:</span>
+                <span className="font-medium text-foreground capitalize">{order.status}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Payment Status:</span>
+                <span className={`font-medium capitalize ${
+                  order.payment_status === 'paid' ? 'text-green-600' :
+                  order.payment_status === 'pending' ? 'text-yellow-600' :
+                  order.payment_status === 'failed' ? 'text-red-600' :
+                  'text-muted-foreground'
+                }`}>
+                  {order.payment_status}
+                </span>
+              </div>
               {order.payment_method && (
-                <div>Payment method: {order.payment_method}</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Payment Method:</span>
+                  <span className="font-medium text-foreground">
+                    {order.payment_method === 'cod' ? 'Ship COD (Thanh toán khi nhận hàng)' :
+                     order.payment_method === 'zalopay' ? 'ZaloPay (Thanh toán trực tuyến)' :
+                     order.payment_method === 'card' ? 'Thẻ tín dụng/Ghi nợ' :
+                     order.payment_method}
+                  </span>
+                </div>
+              )}
+              {order.shipping_method && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Shipping Method:</span>
+                  <span className="font-medium text-foreground">
+                    {order.shipping_method === 'standard' ? 'Giao hàng tiêu chuẩn (5-7 ngày)' :
+                     order.shipping_method === 'express' ? 'Giao hàng nhanh (2-3 ngày)' :
+                     order.shipping_method}
+                  </span>
+                </div>
+              )}
+              {order.shipping_cost !== undefined && order.shipping_cost !== null && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Shipping Cost:</span>
+                  <span className="font-medium text-foreground">
+                    {order.shipping_cost === 0 ? 'Miễn phí' : toCurrency(order.shipping_cost)}
+                  </span>
+                </div>
               )}
               {order.tracking_number && (
-                <div>Tracking number: {order.tracking_number}</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Tracking Number:</span>
+                  <span className="font-medium text-foreground">{order.tracking_number}</span>
+                </div>
               )}
             </div>
           </div>

@@ -1,0 +1,434 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { Save, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import axios from 'axios';
+import MediaPicker from '@/components/MediaPicker';
+import RichTextEditor from '@/components/RichTextEditor';
+import { buildApiUrl } from '@/lib/api';
+
+export default function ProductFormPage() {
+  const router = useRouter();
+  const params = useParams();
+  const isEdit = !!params?.id;
+
+  const [formData, setFormData] = useState({
+    name: '',
+    slug: '',
+    description: '',
+    sku: '',
+    price: '',
+    compare_price: '',
+    stock: '0',
+    status: 'draft',
+    category_id: '',
+    brand_id: '',
+    is_featured: false,
+    is_best_seller: false
+  });
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [thumbnailId, setThumbnailId] = useState<string>('');
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchCategories();
+    fetchBrands();
+    if (isEdit && params.id) {
+      fetchProduct();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id, isEdit]);
+
+  const fetchCategories = async () => {
+    try {
+      const response: any = await axios.get(buildApiUrl('/api/product-categories'), {
+        withCredentials: true
+      });
+      setCategories(response.data?.data || []);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+
+  const fetchBrands = async () => {
+    try {
+      const response: any = await axios.get(buildApiUrl('/api/brands'), {
+        withCredentials: true
+      });
+      setBrands(response.data?.data || []);
+    } catch (error) {
+      console.error('Failed to fetch brands:', error);
+    }
+  };
+
+  const fetchProduct = async () => {
+    try {
+      const response: any = await axios.get(buildApiUrl(`/api/products/${params.id}`), {
+        withCredentials: true
+      });
+      const product = response.data;
+      
+      console.log('Loaded product data:', product);
+      
+      setFormData({
+        name: product.name || '',
+        slug: product.slug || '',
+        description: product.description || '',
+        sku: product.sku || '',
+        price: product.price?.toString() || '',
+        compare_price: product.compare_price?.toString() || '',
+        stock: product.stock?.toString() || '0',
+        status: product.status || 'draft',
+        category_id: product.category_id || '',
+        brand_id: product.brand_id || '',
+        is_featured: Boolean(product.is_featured),
+        is_best_seller: Boolean(product.is_best_seller)
+      });
+      
+      // Load selected categories from n-n relationship
+      if (product.categories && Array.isArray(product.categories)) {
+        setSelectedCategories(product.categories.map((cat: any) => cat.id));
+      } else {
+        setSelectedCategories([]);
+      }
+      
+      // Load thumbnail
+      if (product.thumbnail_id) {
+        setThumbnailId(product.thumbnail_id);
+      } else {
+        setThumbnailId('');
+      }
+      
+      // Load gallery images
+      if (product.images && Array.isArray(product.images)) {
+        setGalleryImages(product.images.map((img: any) => img.asset_id));
+      } else {
+        setGalleryImages([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch product:', error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const data = {
+        name: formData.name,
+        slug: formData.slug || null,
+        description: formData.description || null,
+        sku: formData.sku || null,
+        price: parseFloat(formData.price) || 0,
+        compare_price: formData.compare_price ? parseFloat(formData.compare_price) : null,
+        cost_price: null,
+        stock: parseInt(formData.stock) || 0,
+        status: formData.status,
+        category_id: formData.category_id || null,
+        brand_id: formData.brand_id || null,
+        thumbnail_id: thumbnailId || null,
+        is_featured: formData.is_featured,
+        is_best_seller: formData.is_best_seller,
+        categories: selectedCategories, // Add selected categories for n-n relationship
+        images: galleryImages // Add gallery images
+      };
+
+      if (isEdit) {
+        await axios.put(buildApiUrl(`/api/products/${params.id}`), data, {
+          withCredentials: true
+        });
+      } else {
+        await axios.post(buildApiUrl('/api/products'), data, {
+          withCredentials: true
+        });
+      }
+
+      router.push('/dashboard/products');
+    } catch (error: any) {
+      console.error('Failed to save product:', error);
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Failed to save product';
+      alert(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCategoryToggle = (categoryId: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">
+            {isEdit ? 'Edit Product' : 'Create Product'}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {isEdit ? 'Update product details' : 'Add a new product to your catalog'}
+          </p>
+        </div>
+        <Link
+          href="/dashboard/products"
+          className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Link>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-3">
+        {/* Main Column */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Basic Info */}
+          <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+            <h3 className="font-medium text-card-foreground">Basic Information</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Product Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Slug
+              </label>
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="auto-generated-from-name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Description
+              </label>
+              <RichTextEditor
+                key={`editor-${params.id}-${formData.description.substring(0, 20)}`}
+                value={formData.description}
+                onChange={(html) => setFormData({ ...formData, description: html })}
+                placeholder="Enter product description..."
+              />
+            </div>
+          </div>
+
+          {/* Media */}
+          <div className="rounded-lg border border-border bg-card p-6">
+            <h3 className="font-medium text-card-foreground mb-4">Media</h3>
+            
+            <div className="flex gap-6">
+              {/* Left: Thumbnail */}
+              <div className="flex-shrink-0">
+                <MediaPicker
+                  label="Thumbnail (Main Image)"
+                  value={thumbnailId}
+                  onChange={(value) => setThumbnailId(value as string)}
+                  multiple={false}
+                  previewSize={200}
+                />
+              </div>
+
+              {/* Right: Gallery */}
+              <div className="flex-1">
+                <MediaPicker
+                  label="Gallery Images"
+                  value={galleryImages}
+                  onChange={(value) => setGalleryImages(value as string[])}
+                  multiple={true}
+                  maxFiles={10}
+                  previewSize={100}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing */}
+          <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+            <h3 className="font-medium text-card-foreground">Pricing & Inventory</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Price *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Compare at Price
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.compare_price}
+                  onChange={(e) => setFormData({ ...formData, compare_price: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  SKU
+                </label>
+                <input
+                  type="text"
+                  value={formData.sku}
+                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  value={formData.stock}
+                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar Column */}
+        <div className="space-y-6">
+          {/* Status */}
+          <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+            <h3 className="font-medium text-card-foreground">Status</h3>
+            <select
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
+            </select>
+
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-foreground">
+                Merchandising
+              </label>
+
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={formData.is_featured}
+                  onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                  className="rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-0"
+                />
+                Featured product
+              </label>
+
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={formData.is_best_seller}
+                  onChange={(e) => setFormData({ ...formData, is_best_seller: e.target.checked })}
+                  className="rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-0"
+                />
+                Best seller
+              </label>
+            </div>
+          </div>
+
+          {/* Organization */}
+          <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+            <h3 className="font-medium text-card-foreground">Organization</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-3">
+                Categories
+              </label>
+              <div className="space-y-2 max-h-60 overflow-y-auto p-2 border border-input rounded-lg bg-background">
+                {categories.length === 0 ? (
+                  <p className="text-sm text-muted-foreground px-2 py-1">No categories available</p>
+                ) : (
+                  categories.map((cat) => (
+                    <label key={cat.id} className="flex items-center gap-2 px-2 py-1 hover:bg-accent rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(cat.id)}
+                        onChange={() => handleCategoryToggle(cat.id)}
+                        className="rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-0"
+                      />
+                      <span className="text-sm text-foreground">{cat.name}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+              {selectedCategories.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  {selectedCategories.length} {selectedCategories.length === 1 ? 'category' : 'categories'} selected
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Brand
+              </label>
+              <select
+                value={formData.brand_id}
+                onChange={(e) => setFormData({ ...formData, brand_id: e.target.value })}
+                className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">No brand</option>
+                {brands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>{brand.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="rounded-lg border border-border bg-card p-6">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              <Save className="h-4 w-4" />
+              {loading ? 'Saving...' : isEdit ? 'Update Product' : 'Create Product'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}

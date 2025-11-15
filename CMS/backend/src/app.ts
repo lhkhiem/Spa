@@ -1,0 +1,145 @@
+import express from 'express';
+import path from 'path';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import fs from 'fs/promises';
+import sequelize from './config/database';
+// Import models to initialize associations
+import './models';
+import authRoutes from './routes/auth';
+import postRoutes from './routes/posts';
+import topicRoutes from './routes/topics';
+import tagRoutes from './routes/tags';
+import productRoutes from './routes/products';
+import productCategoryRoutes from './routes/productCategories';
+import brandRoutes from './routes/brands';
+import assetRoutes from './routes/assets';
+import usersRoutes from './routes/users';
+import settingsRoutes from './routes/settings';
+import mediaRoutes from './routes/media';
+import healthRoutes from './routes/health';
+import menuLocationRoutes from './routes/menuLocations';
+import menuItemRoutes from './routes/menuItems';
+import cartRoutes from './routes/cart';
+import orderRoutes from './routes/orders';
+import wishlistRoutes from './routes/wishlist';
+import reviewRoutes from './routes/reviews';
+import trackingScriptRoutes from './routes/trackingScripts';
+import homepageRoutes from './routes/homepage';
+import sliderRoutes from './routes/sliders';
+import publicPostsRoutes from './routes/publicPosts';
+import publicHomepageRoutes from './routes/publicHomepage';
+import publicProductsRoutes from './routes/publicProducts';
+import publicAuthRoutes from './routes/publicAuth';
+import publicUserRoutes from './routes/publicUser';
+import publicOrdersRoutes from './routes/publicOrders';
+import publicCartRoutes from './routes/publicCart';
+
+dotenv.config();
+
+export const app = express();
+
+// Middleware
+// CORS with credentials to support cookie-based auth from Admin app and Website
+// CORS cấu hình cho cả Admin UI và Website khách
+const publicIp = process.env.PUBLIC_IP || '116.100.161.72';
+
+const allowedOrigins = [
+  process.env.ADMIN_ORIGIN || 'http://localhost:3013', // Giao diện admin
+  process.env.WEBSITE_ORIGIN || 'http://localhost:3010', // Website khách (nếu chạy qua reverse proxy)
+  `http://${publicIp}:3013`, // Admin qua IP public
+  `http://${publicIp}:3010`, // Website khách qua IP public
+  `http://${publicIp}:3000`, // Website Next.js dev qua IP public
+  `http://${publicIp}:3011`, // Truy cập trực tiếp API qua IP public
+  'http://localhost:3000', // Website khách khi chạy Next.js dev trên máy
+  'http://127.0.0.1:3000', // Dự phòng khi truy cập bằng 127.0.0.1
+  'http://127.0.0.1:3010',
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Request không có Origin (như Postman, server-to-server) → cho phép
+    if (!origin) {
+      return callback(null, true);
+    }
+    // Nếu origin nằm trong whitelist → cho phép
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Origin lạ → chặn và báo lỗi rõ ràng
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,
+}));
+app.use(express.json());
+app.use(cookieParser());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/topics', topicRoutes);
+app.use('/api/tags', tagRoutes);
+app.use('/api/product-categories', productCategoryRoutes);
+app.use('/api/brands', brandRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/assets', assetRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/media', mediaRoutes);
+app.use('/api/health', healthRoutes);
+app.use('/api/public/posts', publicPostsRoutes);
+app.use('/api/public/homepage', publicHomepageRoutes);
+app.use('/api/public/products', publicProductsRoutes);
+app.use('/api/public/auth', publicAuthRoutes);
+app.use('/api/public/user', publicUserRoutes);
+app.use('/api/public/orders', publicOrdersRoutes);
+app.use('/api/public/cart', publicCartRoutes);
+app.use('/api/menu-locations', menuLocationRoutes);
+app.use('/api/menu-items', menuItemRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/tracking-scripts', trackingScriptRoutes);
+app.use('/api/homepage', homepageRoutes);
+app.use('/api/sliders', sliderRoutes);
+
+// Ensure upload and temp dirs on boot and serve uploads
+(async () => {
+  try {
+    const uploadDir = process.env.UPLOAD_PATH || path.resolve(__dirname, '../storage/uploads');
+    const tempDir = path.resolve(__dirname, '../storage/temp');
+    await fs.mkdir(uploadDir, { recursive: true });
+    await fs.mkdir(tempDir, { recursive: true });
+    // Static: serve uploads from storage/uploads to keep public URL stable as /uploads
+    app.use('/uploads', express.static(uploadDir));
+    // Fallback to legacy uploads dir if file not found in storage
+    app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('Failed to ensure upload/temp dirs:', e);
+  }
+})();
+
+// Basic health root handled in healthRoutes
+
+export async function ready() {
+  await sequelize.authenticate();
+  // Ensure one owner exists
+  try {
+    const [owner] = await sequelize.query(`SELECT id FROM users WHERE role = 'owner' LIMIT 1`, { type: 'SELECT' as any });
+    if (!(owner as any)?.id) {
+      const first: any = await sequelize.query(`SELECT id FROM users ORDER BY created_at ASC LIMIT 1`, { type: 'SELECT' as any });
+      const id = (first as any[])[0]?.id;
+      if (id) {
+        await sequelize.query(`UPDATE users SET role = 'owner' WHERE id = :id`, { type: 'UPDATE' as any, replacements: { id } });
+        // eslint-disable-next-line no-console
+        console.log('Promoted earliest user to owner');
+      }
+    }
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('Owner bootstrap failed or skipped:', e);
+  }
+}

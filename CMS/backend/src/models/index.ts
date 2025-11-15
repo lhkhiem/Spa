@@ -1,0 +1,128 @@
+// Initialize all models and their associations
+import Post from './Post';
+import sequelize from '../config/database';
+import Asset from './Asset';
+import User from './User';
+import Topic from './Topic';
+import Tag from './Tag';
+import { Product, ProductGroup } from './Product';
+import { ProductCategory } from './ProductCategory';
+import { Brand } from './Brand';
+import AssetFolder from './AssetFolder';
+import MediaFolder from './MediaFolder';
+import MenuLocation from './MenuLocation';
+import MenuItem from './MenuItem';
+import EducationResource from './EducationResource';
+import Testimonial from './Testimonial';
+import ValueProp from './ValueProp';
+import { ProductOption } from './ProductOption';
+import Address from './Address';
+
+// Define all associations here
+// Define explicit through models (no timestamps) for many-to-many junctions
+const PostTopic = sequelize.define('post_topics', {}, { 
+  tableName: 'post_topics', 
+  timestamps: false,
+  createdAt: false,
+  updatedAt: false,
+});
+const PostTag = sequelize.define('post_tags', {}, { 
+  tableName: 'post_tags', 
+  timestamps: false,
+  createdAt: false,
+  updatedAt: false,
+});
+// Post associations
+Post.belongsTo(Asset, {
+  foreignKey: 'cover_asset_id',
+  as: 'cover_asset',
+});
+
+Post.belongsTo(User, {
+  foreignKey: 'author_id',
+  as: 'author',
+});
+
+// Many-to-many for Post-Topic and Post-Tag
+Post.belongsToMany(Topic, {
+  through: PostTopic,
+  foreignKey: 'post_id',
+  otherKey: 'topic_id',
+  as: 'topics',
+});
+
+Topic.belongsToMany(Post, {
+  through: PostTopic,
+  foreignKey: 'topic_id',
+  otherKey: 'post_id',
+  as: 'posts',
+});
+
+Post.belongsToMany(Tag, {
+  through: PostTag,
+  foreignKey: 'post_id',
+  otherKey: 'tag_id',
+  as: 'tags',
+});
+
+Tag.belongsToMany(Post, {
+  through: PostTag,
+  foreignKey: 'tag_id',
+  otherKey: 'post_id',
+  as: 'posts',
+});
+
+// Menu associations
+MenuLocation.hasMany(MenuItem, {
+  foreignKey: 'menu_location_id',
+  as: 'items',
+});
+
+MenuItem.belongsTo(MenuLocation, {
+  foreignKey: 'menu_location_id',
+  as: 'location',
+});
+
+MenuItem.hasMany(MenuItem, {
+  foreignKey: 'parent_id',
+  as: 'children',
+});
+
+MenuItem.belongsTo(MenuItem, {
+  foreignKey: 'parent_id',
+  as: 'parent',
+});
+
+// Address associations
+Address.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user',
+});
+
+User.hasMany(Address, {
+  foreignKey: 'user_id',
+  as: 'addresses',
+});
+
+// Export all models
+export {
+  Post,
+  Asset,
+  User,
+  Topic,
+  Tag,
+  Product,
+  ProductGroup,
+  ProductCategory,
+  Brand,
+  AssetFolder,
+  MediaFolder,
+  MenuLocation,
+  MenuItem,
+  EducationResource,
+  Testimonial,
+  ValueProp,
+  ProductOption,
+  Address,
+};
+

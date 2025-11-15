@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "admin": "file:../..",
+    "react-dropzone": "^14.3.8"
+  }
+}

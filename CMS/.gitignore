@@ -1,0 +1,41 @@
+.env
+.env.local
+backend/.env
+frontend/**/.env.local
+
+# Next.js artifacts
+**/.next/
+.turbo/
+.vercel/
+
+# Dependencies and builds
+node_modules/
+dist/
+**/dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archives
+cms-platform-mvp.tar.gz
+cms-platform-mvp-source.tar.gz
+*.tgz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime uploads/storage (keep placeholders only)
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/storage/temp/*
+!backend/storage/temp/.gitkeep
+
+# Editors
+.vscode/
+.idea/

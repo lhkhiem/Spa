@@ -1,6 +1,7 @@
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import Button from '@/components/ui/Button/Button';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
+import PageHero from '@/components/ui/PageHero/PageHero';
 import { FiMail, FiPhone, FiMapPin, FiClock } from 'react-icons/fi';
 
 export default function ContactPage() {
@@ -12,17 +13,11 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-900 to-purple-700 py-16 text-white">
-        <div className="container-custom">
-          <FadeInSection>
-            <h1 className="mb-4 text-4xl font-bold md:text-5xl">Contact Us</h1>
-            <p className="max-w-2xl text-lg text-purple-100">
-              We're here to help! Reach out to our team for product questions, order support, or
-              business consultations.
-            </p>
-          </FadeInSection>
-        </div>
-      </div>
+      <PageHero
+        title="Contact Us"
+        description="We're here to help! Reach out to our team for product questions, order support, or business consultations."
+        backgroundImage="https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1920&q=80"
+      />
 
       <div className="container-custom py-12">
         <Breadcrumb items={breadcrumbItems} className="mb-12" />
@@ -124,8 +119,8 @@ export default function ContactPage() {
                 <h3 className="mb-4 text-xl font-bold text-gray-900">Contact Information</h3>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-purple-100">
-                      <FiPhone className="h-5 w-5 text-brand-purple-600" />
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                      <FiPhone className="h-5 w-5 text-red-700" />
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">Phone</p>
@@ -135,8 +130,8 @@ export default function ContactPage() {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-purple-100">
-                      <FiMail className="h-5 w-5 text-brand-purple-600" />
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                      <FiMail className="h-5 w-5 text-red-700" />
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">Email</p>
@@ -146,8 +141,8 @@ export default function ContactPage() {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-purple-100">
-                      <FiMapPin className="h-5 w-5 text-brand-purple-600" />
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                      <FiMapPin className="h-5 w-5 text-red-700" />
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">Address</p>
@@ -162,8 +157,8 @@ export default function ContactPage() {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-purple-100">
-                      <FiClock className="h-5 w-5 text-brand-purple-600" />
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                      <FiClock className="h-5 w-5 text-red-700" />
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">Business Hours</p>
@@ -181,18 +176,21 @@ export default function ContactPage() {
             </FadeInSection>
 
             <FadeInSection delay={200}>
-              <div className="rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 p-6 text-white">
-                <h3 className="mb-3 text-xl font-bold">Need Immediate Help?</h3>
-                <p className="mb-4 text-purple-100">
-                  Check out our FAQ section for quick answers to common questions.
-                </p>
-                <Button
-                  href="/faqs"
-                  variant="outline"
-                  className="w-full border-white text-white hover:bg-white hover:text-purple-700"
-                >
-                  View FAQs
-                </Button>
+              <div className="relative rounded-2xl overflow-hidden p-6 text-white">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-500" />
+                <div className="relative z-10">
+                  <h3 className="mb-3 text-xl font-bold">Need Immediate Help?</h3>
+                  <p className="mb-4 text-red-50">
+                    Check out our FAQ section for quick answers to common questions.
+                  </p>
+                  <Button
+                    href="/faqs"
+                    variant="outline"
+                    className="w-full border-white text-white hover:bg-white hover:text-red-700"
+                  >
+                    View FAQs
+                  </Button>
+                </div>
               </div>
             </FadeInSection>
           </div>

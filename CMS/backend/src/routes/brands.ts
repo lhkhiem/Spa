@@ -3,6 +3,7 @@ import { authMiddleware } from '../middleware/auth';
 import {
   getBrands,
   getBrandById,
+  getBrandBySlug,
   createBrand,
   updateBrand,
   deleteBrand
@@ -11,6 +12,7 @@ import {
 const router = Router();
 
 router.get('/', getBrands);
+router.get('/slug/:slug', getBrandBySlug);
 router.get('/:id', getBrandById);
 router.post('/', authMiddleware, createBrand);
 router.put('/:id', authMiddleware, updateBrand);

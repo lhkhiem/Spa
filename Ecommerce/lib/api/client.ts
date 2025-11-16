@@ -78,11 +78,19 @@ export function handleApiError(error: unknown): string {
   if (axios.isAxiosError(error)) {
     if (error.response) {
       // Server responded with error
-      return error.response.data?.message || 'An error occurred';
+      const data = error.response.data;
+      
+      // Handle specific error codes
+      if (data?.code === 'INSUFFICIENT_STOCK') {
+        return `Sản phẩm "${data.productName}" không đủ số lượng. Còn lại: ${data.availableStock}, Bạn yêu cầu: ${data.requestedQuantity}`;
+      }
+      
+      // Return error message from server
+      return data?.error || data?.message || 'Đã xảy ra lỗi khi xử lý yêu cầu';
     } else if (error.request) {
       // Request made but no response
-      return 'No response from server. Please check your connection.';
+      return 'Không có phản hồi từ server. Vui lòng kiểm tra kết nối của bạn.';
     }
   }
-  return 'An unexpected error occurred';
+  return 'Đã xảy ra lỗi không mong muốn';
 }

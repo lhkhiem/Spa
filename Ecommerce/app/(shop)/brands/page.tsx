@@ -2,149 +2,54 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
+import PageHero from '@/components/ui/PageHero/PageHero';
+import { fetchBrands } from '@/lib/api/brands';
+import { buildFromApiOrigin } from '@/config/site';
 
-const featuredBrands = [
-  {
-    id: 'cirepil',
-    name: 'Cirepil',
-    slug: 'cirepil',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Premium hard wax and waxing products for professionals',
-    category: 'Waxing',
-    productCount: 45,
-  },
-  {
-    id: 'bio-therapeutic',
-    name: 'Bio-Therapeutic',
-    slug: 'bio-therapeutic',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Advanced skin care technology and equipment',
-    category: 'Equipment',
-    productCount: 32,
-  },
-  {
-    id: 'intensive',
-    name: 'Intensive',
-    slug: 'intensive',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Professional lash and brow tinting products',
-    category: 'Lash & Brow',
-    productCount: 28,
-  },
-  {
-    id: 'intrinsics',
-    name: 'Intrinsics',
-    slug: 'intrinsics',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Quality disposable spa supplies and linens',
-    category: 'Supplies',
-    productCount: 156,
-  },
-  {
-    id: 'sposh',
-    name: 'Sposh',
-    slug: 'sposh',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Premium spa linens and accessories',
-    category: 'Linens',
-    productCount: 89,
-  },
-  {
-    id: 'ess',
-    name: 'ESS Aromatherapy',
-    slug: 'ess',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Essential oils and aromatherapy products',
-    category: 'Aromatherapy',
-    productCount: 67,
-  },
-  {
-    id: 'dermalogica',
-    name: 'Dermalogica',
-    slug: 'dermalogica',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Professional skin care system',
-    category: 'Skin Care',
-    productCount: 124,
-  },
-  {
-    id: 'image-skincare',
-    name: 'Image Skincare',
-    slug: 'image-skincare',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Clinical skin care backed by science',
-    category: 'Skin Care',
-    productCount: 98,
-  },
-  {
-    id: 'biotone',
-    name: 'Biotone',
-    slug: 'biotone',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Professional massage products',
-    category: 'Massage',
-    productCount: 56,
-  },
-  {
-    id: 'bon-vital',
-    name: 'Bon Vital',
-    slug: 'bon-vital',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Massage creams, lotions, and oils',
-    category: 'Massage',
-    productCount: 43,
-  },
-  {
-    id: 'gm-collin',
-    name: 'GM Collin',
-    slug: 'gm-collin',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Advanced dermo-corrective skin care',
-    category: 'Skin Care',
-    productCount: 87,
-  },
-  {
-    id: 'opi',
-    name: 'OPI',
-    slug: 'opi',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150',
-    description: 'Professional nail lacquer and care',
-    category: 'Nails',
-    productCount: 234,
-  },
-];
+const FALLBACK_LOGO = 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150';
 
-const brandCategories = [
-  'All Brands',
-  'Skin Care',
-  'Waxing',
-  'Massage',
-  'Lash & Brow',
-  'Nails',
-  'Equipment',
-  'Supplies',
-];
+const resolveLogoUrl = (logoUrl: string | null | undefined): string => {
+  if (!logoUrl) return FALLBACK_LOGO;
+  
+  if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+    return logoUrl;
+  }
 
-export default function BrandsPage() {
+  return buildFromApiOrigin(logoUrl);
+};
+
+export default async function BrandsPage() {
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'Brands', href: '/brands' },
   ];
 
+  // Fetch all brands from DB
+  const allBrands = await fetchBrands();
+  
+  // Fetch featured brands
+  const featuredBrandsData = await fetchBrands({ featured_only: true });
+
+  // Extract unique categories from brands
+  const categoriesSet = new Set<string>();
+  allBrands.forEach((brand) => {
+    if (brand.primary_category) {
+      categoriesSet.add(brand.primary_category);
+    }
+  });
+  const brandCategories = ['All Brands', ...Array.from(categoriesSet).sort()];
+
+  // Use featured brands if available, otherwise use all brands
+  const displayBrands = featuredBrandsData.length > 0 ? featuredBrandsData : allBrands;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-purple-900 to-purple-700 py-20 text-white">
-        <div className="container-custom">
-          <FadeInSection>
-            <h1 className="mb-4 text-4xl font-bold md:text-5xl">Our Trusted Brands</h1>
-            <p className="mb-8 max-w-2xl text-lg text-purple-100">
-              We partner with the world's leading spa and salon brands to bring you the highest
-              quality products. Shop by brand to find your favorites.
-            </p>
-          </FadeInSection>
-        </div>
-      </div>
+      <PageHero
+        title="Our Trusted Brands"
+        description="We partner with the world's leading spa and salon brands to bring you the highest quality products. Shop by brand to find your favorites."
+        backgroundImage="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=1920&q=80"
+      />
 
       <div className="container-custom py-12">
         <Breadcrumb items={breadcrumbItems} className="mb-8" />
@@ -164,41 +69,117 @@ export default function BrandsPage() {
         </FadeInSection>
 
         {/* Featured Brands Section */}
-        <div className="mb-12">
-          <FadeInSection>
-            <h2 className="mb-6 text-2xl font-bold text-gray-900">Featured Brands</h2>
-          </FadeInSection>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {featuredBrands.map((brand, index) => (
-              <FadeInSection key={brand.id} delay={index * 50}>
-                <Link
-                  href={`/brands/${brand.slug}`}
-                  className="group block overflow-hidden rounded-lg bg-white shadow-md transition-all hover:shadow-xl"
-                >
-                  <div className="relative h-32 border-b border-gray-100 bg-white p-6">
-                    <div className="flex h-full items-center justify-center">
-                      <div className="text-center">
-                        <h3 className="text-xl font-bold text-gray-900 group-hover:text-brand-purple-600">
-                          {brand.name}
-                        </h3>
+        {featuredBrandsData.length > 0 && (
+          <div className="mb-12">
+            <FadeInSection>
+              <h2 className="mb-6 text-2xl font-bold text-gray-900">Featured Brands</h2>
+            </FadeInSection>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {featuredBrandsData.map((brand, index) => (
+                <FadeInSection key={brand.id} delay={index * 50}>
+                  <Link
+                    href={`/brands/${brand.slug}`}
+                    className="group block overflow-hidden rounded-lg bg-white shadow-md transition-all hover:shadow-xl"
+                  >
+                    <div className="relative h-32 border-b border-gray-100 bg-white p-6">
+                      <div className="flex h-full items-center justify-center">
+                        {brand.logoUrl ? (
+                          <Image
+                            src={resolveLogoUrl(brand.logoUrl)}
+                            alt={brand.name}
+                            width={200}
+                            height={80}
+                            className="h-auto max-h-full w-auto object-contain"
+                          />
+                        ) : (
+                          <div className="text-center">
+                            <h3 className="text-xl font-bold text-gray-900 group-hover:text-brand-purple-600">
+                              {brand.name}
+                            </h3>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                  <div className="p-4">
-                    <p className="mb-2 text-sm text-gray-600">{brand.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-brand-purple-700">
-                        {brand.category}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {brand.productCount} products
-                      </span>
+                    <div className="p-4">
+                      {brand.description && (
+                        <p className="mb-2 text-sm text-gray-600 line-clamp-2">{brand.description}</p>
+                      )}
+                      <div className="flex items-center justify-between">
+                        {brand.primary_category && (
+                          <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-brand-purple-700">
+                            {brand.primary_category}
+                          </span>
+                        )}
+                        <span className="text-sm text-gray-500">
+                          {brand.product_count || 0} {brand.product_count === 1 ? 'product' : 'products'}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              </FadeInSection>
-            ))}
+                  </Link>
+                </FadeInSection>
+              ))}
+            </div>
           </div>
+        )}
+
+        {/* All Brands Section */}
+        <div className="mb-12">
+          <FadeInSection>
+            <h2 className="mb-6 text-2xl font-bold text-gray-900">
+              {featuredBrandsData.length > 0 ? 'All Brands' : 'Brands'}
+            </h2>
+          </FadeInSection>
+          {allBrands.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {allBrands.map((brand, index) => (
+                <FadeInSection key={brand.id} delay={index * 50}>
+                  <Link
+                    href={`/brands/${brand.slug}`}
+                    className="group block overflow-hidden rounded-lg bg-white shadow-md transition-all hover:shadow-xl"
+                  >
+                    <div className="relative h-32 border-b border-gray-100 bg-white p-6">
+                      <div className="flex h-full items-center justify-center">
+                        {brand.logoUrl ? (
+                          <Image
+                            src={resolveLogoUrl(brand.logoUrl)}
+                            alt={brand.name}
+                            width={200}
+                            height={80}
+                            className="h-auto max-h-full w-auto object-contain"
+                          />
+                        ) : (
+                          <div className="text-center">
+                            <h3 className="text-xl font-bold text-gray-900 group-hover:text-brand-purple-600">
+                              {brand.name}
+                            </h3>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      {brand.description && (
+                        <p className="mb-2 text-sm text-gray-600 line-clamp-2">{brand.description}</p>
+                      )}
+                      <div className="flex items-center justify-between">
+                        {brand.primary_category && (
+                          <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-brand-purple-700">
+                            {brand.primary_category}
+                          </span>
+                        )}
+                        <span className="text-sm text-gray-500">
+                          {brand.product_count || 0} {brand.product_count === 1 ? 'product' : 'products'}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </FadeInSection>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg bg-gray-50 p-12 text-center">
+              <p className="text-gray-600">No brands available at the moment.</p>
+            </div>
+          )}
         </div>
 
         {/* Why Shop by Brand */}

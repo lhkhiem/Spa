@@ -1,5 +1,6 @@
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
+import PageHero from '@/components/ui/PageHero/PageHero';
 import { FiChevronDown } from 'react-icons/fi';
 
 const faqCategories = [
@@ -124,16 +125,11 @@ export default function FAQsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-900 to-purple-700 py-16 text-white">
-        <div className="container-custom">
-          <FadeInSection>
-            <h1 className="mb-4 text-4xl font-bold md:text-5xl">Frequently Asked Questions</h1>
-            <p className="max-w-2xl text-lg text-purple-100">
-              Find answers to common questions about orders, shipping, returns, products, and more.
-            </p>
-          </FadeInSection>
-        </div>
-      </div>
+      <PageHero
+        title="Frequently Asked Questions"
+        description="Find answers to common questions about orders, shipping, returns, products, and more."
+        backgroundImage="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1920&q=80"
+      />
 
       <div className="container-custom py-12">
         <Breadcrumb items={breadcrumbItems} className="mb-12" />
@@ -147,7 +143,7 @@ export default function FAQsPage() {
                 <a
                   key={category.id}
                   href={`#${category.id}`}
-                  className="rounded-full bg-purple-50 px-4 py-2 text-sm font-medium text-brand-purple-700 transition-all hover:bg-brand-purple-600 hover:text-white"
+                  className="rounded-full bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-all hover:bg-red-600 hover:text-white"
                 >
                   {category.title}
                 </a>
@@ -170,7 +166,7 @@ export default function FAQsPage() {
                     >
                       <summary className="flex cursor-pointer items-center justify-between text-lg font-semibold text-gray-900">
                         <span>{faq.question}</span>
-                        <FiChevronDown className="h-5 w-5 text-brand-purple-600 transition-transform group-open:rotate-180" />
+                        <FiChevronDown className="h-5 w-5 text-red-600 transition-transform group-open:rotate-180" />
                       </summary>
                       <p className="mt-4 text-gray-600">{faq.answer}</p>
                     </details>
@@ -183,21 +179,21 @@ export default function FAQsPage() {
 
         {/* Contact CTA */}
         <FadeInSection>
-          <div className="mt-12 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 p-8 text-center text-white md:p-12">
+          <div className="mt-12 rounded-2xl bg-gradient-to-br from-red-600 to-red-500 p-8 text-center text-white md:p-12">
             <h2 className="mb-4 text-3xl font-bold">Still Have Questions?</h2>
-            <p className="mb-6 text-lg text-purple-100">
+            <p className="mb-6 text-lg text-red-50">
               Our customer support team is here to help. Contact us anytime!
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <a
                 href="/contact"
-                className="rounded-lg bg-white px-8 py-3 font-semibold text-brand-purple-600 transition-all hover:bg-purple-50"
+                className="rounded-lg bg-white px-8 py-3 font-semibold text-red-700 transition-all hover:bg-red-50"
               >
                 Contact Support
               </a>
               <a
                 href="tel:1-800-123-4567"
-                className="rounded-lg border-2 border-white px-8 py-3 font-semibold text-white transition-all hover:bg-white hover:text-brand-purple-600"
+                className="rounded-lg border-2 border-white px-8 py-3 font-semibold text-white transition-all hover:bg-white hover:text-red-700"
               >
                 Call 1-800-123-4567
               </a>

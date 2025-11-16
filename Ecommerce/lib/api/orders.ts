@@ -34,6 +34,9 @@ export interface CreateOrderPayload {
   payment_method: string;
   items: CreateOrderItemPayload[];
   notes?: string;
+  subtotal?: number; // Optional: frontend can send calculated values
+  shipping_cost?: number; // Optional: frontend can send calculated values
+  tax_amount?: number; // Optional: frontend can send calculated values
 }
 
 export interface OrderDTO {

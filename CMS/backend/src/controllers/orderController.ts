@@ -296,7 +296,10 @@ export const createOrder = async (req: Request, res: Response) => {
       shipping_method,
       payment_method,
       items, // Array of { product_id, quantity, variant_info }
-      notes
+      notes,
+      subtotal: frontendSubtotal, // Optional: frontend calculated subtotal
+      shipping_cost: frontendShippingCost, // Optional: frontend calculated shipping
+      tax_amount: frontendTaxAmount, // Optional: frontend calculated tax
     } = req.body;
 
     // Validation
@@ -341,17 +344,30 @@ export const createOrder = async (req: Request, res: Response) => {
 
         // Check stock
         if (product.stock < item.quantity) {
-          throw new Error(`Insufficient stock for product ${product.name}`);
+          const stockError: any = new Error(`Insufficient stock for product ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`);
+          stockError.statusCode = 400;
+          stockError.code = 'INSUFFICIENT_STOCK';
+          stockError.productName = product.name;
+          stockError.availableStock = product.stock;
+          stockError.requestedQuantity = item.quantity;
+          throw stockError;
         }
 
         const itemTotal = product.price * item.quantity;
         subtotal += itemTotal;
       }
 
-      // TODO: Apply shipping rules, tax calculation, discounts
-      // For now, default values
-      shippingCost = 0;
-      taxAmount = 0;
+      // Use frontend calculated values if provided, otherwise calculate on backend
+      // Frontend values take precedence for consistency with what user sees
+      if (frontendSubtotal !== undefined && frontendSubtotal !== null) {
+        subtotal = Number(frontendSubtotal);
+      }
+      if (frontendShippingCost !== undefined && frontendShippingCost !== null) {
+        shippingCost = Number(frontendShippingCost);
+      }
+      if (frontendTaxAmount !== undefined && frontendTaxAmount !== null) {
+        taxAmount = Number(frontendTaxAmount);
+      }
 
       const total = subtotal + taxAmount + shippingCost;
 
@@ -501,14 +517,64 @@ export const createOrder = async (req: Request, res: Response) => {
       fullOrder.items = orderItems.map((item: any) => normalizeOrderItem(item));
       normalizeOrderRow(fullOrder);
 
+      // If payment method is ZaloPay, return order with payment_redirect flag
+      // Frontend should call /api/payments/zalopay/create to get order_url
+      if (payment_method === 'zalopay') {
+        return res.status(201).json({
+          ...fullOrder,
+          payment_redirect: true,
+          payment_redirect_url: `/api/payments/zalopay/create`
+        });
+      }
+
       res.status(201).json(fullOrder);
     } catch (error: any) {
       await transaction.rollback();
+      console.error('[createOrder] Transaction error:', {
+        message: error?.message,
+        code: error?.code,
+        detail: error?.detail,
+        stack: error?.stack,
+        name: error?.name,
+      });
       throw error;
     }
   } catch (error: any) {
-    console.error('Failed to create order:', error);
-    res.status(500).json({ error: error.message || 'Failed to create order' });
+    console.error('[createOrder] Failed to create order:', {
+      message: error?.message,
+      code: error?.code,
+      detail: error?.detail,
+      stack: error?.stack,
+      name: error?.name,
+      statusCode: error?.statusCode,
+      requestBody: {
+        customer_email: req.body?.customer_email,
+        customer_name: req.body?.customer_name,
+        customer_phone: req.body?.customer_phone,
+        payment_method: req.body?.payment_method,
+        items_count: req.body?.items?.length,
+      },
+    });
+
+    // Handle specific error types with appropriate status codes
+    const statusCode = error?.statusCode || 500;
+    const isClientError = statusCode >= 400 && statusCode < 500;
+
+    res.status(statusCode).json({ 
+      error: error?.message || 'Failed to create order',
+      code: error?.code,
+      ...(error?.code === 'INSUFFICIENT_STOCK' && {
+        productName: error?.productName,
+        availableStock: error?.availableStock,
+        requestedQuantity: error?.requestedQuantity,
+      }),
+      details: process.env.NODE_ENV === 'development' ? {
+        code: error?.code,
+        detail: error?.detail,
+        message: error?.message,
+        stack: isClientError ? undefined : error?.stack, // Don't expose stack for client errors
+      } : undefined
+    });
   }
 };
 

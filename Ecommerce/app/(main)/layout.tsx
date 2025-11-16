@@ -1,5 +1,6 @@
 import Header from '@/components/layout/Header/Header';
 import Footer from '@/components/layout/Footer/Footer';
+import ScrollToTop from '@/components/ui/ScrollToTop/ScrollToTop';
 
 export default function MainLayout({
   children,
@@ -11,6 +12,7 @@ export default function MainLayout({
       <Header />
       <main className="min-h-screen pt-[120px]">{children}</main>
       <Footer />
+      <ScrollToTop />
     </>
   );
 }

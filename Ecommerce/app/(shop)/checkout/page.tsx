@@ -11,6 +11,7 @@ import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import { useCartStore } from '@/lib/stores/cartStore';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { createOrder, CreateOrderPayload } from '@/lib/api/orders';
+import { createZaloPayOrder } from '@/lib/api/payments';
 import { handleApiError } from '@/lib/api/client';
 import { formatCurrency } from '@/lib/utils/formatters';
 import { FiCreditCard, FiLock, FiTruck, FiDollarSign } from 'react-icons/fi';
@@ -157,10 +158,57 @@ export default function CheckoutPage() {
         variant_info: item.variantId ? { variantId: item.variantId } : null,
       })),
       notes: formData.company ? `Company: ${formData.company}` : '',
+      subtotal: subtotal,
+      shipping_cost: shipping,
+      tax_amount: tax,
     };
 
     try {
       const order = await createOrder(payload);
+      
+      // If ZaloPay payment, create payment order and redirect
+      if (paymentMethod === 'zalopay') {
+        try {
+          toast.loading('Đang chuyển đến ZaloPay...');
+          
+          // ZaloPay requires amount as integer VND (no decimals)
+          // order.total is already in VND, just round to integer
+          const zalopayResponse = await createZaloPayOrder({
+            orderId: order.id,
+            amount: Math.round(order.total), // VND integer
+            description: `Đơn hàng ${order.orderNumber}`,
+            appUser: formData.phone || formData.email || order.id,
+            items: items.map((item) => ({
+              itemid: item.productId,
+              itemname: item.name,
+              itemquantity: item.quantity,
+              itemprice: Math.round(item.price), // VND integer
+            })),
+          });
+
+          if (zalopayResponse.success && zalopayResponse.data?.order_url) {
+            // Save order info for result page
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('lastOrder', JSON.stringify(order));
+              sessionStorage.setItem('zalopayAppTransId', zalopayResponse.data.app_trans_id);
+            }
+            
+            toast.dismiss();
+            // Redirect to ZaloPay payment page
+            window.location.href = zalopayResponse.data.order_url;
+            return; // Don't continue processing
+          } else {
+            throw new Error(zalopayResponse.error || zalopayResponse.message || 'Không thể tạo thanh toán ZaloPay');
+          }
+        } catch (zalopayError: any) {
+          toast.dismiss();
+          toast.error(handleApiError(zalopayError));
+          setIsProcessing(false);
+          return;
+        }
+      }
+
+      // For COD or other payment methods, go to success page
       toast.success('Đặt hàng thành công! Cảm ơn bạn đã mua sắm.');
       clearCart();
 
@@ -171,6 +219,7 @@ export default function CheckoutPage() {
       // Redirect to success page with order number
       router.push(`/checkout/success?orderNumber=${encodeURIComponent(order.orderNumber)}`);
     } catch (error) {
+      toast.dismiss();
       toast.error(handleApiError(error));
       setIsProcessing(false);
     }

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/layout/Header/Header';
 import Footer from '@/components/layout/Footer/Footer';
+import ScrollToTop from '@/components/ui/ScrollToTop/ScrollToTop';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { FiLayout, FiPackage, FiUser, FiMapPin, FiLogOut } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -115,6 +116,7 @@ export default function AccountLayout({
         </div>
       </div>
       <Footer />
+      <ScrollToTop />
     </>
   );
 }

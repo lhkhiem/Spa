@@ -12,8 +12,26 @@ interface PostDetailPageProps {
   params: { slug: string };
 }
 
+// Normalize slug to handle various formats
+const normalizeSlug = (slug: string): string => {
+  // Decode URL-encoded characters first
+  try {
+    slug = decodeURIComponent(slug);
+  } catch (e) {
+    // If decode fails, use original slug
+  }
+  
+  return slug
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]/g, '-') // Replace special chars with dash
+    .replace(/-+/g, '-') // Replace multiple dashes with single dash
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing dashes
+};
+
 export async function generateMetadata({ params }: PostDetailPageProps): Promise<Metadata> {
-  const post = await fetchPostBySlug(params.slug);
+  const normalizedSlug = normalizeSlug(params.slug);
+  const post = await fetchPostBySlug(normalizedSlug);
 
   if (!post) {
     return {
@@ -68,7 +86,7 @@ const PostContent = ({ content }: { content: string | null }) => {
   if (content.includes('<')) {
     return (
       <div
-        className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-purple-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700 prose-li:text-gray-700 prose-img:rounded-lg prose-img:shadow-md"
+        className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-red-600 prose-a:no-underline hover:prose-a:text-red-700 hover:prose-a:underline prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700 prose-li:text-gray-700 prose-img:rounded-lg prose-img:shadow-md"
         dangerouslySetInnerHTML={{ __html: content }}
       />
     );
@@ -105,11 +123,11 @@ const RelatedPostCard = ({ post }: { post: PostSummaryDTO }) => {
       </div>
       <div className="p-6">
         {post.topic && (
-          <span className="mb-2 inline-block text-xs font-semibold text-brand-purple-600">
+          <span className="mb-2 inline-block text-xs font-semibold text-red-700">
             {post.topic}
           </span>
         )}
-        <h3 className="mb-2 font-semibold text-gray-900 group-hover:text-brand-purple-600 line-clamp-2">
+        <h3 className="mb-2 font-semibold text-gray-900 group-hover:text-red-700 line-clamp-2 transition-colors">
           {post.title}
         </h3>
         {post.excerpt && (
@@ -129,7 +147,28 @@ const RelatedPostCard = ({ post }: { post: PostSummaryDTO }) => {
 };
 
 export default async function PostDetailPage({ params }: PostDetailPageProps) {
-  const post = await fetchPostBySlug(params.slug);
+  const { slug } = params;
+  const normalizedSlug = normalizeSlug(slug);
+  
+  // Try with normalized slug first
+  let post = await fetchPostBySlug(normalizedSlug);
+  
+  // If not found, try with original slug (in case it needs exact match)
+  if (!post && slug !== normalizedSlug) {
+    post = await fetchPostBySlug(slug);
+  }
+  
+  // If still not found, try decoding the slug
+  if (!post) {
+    try {
+      const decodedSlug = decodeURIComponent(slug);
+      if (decodedSlug !== slug) {
+        post = await fetchPostBySlug(normalizeSlug(decodedSlug));
+      }
+    } catch (e) {
+      // Decode failed, continue
+    }
+  }
 
   if (!post) {
     notFound();
@@ -137,8 +176,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
 
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
-    { label: 'Learning', href: '/learning' },
-    { label: 'Blog', href: '/learning' },
+    { label: 'Blog', href: '/posts' },
     { label: post.title, href: `/posts/${post.slug}` },
   ];
 
@@ -147,7 +185,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-purple-700">
+      <div className="relative bg-gradient-to-br from-red-900 via-red-800 to-rose-900">
         {post.imageUrl && (
           <div className="absolute inset-0 opacity-20">
             <Image
@@ -155,14 +193,16 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
               alt={post.title}
               fill
               className="object-cover"
+              style={{ filter: 'blur(1px)' }}
               priority
             />
           </div>
         )}
-        <div className="relative container-custom py-16 md:py-24">
-          <Breadcrumb items={breadcrumbItems} className="mb-6 text-purple-100" />
+        <div className="absolute inset-0 bg-gradient-to-r from-red-900/60 via-red-800/50 to-rose-900/60" />
+        <div className="relative container-custom py-16 md:py-24 z-10">
+          <Breadcrumb items={breadcrumbItems} className="mb-6 text-gray-100" />
           
-          <div className="max-w-4xl">
+          <div className="max-w-7xl">
             {post.topic && (
               <div className="mb-4">
                 <span className="inline-block rounded-full bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm">
@@ -171,15 +211,15 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
               </div>
             )}
             
-            <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl lg:text-6xl">
+            <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl lg:text-6xl drop-shadow-lg">
               {post.title}
             </h1>
 
             {post.excerpt && (
-              <p className="mb-8 text-xl text-purple-100 md:text-2xl">{post.excerpt}</p>
+              <p className="mb-8 text-xl text-gray-100 md:text-2xl drop-shadow-md">{post.excerpt}</p>
             )}
 
-            <div className="flex flex-wrap items-center gap-6 text-purple-100">
+            <div className="flex flex-wrap items-center gap-6 text-gray-100">
               {post.author && (
                 <div className="flex items-center">
                   <FiUser className="mr-2 h-5 w-5" />
@@ -206,7 +246,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
 
       {/* Main Content */}
       <div className="container-custom py-12">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-7xl">
           {/* Featured Image */}
           {post.imageUrl ? (
             <div className="relative mb-12 h-[400px] overflow-hidden rounded-2xl shadow-2xl md:h-[500px]">
@@ -219,10 +259,10 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
               />
             </div>
           ) : (
-            <div className="relative mb-12 h-[300px] overflow-hidden rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 shadow-2xl md:h-[400px]">
+            <div className="relative mb-12 h-[300px] overflow-hidden rounded-2xl bg-gradient-to-br from-red-50 to-rose-50 shadow-2xl md:h-[400px]">
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
-                  <FiTag className="mx-auto h-16 w-16 text-purple-300" />
+                  <FiTag className="mx-auto h-16 w-16 text-red-300" />
                 </div>
               </div>
             </div>
@@ -240,7 +280,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
                   {post.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="rounded-full bg-purple-50 px-4 py-2 text-sm font-medium text-brand-purple-700"
+                      className="rounded-full bg-red-50 px-4 py-2 text-sm font-medium text-red-700"
                     >
                       {tag}
                     </span>
@@ -251,7 +291,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
 
             {/* Share Section */}
             <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-8">
-              <Button href="/learning" variant="outline" size="sm">
+              <Button href="/posts" variant="outline" size="sm">
                 <FiArrowLeft className="mr-2 h-4 w-4" />
                 Quay lại Blog
               </Button>
@@ -279,16 +319,26 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
           )}
 
           {/* CTA Section */}
-          <section className="rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 p-8 md:p-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-gray-900">
-              Khám phá thêm tài nguyên học tập
-            </h2>
-            <p className="mb-8 text-lg text-gray-600">
-              Tham gia các khóa học miễn phí và nâng cao kỹ năng của bạn
-            </p>
-            <Button href="/learning" size="lg">
-              Xem tất cả khóa học
-            </Button>
+          <section className="relative rounded-2xl overflow-hidden p-8 md:p-12 text-center">
+            {/* Subtle Background Pattern */}
+            <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 via-rose-50/30 to-pink-50/50" />
+            <div 
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%239C92AC\" fill-opacity=\"0.4\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')",
+              }}
+            />
+            <div className="relative z-10">
+              <h2 className="mb-4 text-3xl font-bold text-gray-900">
+                Khám phá thêm tài nguyên học tập
+              </h2>
+              <p className="mb-8 text-lg text-gray-600">
+                Tham gia các khóa học miễn phí và nâng cao kỹ năng của bạn
+              </p>
+              <Button href="/learning" size="lg" className="bg-red-700 text-white hover:bg-red-800 shadow-lg transition-all">
+                Xem tất cả khóa học
+              </Button>
+            </div>
           </section>
         </div>
       </div>

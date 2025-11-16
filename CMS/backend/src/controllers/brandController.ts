@@ -27,14 +27,40 @@ export const getBrands = async (req: Request, res: Response) => {
     const query = `
       SELECT 
         b.*,
-        a.url as logo_url,
-        a.cdn_url as logo_cdn_url,
+        COALESCE(a.cdn_url, a.url) as logo_url,
         a.format as logo_format,
         a.width as logo_width,
-        a.height as logo_height
+        a.height as logo_height,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.status = 'published') as product_count,
+        (
+          SELECT c.name 
+          FROM products p2
+          LEFT JOIN product_product_categories ppc ON ppc.product_id = p2.id
+          LEFT JOIN product_categories c ON c.id = ppc.category_id
+          WHERE p2.brand_id = b.id AND p2.status = 'published' AND c.id IS NOT NULL
+          GROUP BY c.name
+          ORDER BY COUNT(DISTINCT p2.id) DESC
+          LIMIT 1
+        ) as primary_category
       FROM brands b
       LEFT JOIN assets a ON b.logo_id = a.id
+      LEFT JOIN products p ON p.brand_id = b.id
       ${whereClause}
+      GROUP BY 
+        b.id,
+        b.name,
+        b.slug,
+        b.description,
+        b.logo_id,
+        b.website,
+        b.is_featured,
+        b.created_at,
+        b.updated_at,
+        a.cdn_url,
+        a.url,
+        a.format,
+        a.width,
+        a.height
       ORDER BY b.name ASC
     `;
 
@@ -57,10 +83,34 @@ export const getBrandById = async (req: Request, res: Response) => {
     const query = `
       SELECT 
         b.*,
-        a.url as logo_url
+        COALESCE(a.cdn_url, a.url) as logo_url,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.status = 'published') as product_count,
+        (
+          SELECT c.name 
+          FROM products p2
+          LEFT JOIN product_product_categories ppc ON ppc.product_id = p2.id
+          LEFT JOIN product_categories c ON c.id = ppc.category_id
+          WHERE p2.brand_id = b.id AND p2.status = 'published' AND c.id IS NOT NULL
+          GROUP BY c.name
+          ORDER BY COUNT(DISTINCT p2.id) DESC
+          LIMIT 1
+        ) as primary_category
       FROM brands b
       LEFT JOIN assets a ON b.logo_id = a.id
+      LEFT JOIN products p ON p.brand_id = b.id
       WHERE b.id = :id
+      GROUP BY 
+        b.id,
+        b.name,
+        b.slug,
+        b.description,
+        b.logo_id,
+        b.website,
+        b.is_featured,
+        b.created_at,
+        b.updated_at,
+        a.cdn_url,
+        a.url
     `;
 
     const result: any = await sequelize.query(query, {
@@ -75,6 +125,59 @@ export const getBrandById = async (req: Request, res: Response) => {
     res.json(result[0]);
   } catch (error) {
     console.error('Failed to fetch brand:', error);
+    res.status(500).json({ error: 'Failed to fetch brand' });
+  }
+};
+
+export const getBrandBySlug = async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params;
+
+    const query = `
+      SELECT 
+        b.*,
+        COALESCE(a.cdn_url, a.url) as logo_url,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.status = 'published') as product_count,
+        (
+          SELECT c.name 
+          FROM products p2
+          LEFT JOIN product_product_categories ppc ON ppc.product_id = p2.id
+          LEFT JOIN product_categories c ON c.id = ppc.category_id
+          WHERE p2.brand_id = b.id AND p2.status = 'published' AND c.id IS NOT NULL
+          GROUP BY c.name
+          ORDER BY COUNT(DISTINCT p2.id) DESC
+          LIMIT 1
+        ) as primary_category
+      FROM brands b
+      LEFT JOIN assets a ON b.logo_id = a.id
+      LEFT JOIN products p ON p.brand_id = b.id
+      WHERE b.slug = :slug
+      GROUP BY 
+        b.id,
+        b.name,
+        b.slug,
+        b.description,
+        b.logo_id,
+        b.website,
+        b.is_featured,
+        b.created_at,
+        b.updated_at,
+        a.cdn_url,
+        a.url
+    `;
+
+    const result: any = await sequelize.query(query, {
+      replacements: { slug },
+      type: QueryTypes.SELECT
+    });
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Brand not found' });
+    }
+
+    res.json({ success: true, data: result[0] });
+  } catch (error) {
+    console.error('Failed to fetch brand by slug:', error);
     res.status(500).json({ error: 'Failed to fetch brand' });
   }
 };

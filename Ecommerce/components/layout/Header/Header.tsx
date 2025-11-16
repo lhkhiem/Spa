@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX, FiChevronDown, FiPackage } from 'react-icons/fi';
 import { useCartStore } from '@/lib/stores/cartStore';
 import { useAuthStore } from '@/lib/stores/authStore';
-import MegaMenu from './MegaMenu';
+import SimpleDropdownMenu from './SimpleDropdownMenu';
 import { getMenuItems } from '@/lib/cms';
 import type { CMSMenuItem } from '@/lib/types/cms';
 import type { MegaMenuData } from '@/lib/types/megaMenu';
@@ -238,12 +238,12 @@ export default function Header() {
       }`}
     >
       {/* Top Banner - Always visible */}
-      <div className="w-full bg-white py-2 text-center text-sm text-brand-purple-600 font-medium">
+      <div className="w-full bg-white py-2 text-center text-sm text-red-700 font-medium">
         Miễn phí vận chuyển cho đơn hàng trên $749+ | $4.99 vận chuyển cho đơn hàng trên $199+
       </div>
 
       {/* Main Header - Full Width Red Background */}
-      <div className="w-full bg-brand-purple-600">
+      <div className="w-full bg-red-700">
         <div className="container-custom">
           <div className="flex items-center justify-between py-2.5">
             {/* Logo */}
@@ -269,20 +269,28 @@ export default function Header() {
                 >
                   <Link
                     href={item.href}
-                    className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-white hover:text-gray-200 transition-colors"
+                    className={`flex items-center gap-1 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 rounded-md ${
+                      activeMegaMenu === item.id
+                        ? 'bg-white/10 text-white'
+                        : 'hover:bg-white/5 hover:text-gray-100'
+                    }`}
                   >
                     {item.name}
                     {item.megaMenu && (
                       <FiChevronDown
-                        className={`h-4 w-4 transition-transform ${
+                        className={`h-4 w-4 transition-transform duration-200 ${
                           activeMegaMenu === item.id ? 'rotate-180' : ''
                         }`}
                       />
                     )}
                   </Link>
                   {item.megaMenu && (
-                    <div className="absolute left-1/2 -translate-x-1/2 w-screen">
-                      <MegaMenu
+                    <div
+                      className="absolute left-0"
+                      onMouseEnter={() => setActiveMegaMenu(item.id)}
+                      onMouseLeave={() => setActiveMegaMenu(null)}
+                    >
+                      <SimpleDropdownMenu
                         data={item.megaMenu}
                         isOpen={activeMegaMenu === item.id}
                       />
@@ -312,7 +320,7 @@ export default function Header() {
               <Link href="/cart" className="relative text-white hover:text-gray-200">
                 <FiShoppingCart className="h-5 w-5" />
                 {isHydrated && totalItems > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs text-brand-purple-600">
+                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs text-red-700">
                     {totalItems}
                   </span>
                 )}
@@ -343,51 +351,41 @@ export default function Header() {
                 {navigation.map((item) => (
                   <div key={item.id}>
                     {item.megaMenu ? (
-                      <button
-                        onClick={() => setActiveMegaMenu(activeMegaMenu === item.id ? null : item.id)}
-                        className="flex w-full items-center justify-between py-2 text-left text-gray-700 hover:text-brand-purple-600"
-                      >
-                        <span>{item.name}</span>
-                        <FiChevronDown
-                          className={`h-4 w-4 transition-transform ${
-                            activeMegaMenu === item.id ? 'rotate-180' : ''
-                          }`}
-                        />
-                      </button>
+                      <>
+                        <button
+                          onClick={() => setActiveMegaMenu(activeMegaMenu === item.id ? null : item.id)}
+                          className="flex w-full items-center justify-between py-2 text-left text-gray-700 hover:text-red-600 transition-colors"
+                        >
+                          <span>{item.name}</span>
+                          <FiChevronDown
+                            className={`h-4 w-4 transition-transform ${
+                              activeMegaMenu === item.id ? 'rotate-180' : ''
+                            }`}
+                          />
+                        </button>
+                        {activeMegaMenu === item.id && (
+                          <div className="ml-4 mt-2 space-y-1 border-l-2 border-gray-200 pl-4">
+                            {item.megaMenu.columns.flatMap((column) => column.items).map((subItem) => (
+                              <Link
+                                key={subItem.id}
+                                href={subItem.href}
+                                className="block py-1.5 text-sm text-gray-600 hover:text-red-600 transition-colors"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                {subItem.title}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <Link
                         href={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex w-full items-center justify-between py-2 text-left text-gray-700 hover:text-brand-purple-600"
+                        className="flex w-full items-center justify-between py-2 text-left text-gray-700 hover:text-red-600 transition-colors"
                       >
                         {item.name}
                       </Link>
-                    )}
-                    {item.megaMenu && activeMegaMenu === item.id && (
-                      <div className="ml-4 mt-2 space-y-3 border-l-2 border-gray-200 pl-4">
-                        {item.megaMenu.columns.map((column) => (
-                          <div key={column.id}>
-                            {column.title && (
-                              <p className="mb-1 text-sm font-semibold text-gray-900">
-                                {column.title}
-                              </p>
-                            )}
-                            <ul className="space-y-1">
-                              {column.items.map((subItem) => (
-                                <li key={subItem.id}>
-                                  <Link
-                                    href={subItem.href}
-                                    className="block py-1 text-sm text-gray-600 hover:text-brand-purple-600"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                  >
-                                    {subItem.title}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
                     )}
                   </div>
                 ))}

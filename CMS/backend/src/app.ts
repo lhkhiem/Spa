@@ -23,6 +23,7 @@ import menuLocationRoutes from './routes/menuLocations';
 import menuItemRoutes from './routes/menuItems';
 // import cartRoutes from './routes/cart'; // Disabled: Customer cart management not needed
 import orderRoutes from './routes/orders'; // Admin order management (not customer management)
+import paymentRoutes from './routes/payments'; // Payment gateway (ZaloPay)
 // import wishlistRoutes from './routes/wishlist'; // Disabled: Customer wishlist management not needed
 // import reviewRoutes from './routes/reviews'; // Disabled: Customer review management not needed
 import trackingScriptRoutes from './routes/trackingScripts';
@@ -99,6 +100,7 @@ app.use('/api/menu-locations', menuLocationRoutes);
 app.use('/api/menu-items', menuItemRoutes);
 // app.use('/api/cart', cartRoutes); // Disabled: Customer cart management not needed
 app.use('/api/orders', orderRoutes); // Admin order management (not customer management)
+app.use('/api/payments', paymentRoutes); // Payment gateway (ZaloPay)
 // app.use('/api/wishlist', wishlistRoutes); // Disabled: Customer wishlist management not needed
 // app.use('/api/reviews', reviewRoutes); // Disabled: Customer review management not needed
 app.use('/api/tracking-scripts', trackingScriptRoutes);

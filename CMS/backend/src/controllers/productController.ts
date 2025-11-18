@@ -208,8 +208,7 @@ export const createProduct = async (req: Request, res: Response) => {
       slug,
       description,
       content,
-      category_id,
-      categories, // Array of category IDs for n-n relationship
+      categories, // Array of category IDs for n-n relationship (required, no direct category_id)
       brand_id,
       sku,
       price,
@@ -236,12 +235,12 @@ export const createProduct = async (req: Request, res: Response) => {
 
     const query = `
       INSERT INTO products (
-        id, name, slug, description, content, category_id, brand_id,
+        id, name, slug, description, content, brand_id,
         sku, price, compare_price, cost_price, stock, status,
         is_featured, is_best_seller, thumbnail_id, seo
       )
       VALUES (
-        :id, :name, :slug, :description, :content, :category_id, :brand_id,
+        :id, :name, :slug, :description, :content, :brand_id,
         :sku, :price, :compare_price, :cost_price, :stock, :status,
         :is_featured, :is_best_seller, :thumbnail_id, :seo
       )
@@ -255,7 +254,6 @@ export const createProduct = async (req: Request, res: Response) => {
         slug: generatedSlug,
         description: description || null,
         content: content ? JSON.stringify(content) : null,
-        category_id: category_id || null,
         brand_id: brand_id || null,
         sku: sku || null,
         price,
@@ -347,8 +345,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       slug,
       description,
       content,
-      category_id,
-      categories, // Array of category IDs for n-n relationship
+      categories, // Array of category IDs for n-n relationship (required, no direct category_id)
       brand_id,
       sku,
       price,
@@ -384,10 +381,11 @@ export const updateProduct = async (req: Request, res: Response) => {
       updateFields.push('content = :content');
       replacements.content = content ? JSON.stringify(content) : null;
     }
-    if (category_id !== undefined) {
-      updateFields.push('category_id = :category_id');
-      replacements.category_id = category_id;
-    }
+    // category_id is deprecated - use categories array (many-to-many) instead
+    // if (category_id !== undefined) {
+    //   updateFields.push('category_id = :category_id');
+    //   replacements.category_id = category_id;
+    // }
     if (brand_id !== undefined) {
       updateFields.push('brand_id = :brand_id');
       replacements.brand_id = brand_id;

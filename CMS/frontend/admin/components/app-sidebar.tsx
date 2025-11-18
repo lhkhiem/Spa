@@ -27,6 +27,7 @@ import {
   Sparkles,
   MessageSquareQuote,
   BookOpen,
+  Mail,
 } from 'lucide-react';
 
 const navigation = [
@@ -103,6 +104,11 @@ const navigation = [
         title: 'Orders',
         href: '/dashboard/orders',
         icon: Receipt,
+      },
+      {
+        title: 'Contact Messages',
+        href: '/dashboard/contacts',
+        icon: Mail,
       },
       // Disabled: Customer management features not needed
       // {

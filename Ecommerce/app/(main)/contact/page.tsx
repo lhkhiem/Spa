@@ -1,14 +1,82 @@
+'use client';
+
+import { useState } from 'react';
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import Button from '@/components/ui/Button/Button';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
 import PageHero from '@/components/ui/PageHero/PageHero';
-import { FiMail, FiPhone, FiMapPin, FiClock } from 'react-icons/fi';
+import { FiMail, FiPhone, FiMapPin, FiClock, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { submitContactForm } from '@/lib/api/contacts';
+import { handleApiError } from '@/lib/api/client';
+import toast from 'react-hot-toast';
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'Contact Us', href: '/contact' },
   ];
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await submitContactForm({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        subject: formData.subject,
+        message: formData.message,
+      });
+
+      if (response.success) {
+        setIsSubmitted(true);
+        toast.success(response.message || 'Thank you for contacting us! We will get back to you soon.');
+        
+        // Reset form
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: '',
+        });
+
+        // Reset success message after 5 seconds
+        setTimeout(() => {
+          setIsSubmitted(false);
+        }, 5000);
+      } else {
+        toast.error(response.error || 'Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -28,60 +96,101 @@ export default function ContactPage() {
             <FadeInSection>
               <div className="rounded-2xl bg-white p-8 shadow-lg">
                 <h2 className="mb-6 text-2xl font-bold text-gray-900">Send Us a Message</h2>
-                <form className="space-y-6">
+                
+                {isSubmitted && (
+                  <div className="mb-6 rounded-lg bg-green-50 border border-green-200 p-4 flex items-start gap-3">
+                    <FiCheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-green-900">Message Sent Successfully!</p>
+                      <p className="text-sm text-green-700 mt-1">
+                        Thank you for contacting us. We'll get back to you within 24 hours.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                      <label htmlFor="firstName" className="mb-2 block text-sm font-medium text-gray-700">
                         First Name *
                       </label>
                       <input
+                        id="firstName"
+                        name="firstName"
                         type="text"
                         required
+                        value={formData.firstName}
+                        onChange={handleChange}
                         className="input w-full"
                         placeholder="John"
+                        disabled={isSubmitting}
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                      <label htmlFor="lastName" className="mb-2 block text-sm font-medium text-gray-700">
                         Last Name *
                       </label>
                       <input
+                        id="lastName"
+                        name="lastName"
                         type="text"
                         required
+                        value={formData.lastName}
+                        onChange={handleChange}
                         className="input w-full"
                         placeholder="Doe"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                    <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">
                       Email Address *
                     </label>
                     <input
+                      id="email"
+                      name="email"
                       type="email"
                       required
+                      value={formData.email}
+                      onChange={handleChange}
                       className="input w-full"
                       placeholder="john@example.com"
+                      disabled={isSubmitting}
                     />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                    <label htmlFor="phone" className="mb-2 block text-sm font-medium text-gray-700">
                       Phone Number
                     </label>
                     <input
+                      id="phone"
+                      name="phone"
                       type="tel"
+                      value={formData.phone}
+                      onChange={handleChange}
                       className="input w-full"
                       placeholder="(123) 456-7890"
+                      disabled={isSubmitting}
                     />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                    <label htmlFor="subject" className="mb-2 block text-sm font-medium text-gray-700">
                       Subject *
                     </label>
-                    <select required className="input w-full">
+                    <select
+                      id="subject"
+                      name="subject"
+                      required
+                      value={formData.subject}
+                      onChange={handleChange}
+                      className="input w-full"
+                      disabled={isSubmitting}
+                    >
                       <option value="">Select a subject</option>
                       <option value="product">Product Inquiry</option>
                       <option value="order">Order Status</option>
@@ -93,19 +202,29 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                    <label htmlFor="message" className="mb-2 block text-sm font-medium text-gray-700">
                       Message *
                     </label>
                     <textarea
+                      id="message"
+                      name="message"
                       required
                       rows={6}
+                      value={formData.message}
+                      onChange={handleChange}
                       className="input w-full"
                       placeholder="How can we help you?"
+                      disabled={isSubmitting}
                     />
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full md:w-auto">
-                    Send Message
+                  <Button 
+                    type="submit" 
+                    size="lg" 
+                    className="w-full md:w-auto"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
                   </Button>
                 </form>
               </div>

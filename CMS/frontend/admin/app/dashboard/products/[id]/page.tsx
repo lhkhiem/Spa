@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -8,6 +8,7 @@ import axios from 'axios';
 import MediaPicker from '@/components/MediaPicker';
 import RichTextEditor from '@/components/RichTextEditor';
 import { buildApiUrl } from '@/lib/api';
+import { generateSlug } from '@/lib/slug';
 
 export default function ProductFormPage() {
   const router = useRouter();
@@ -35,6 +36,8 @@ export default function ProductFormPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const originalSlugRef = useRef<string>('');
 
   useEffect(() => {
     fetchCategories();
@@ -76,9 +79,10 @@ export default function ProductFormPage() {
       
       console.log('Loaded product data:', product);
       
+      const productSlug = product.slug || '';
       setFormData({
         name: product.name || '',
-        slug: product.slug || '',
+        slug: productSlug,
         description: product.description || '',
         sku: product.sku || '',
         price: product.price?.toString() || '',
@@ -90,6 +94,8 @@ export default function ProductFormPage() {
         is_featured: Boolean(product.is_featured),
         is_best_seller: Boolean(product.is_best_seller)
       });
+      originalSlugRef.current = productSlug;
+      setSlugManuallyEdited(false);
       
       // Load selected categories from n-n relationship
       if (product.categories && Array.isArray(product.categories)) {
@@ -205,7 +211,16 @@ export default function ProductFormPage() {
                 type="text"
                 required
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  const newName = e.target.value;
+                  setFormData((prev) => {
+                    // Auto-generate slug if not manually edited
+                    const newSlug = !slugManuallyEdited && newName
+                      ? generateSlug(newName)
+                      : prev.slug;
+                    return { ...prev, name: newName, slug: newSlug };
+                  });
+                }}
                 className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
@@ -217,10 +232,23 @@ export default function ProductFormPage() {
               <input
                 type="text"
                 value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, slug: e.target.value });
+                  setSlugManuallyEdited(true);
+                }}
+                onBlur={() => {
+                  // If slug is empty, auto-generate from name
+                  if (!formData.slug && formData.name) {
+                    setFormData((prev) => ({ ...prev, slug: generateSlug(prev.name) }));
+                    setSlugManuallyEdited(false);
+                  }
+                }}
                 className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="auto-generated-from-name"
+                placeholder={formData.name ? generateSlug(formData.name) : "auto-generated-from-name"}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                URL-friendly version of the name. Auto-generated if left empty.
+              </p>
             </div>
 
             <div>
@@ -228,7 +256,7 @@ export default function ProductFormPage() {
                 Description
               </label>
               <RichTextEditor
-                key={`editor-${params.id}-${formData.description.substring(0, 20)}`}
+                key={`editor-${params.id || 'new'}`}
                 value={formData.description}
                 onChange={(html) => setFormData({ ...formData, description: html })}
                 placeholder="Enter product description..."

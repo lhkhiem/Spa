@@ -37,6 +37,7 @@ export default function CategoriesPage() {
   });
   const [featuredImageUrl, setFeaturedImageUrl] = useState('');
   const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const [imageRemoved, setImageRemoved] = useState(false);
   const [originalName, setOriginalName] = useState('');
   const [deleteWarning, setDeleteWarning] = useState<{
     show: boolean;
@@ -102,8 +103,11 @@ export default function CategoriesPage() {
     if (!id) {
       setFeaturedImageUrl('');
       setForm(prev => ({ ...prev, image_id: '' }));
+      setImageRemoved(true); // Mark as removed if no image selected
       return;
     }
+    
+    setImageRemoved(false); // Reset removed flag when image is selected
     
     // Fetch asset to get URL for preview
     let isMounted = true;
@@ -132,6 +136,7 @@ export default function CategoriesPage() {
     setOriginalName('');
     setForm({ name: '', slug: '', description: '', parent_id: '', image_id: '', is_featured: true });
     setFeaturedImageUrl('');
+    setImageRemoved(false);
     setShowDialog(true);
   };
 
@@ -146,6 +151,7 @@ export default function CategoriesPage() {
       image_id: cat.image_id || '',
       is_featured: cat.is_featured || false
     });
+    setImageRemoved(false); // Reset image removed flag
     
     // Always fetch image if image_id exists, regardless of image_url
     if (cat.image_id) {
@@ -182,10 +188,31 @@ export default function CategoriesPage() {
         ? form.slug 
         : generateSlug(form.name);
       
-      const submitData = {
-        ...form,
-        slug: finalSlug
+      // Prepare submit data - only include image_id if it's explicitly set (not empty string)
+      const submitData: any = {
+        name: form.name,
+        slug: finalSlug,
+        description: form.description,
+        parent_id: form.parent_id || null,
+        is_featured: form.is_featured,
       };
+      
+      // Handle image_id: 
+      // - If user explicitly removed image (imageRemoved = true), send null to delete
+      // - If image_id has value, send it (new or updated image)
+      // - If editing and image_id is empty but not removed, don't send (preserve existing image)
+      // - If creating and no image, send null
+      if (imageRemoved) {
+        // User explicitly removed image - send null to delete
+        submitData.image_id = null;
+      } else if (form.image_id && form.image_id.trim() !== '') {
+        // Has image_id - send it (new or updated image)
+        submitData.image_id = form.image_id;
+      } else if (!editing) {
+        // Creating new category without image - send null
+        submitData.image_id = null;
+      }
+      // If editing and image_id is empty but imageRemoved is false, don't include image_id (preserve existing)
       
       if (editing) {
         await axios.put(buildApiUrl(`/api/product-categories/${editing.id}`), submitData, {
@@ -197,7 +224,24 @@ export default function CategoriesPage() {
         });
       }
       setShowDialog(false);
-      fetchCategories();
+      setFeaturedImageUrl(''); // Reset image preview
+      await fetchCategories();
+      
+      // Reload image if category was edited and has image_id
+      if (editing && submitData.image_id) {
+        try {
+          const response = await axios.get(buildApiUrl(`/api/assets/${submitData.image_id}`), {
+            withCredentials: true
+          });
+          const asset = response.data as any;
+          const imageUrl = asset.cdn_url || asset.url || asset.sizes?.thumb?.url || asset.sizes?.medium?.url || '';
+          if (imageUrl) {
+            setFeaturedImageUrl(getAssetUrl(imageUrl));
+          }
+        } catch (error) {
+          console.error('Failed to reload image:', error);
+        }
+      }
     } catch (err) {
       alert('Failed to save category');
     }
@@ -210,7 +254,7 @@ export default function CategoriesPage() {
 
     try {
       // Check relationships first
-      const response = await axios.get<any>(`${API_BASE}/api/product-categories/${id}/relationships`, {
+      const response = await axios.get<any>(buildApiUrl(`/api/product-categories/${id}/relationships`), {
         withCredentials: true
       });
       
@@ -248,7 +292,7 @@ export default function CategoriesPage() {
 
   const performDelete = async (id: string) => {
     try {
-      await axios.delete(`${API_BASE}/api/product-categories/${id}`, {
+      await axios.delete(buildApiUrl(`/api/product-categories/${id}`), {
         withCredentials: true
       });
       
@@ -518,7 +562,7 @@ export default function CategoriesPage() {
                       onError={(e) => {
                         // If image fails to load, try to fetch again
                         if (form.image_id) {
-                          axios.get(`${API_BASE}/api/assets/${form.image_id}`, {
+                          axios.get(buildApiUrl(`/api/assets/${form.image_id}`), {
                             withCredentials: true
                           }).then(response => {
                             const asset = response.data as any;
@@ -538,6 +582,7 @@ export default function CategoriesPage() {
                       onClick={() => { 
                         setFeaturedImageUrl(''); 
                         setForm({...form, image_id: ''}); 
+                        setImageRemoved(true); // Mark as explicitly removed
                       }} 
                       className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
                       title="Remove image"

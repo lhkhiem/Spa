@@ -1,0 +1,4 @@
+IP: 14.225.205.116
+user: pressup-cms
+pass: 123456
+SSH key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHCYQLMesW4KvxFe+UppBoiX/Q/RmkwBp/YEbG0mF+L8 hoang@HOANG-KHIEM

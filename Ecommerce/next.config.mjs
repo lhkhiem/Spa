@@ -18,6 +18,12 @@ const nextConfig = {
         port: '3011',
         pathname: '**',
       },
+      {
+        protocol: 'http',
+        hostname: '14.225.205.116',
+        port: '3011',
+        pathname: '**',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
   },

@@ -5,7 +5,7 @@ import Asset from './Asset';
 import User from './User';
 import Topic from './Topic';
 import Tag from './Tag';
-import { Product, ProductGroup } from './Product';
+import { Product } from './Product';
 import { ProductCategory } from './ProductCategory';
 import { Brand } from './Brand';
 import AssetFolder from './AssetFolder';
@@ -17,6 +17,7 @@ import Testimonial from './Testimonial';
 import ValueProp from './ValueProp';
 import { ProductOption } from './ProductOption';
 import Address from './Address';
+import ContactMessage from './ContactMessage';
 
 // Define all associations here
 // Define explicit through models (no timestamps) for many-to-many junctions
@@ -104,6 +105,27 @@ User.hasMany(Address, {
   as: 'addresses',
 });
 
+// Contact Message associations
+ContactMessage.belongsTo(User, {
+  foreignKey: 'assigned_to',
+  as: 'assignedUser',
+});
+
+ContactMessage.belongsTo(User, {
+  foreignKey: 'replied_by',
+  as: 'repliedByUser',
+});
+
+User.hasMany(ContactMessage, {
+  foreignKey: 'assigned_to',
+  as: 'assignedMessages',
+});
+
+User.hasMany(ContactMessage, {
+  foreignKey: 'replied_by',
+  as: 'repliedMessages',
+});
+
 // Export all models
 export {
   Post,
@@ -112,7 +134,6 @@ export {
   Topic,
   Tag,
   Product,
-  ProductGroup,
   ProductCategory,
   Brand,
   AssetFolder,
@@ -124,5 +145,6 @@ export {
   ValueProp,
   ProductOption,
   Address,
+  ContactMessage,
 };
 

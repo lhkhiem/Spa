@@ -3,7 +3,6 @@
 
 export interface Product {
   id: string;
-  group_id: string;
   name: string;
   slug: string;
   description?: string | null;
@@ -27,48 +26,7 @@ export interface Product {
   updated_at: Date;
 }
 
-export interface ProductGroup {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string | null;
-  content?: any;
-  category_id?: string | null;
-  brand_id?: string | null;
-  status: 'draft' | 'published' | 'archived';
-  is_featured: boolean;
-  is_best_seller: boolean;
-  thumbnail_id?: string | null;
-  published_at?: Date | null;
-  seo?: {
-    title?: string;
-    description?: string;
-    keywords?: string;
-  } | null;
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface CreateProductGroupDTO {
-  name: string;
-  slug: string;
-  description?: string;
-  content?: any;
-  category_id?: string;
-  brand_id?: string;
-  status?: 'draft' | 'published' | 'archived';
-  is_featured?: boolean;
-  is_best_seller?: boolean;
-  thumbnail_id?: string;
-  seo?: {
-    title?: string;
-    description?: string;
-    keywords?: string;
-  } | null;
-}
-
 export interface CreateProductDTO {
-  group_id: string;
   name: string;
   slug: string;
   description?: string;

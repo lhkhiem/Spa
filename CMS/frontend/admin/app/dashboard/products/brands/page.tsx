@@ -34,6 +34,7 @@ export default function BrandsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [logoPickerBrand, setLogoPickerBrand] = useState<Brand | null>(null);
   const [isUpdatingLogo, setIsUpdatingLogo] = useState(false);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [form, setForm] = useState({
     name: '',
     slug: '',
@@ -150,6 +151,7 @@ export default function BrandsPage() {
       logo_id: '',
       is_featured: false,
     });
+    setSlugManuallyEdited(false);
     setShowDialog(true);
   };
 
@@ -163,6 +165,7 @@ export default function BrandsPage() {
       logo_id: brand.logo_id || '',
       is_featured: Boolean(brand.is_featured),
     });
+    setSlugManuallyEdited(false);
     setShowDialog(true);
   };
 
@@ -362,7 +365,7 @@ export default function BrandsPage() {
                     setForm((prev) => ({
                       ...prev,
                       name: nextName,
-                      slug: prev.slug || toSlug(nextName),
+                      slug: !slugManuallyEdited && nextName ? toSlug(nextName) : prev.slug,
                     }));
                   }}
                   required
@@ -373,8 +376,18 @@ export default function BrandsPage() {
                 <input
                   className="w-full rounded border px-3 py-2"
                   value={form.slug}
-                  onChange={(e) => setForm((prev) => ({ ...prev, slug: toSlug(e.target.value) }))}
-                  placeholder="auto from name"
+                  onChange={(e) => {
+                    setForm((prev) => ({ ...prev, slug: toSlug(e.target.value) }));
+                    setSlugManuallyEdited(true);
+                  }}
+                  onBlur={() => {
+                    // If slug is empty, auto-generate from name
+                    if (!form.slug && form.name) {
+                      setForm((prev) => ({ ...prev, slug: toSlug(prev.name) }));
+                      setSlugManuallyEdited(false);
+                    }
+                  }}
+                  placeholder={form.name ? toSlug(form.name) : "auto from name"}
                 />
               </div>
               <div>

@@ -32,7 +32,9 @@ import sliderRoutes from './routes/sliders';
 import publicPostsRoutes from './routes/publicPosts';
 import publicHomepageRoutes from './routes/publicHomepage';
 import publicProductsRoutes from './routes/publicProducts';
-// import publicAuthRoutes from './routes/publicAuth'; // Disabled: Customer authentication not needed
+import contactRoutes from './routes/contacts';
+import emailRoutes from './routes/email';
+import publicAuthRoutes from './routes/publicAuth'; // Customer authentication
 // import publicUserRoutes from './routes/publicUser'; // Disabled: Customer user management not needed
 // import publicOrdersRoutes from './routes/publicOrders'; // Disabled: Customer orders not needed
 // import publicCartRoutes from './routes/publicCart'; // Disabled: Customer cart not needed
@@ -53,6 +55,8 @@ const allowedOrigins = [
   `http://${publicIp}:3010`, // Website khách qua IP public
   `http://${publicIp}:3000`, // Website Next.js dev qua IP public
   `http://${publicIp}:3011`, // Truy cập trực tiếp API qua IP public
+  'http://14.225.205.116:3013', // CMS Admin IP thực tế
+  'http://14.225.205.116:3000', // Ecommerce Frontend IP thực tế
   'http://localhost:3000', // Website khách khi chạy Next.js dev trên máy
   'http://127.0.0.1:3000', // Dự phòng khi truy cập bằng 127.0.0.1
   'http://127.0.0.1:3010',
@@ -92,7 +96,9 @@ app.use('/api/health', healthRoutes);
 app.use('/api/public/posts', publicPostsRoutes);
 app.use('/api/public/homepage', publicHomepageRoutes);
 app.use('/api/public/products', publicProductsRoutes);
-// app.use('/api/public/auth', publicAuthRoutes); // Disabled: Customer authentication not needed
+app.use('/api/contacts', contactRoutes);
+app.use('/api/email', emailRoutes);
+app.use('/api/public/auth', publicAuthRoutes); // Customer authentication
 // app.use('/api/public/user', publicUserRoutes); // Disabled: Customer user management not needed
 // app.use('/api/public/orders', publicOrdersRoutes); // Disabled: Customer orders not needed
 // app.use('/api/public/cart', publicCartRoutes); // Disabled: Customer cart not needed

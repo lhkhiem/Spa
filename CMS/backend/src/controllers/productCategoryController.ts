@@ -186,30 +186,47 @@ export const updateCategory = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, slug, parent_id, description, image_id, is_featured } = req.body;
 
+    // Build dynamic update query - only update fields that are provided
+    const updates: string[] = [];
+    const replacements: any = { id };
+
+    if (name !== undefined) {
+      updates.push('name = :name');
+      replacements.name = name;
+    }
+    if (slug !== undefined) {
+      updates.push('slug = :slug');
+      replacements.slug = slug;
+    }
+    if (parent_id !== undefined) {
+      updates.push('parent_id = :parent_id');
+      replacements.parent_id = parent_id || null;
+    }
+    if (description !== undefined) {
+      updates.push('description = :description');
+      replacements.description = description;
+    }
+    // Only update image_id if it's explicitly provided in the request
+    if (image_id !== undefined) {
+      updates.push('image_id = :image_id');
+      replacements.image_id = (image_id !== null && image_id !== '' && String(image_id).trim() !== '') ? String(image_id) : null;
+    }
+    if (is_featured !== undefined) {
+      updates.push('is_featured = :is_featured');
+      replacements.is_featured = is_featured;
+    }
+
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+
     const query = `
       UPDATE product_categories
-      SET 
-        name = COALESCE(:name, name),
-        slug = COALESCE(:slug, slug),
-        parent_id = :parent_id,
-        description = COALESCE(:description, description),
-        image_id = :image_id,
-        is_featured = COALESCE(:is_featured, is_featured),
-        updated_at = CURRENT_TIMESTAMP
+      SET ${updates.join(', ')}
       WHERE id = :id
       RETURNING *
     `;
 
     const result: any = await sequelize.query(query, {
-      replacements: { 
-        id, 
-        name, 
-        slug, 
-        parent_id: parent_id || null, 
-        description, 
-        image_id: (image_id !== undefined && image_id !== null && String(image_id).trim() !== '') ? String(image_id) : null,
-        is_featured 
-      },
+      replacements,
       type: QueryTypes.UPDATE
     });
 
@@ -228,31 +245,20 @@ export const checkCategoryRelationships = async (req: Request, res: Response) =>
   try {
     const { id } = req.params;
 
-    // Check for products in this category (via category_id)
+    // Check for products via many-to-many relationship only
+    // Only count valid relationships where product_id is not null and product exists
     const productsQuery = `
       SELECT COUNT(*) as count
-      FROM products
-      WHERE category_id = :id
+      FROM product_product_categories ppc
+      INNER JOIN products p ON ppc.product_id = p.id
+      WHERE ppc.category_id = :id
+        AND ppc.product_id IS NOT NULL
     `;
     const productsResult: any = await sequelize.query(productsQuery, {
       replacements: { id },
       type: QueryTypes.SELECT
     });
-    const productsCount = parseInt(productsResult[0]?.count || '0', 10);
-
-    // Check for products via many-to-many relationship
-    const productsManyToManyQuery = `
-      SELECT COUNT(*) as count
-      FROM product_product_categories
-      WHERE category_id = :id
-    `;
-    const productsManyToManyResult: any = await sequelize.query(productsManyToManyQuery, {
-      replacements: { id },
-      type: QueryTypes.SELECT
-    });
-    const productsManyToManyCount = parseInt(productsManyToManyResult[0]?.count || '0', 10);
-
-    const totalProducts = productsCount + productsManyToManyCount;
+    const totalProducts = parseInt(productsResult[0]?.count || '0', 10);
 
     // Check for subcategories (children)
     const subcategoriesQuery = `
@@ -286,10 +292,12 @@ export const deleteCategory = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     // Always check relationships - no force delete allowed
+    // Only count valid relationships via many-to-many where product exists
     const relationshipsQuery = `
       SELECT 
-        (SELECT COUNT(*) FROM products WHERE category_id = :id) as products_count,
-        (SELECT COUNT(*) FROM product_product_categories WHERE category_id = :id) as products_m2m_count,
+        (SELECT COUNT(*) FROM product_product_categories ppc 
+         INNER JOIN products p ON ppc.product_id = p.id 
+         WHERE ppc.category_id = :id AND ppc.product_id IS NOT NULL) as products_count,
         (SELECT COUNT(*) FROM product_categories WHERE parent_id = :id) as subcategories_count
     `;
     const relationships: any = await sequelize.query(relationshipsQuery, {
@@ -298,8 +306,7 @@ export const deleteCategory = async (req: Request, res: Response) => {
     });
     
     const relationshipsData = relationships[0];
-    const totalProducts = parseInt(relationshipsData?.products_count || '0', 10) + 
-                         parseInt(relationshipsData?.products_m2m_count || '0', 10);
+    const totalProducts = parseInt(relationshipsData?.products_count || '0', 10);
     const subcategoriesCount = parseInt(relationshipsData?.subcategories_count || '0', 10);
 
     // Block delete if there are any relationships

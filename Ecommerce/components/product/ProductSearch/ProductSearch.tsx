@@ -12,7 +12,7 @@ interface ProductSearchProps {
 export default function ProductSearch({
   value,
   onChange,
-  placeholder = 'Search products...',
+  placeholder = 'Tìm kiếm sản phẩm...',
 }: ProductSearchProps) {
   const [localValue, setLocalValue] = useState(value);
 

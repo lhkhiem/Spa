@@ -10,88 +10,88 @@ export interface NavItem {
 
 export const mainNavigation: NavItem[] = [
   {
-    label: 'Shop Categories',
+    label: 'Mua theo danh mục',
     children: [
       {
-        label: 'Skin Care',
+        label: 'Chăm sóc da',
         href: '/categories/skin-care',
         featured: true,
-        description: 'Professional skincare products and treatments',
+        description: 'Sản phẩm và liệu trình chăm sóc da chuyên nghiệp',
       },
       {
-        label: 'Lash & Brow',
+        label: 'Mi & Chân mày',
         href: '/categories/lash-brow',
-        description: 'Lash extensions, tints, and brow products',
+        description: 'Nối mi, nhuộm và sản phẩm cho chân mày',
       },
       {
         label: 'Massage',
         href: '/categories/massage',
-        description: 'Massage oils, tools, and equipment',
+        description: 'Dầu massage, dụng cụ và thiết bị',
       },
       {
-        label: 'Waxing',
+        label: 'Wax',
         href: '/categories/waxing',
-        description: 'Waxing products and supplies',
+        description: 'Sản phẩm và vật tư wax',
       },
       {
-        label: 'Manicure/Pedicure',
+        label: 'Móng tay/Móng chân',
         href: '/categories/manicure-pedicure',
-        description: 'Nail care products and equipment',
+        description: 'Sản phẩm và thiết bị chăm sóc móng',
       },
       {
-        label: 'Makeup',
+        label: 'Trang điểm',
         href: '/categories/makeup',
-        description: 'Professional makeup products',
+        description: 'Sản phẩm trang điểm chuyên nghiệp',
       },
       {
-        label: 'Hair',
+        label: 'Tóc',
         href: '/categories/hair',
-        description: 'Hair care and styling products',
+        description: 'Sản phẩm chăm sóc và tạo kiểu tóc',
       },
       {
-        label: 'Spa Equipment',
+        label: 'Thiết bị spa',
         href: '/categories/spa-equipment',
-        description: 'Treatment tables, chairs, and equipment',
+        description: 'Giường trị liệu, ghế và thiết bị',
       },
     ],
   },
   {
-    label: 'Products',
+    label: 'Sản phẩm',
     href: '/products',
   },
   {
-    label: 'Equipment',
+    label: 'Thiết bị',
     href: '/equipment',
   },
   {
-    label: 'Brands',
+    label: 'Thương hiệu',
     href: '/brands',
   },
   {
-    label: 'Save Now!',
+    label: 'Ưu đãi!',
     href: '/deals',
   },
 ];
 
 export const footerNavigation = {
   customerSupport: [
-    { label: 'Contact Us', href: '/contact' },
-    { label: 'Shipping & Return Policies', href: '/shipping-returns' },
-    { label: 'FAQs', href: '/faqs' },
-    { label: 'Good Karma Rewards', href: '/rewards' },
+    { label: 'Liên hệ', href: '/contact' },
+    { label: 'Chính sách vận chuyển & đổi trả', href: '/shipping-returns' },
+    { label: 'Câu hỏi thường gặp', href: '/faqs' },
+    { label: 'Chương trình Good Karma', href: '/rewards' },
   ],
   spaBusinessResources: [
-    { label: 'Learning', href: '/learning' },
-    { label: 'Spa Development', href: '/spa-development' },
-    { label: 'School Partnerships', href: '/school-partnerships' },
+    { label: 'Học tập', href: '/learning' },
+    { label: 'Phát triển spa', href: '/spa-development' },
+    { label: 'Đối tác trường học', href: '/school-partnerships' },
   ],
   companyInformation: [
-    { label: 'About Us', href: '/about' },
-    { label: 'Careers', href: '/careers' },
+    { label: 'Về chúng tôi', href: '/about' },
+    { label: 'Tuyển dụng', href: '/careers' },
   ],
   shoppingAndOffers: [
-    { label: 'Browse Catalogs', href: '/catalogs' },
+    { label: 'Xem catalog', href: '/catalogs' },
     { label: 'UCo Outlet', href: '/outlet' },
-    { label: 'Financing', href: '/financing' },
+    { label: 'Tài chính', href: '/financing' },
   ],
 };

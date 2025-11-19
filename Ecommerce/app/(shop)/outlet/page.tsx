@@ -64,11 +64,11 @@ export default async function OutletPage() {
 
       let badge: string | undefined;
       if (discountPercent >= 50) {
-        badge = `${discountPercent}% OFF`;
+        badge = `${discountPercent}% GIẢM`;
       } else if (discountPercent >= 30) {
-        badge = 'Clearance';
+        badge = 'Xả kho';
       } else {
-        badge = 'Sale';
+        badge = 'Giảm giá';
       }
 
       return {
@@ -88,7 +88,7 @@ export default async function OutletPage() {
     });
 
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
+    { label: 'Trang chủ', href: '/' },
     { label: 'UCo Outlet', href: '/outlet' },
   ];
 
@@ -98,9 +98,9 @@ export default async function OutletPage() {
         <div className="container-custom">
           <FadeInSection>
             <h1 className="mb-4 text-4xl font-bold md:text-5xl">UCo Outlet</h1>
-            <p className="max-w-2xl text-lg text-red-100">
-              Huge savings on clearance items, floor models, and discontinued products. Limited
-              quantities available - shop now before they're gone!
+            <p className="max-w-2xl text-lg text-red-50">
+              Tiết kiệm lớn với các sản phẩm xả kho, trưng bày và ngừng sản xuất. Số lượng có hạn –
+              mua ngay kẻo hết!
             </p>
           </FadeInSection>
         </div>
@@ -128,11 +128,11 @@ export default async function OutletPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-yellow-900">Important Outlet Information</h3>
+                <h3 className="font-semibold text-yellow-900">Lưu ý quan trọng</h3>
                 <p className="mt-1 text-sm text-yellow-800">
-                  All outlet items are final sale and cannot be returned or exchanged. Products may
-                  be floor models, discontinued items, or packaging refreshes. All items are tested
-                  and guaranteed to work properly.
+                  Tất cả sản phẩm Outlet là bán cuối, không đổi trả. Sản phẩm có thể là hàng trưng
+                  bày, ngừng sản xuất hoặc thay đổi bao bì. Tất cả đều được kiểm tra và đảm bảo hoạt
+                  động tốt.
                 </p>
               </div>
             </div>
@@ -141,7 +141,7 @@ export default async function OutletPage() {
 
         <div className="mb-12">
           <FadeInSection>
-            <h2 className="mb-6 text-3xl font-bold text-gray-900">Featured Clearance Items</h2>
+            <h2 className="mb-6 text-3xl font-bold text-gray-900">Sản phẩm xả kho nổi bật</h2>
           </FadeInSection>
           {clearanceItems.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -154,7 +154,7 @@ export default async function OutletPage() {
           ) : (
             <div className="rounded-lg bg-gray-50 p-12 text-center">
               <p className="text-gray-600">
-                No outlet items available at the moment. Check back soon for great deals!
+                Hiện chưa có sản phẩm Outlet. Vui lòng quay lại sau để săn deal!
               </p>
             </div>
           )}
@@ -162,19 +162,18 @@ export default async function OutletPage() {
 
         <FadeInSection>
           <div className="rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 p-8 text-center text-white">
-            <h2 className="mb-4 text-3xl font-bold">Get Notified of New Outlet Deals</h2>
+            <h2 className="mb-4 text-3xl font-bold">Nhận thông báo ưu đãi Outlet</h2>
             <p className="mb-6 text-lg text-purple-100">
-              Sign up for our outlet alert emails and be the first to know when new clearance items
-              are added.
+              Đăng ký nhận email thông báo để cập nhật khi có sản phẩm xả kho mới.
             </p>
             <div className="mx-auto flex max-w-md gap-2">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Nhập email của bạn"
                 className="flex-1 rounded-lg px-4 py-3 text-gray-900"
               />
               <button className="rounded-lg bg-white px-6 py-3 font-semibold text-brand-purple-600 hover:bg-purple-50">
-                Subscribe
+                Đăng ký
               </button>
             </div>
           </div>

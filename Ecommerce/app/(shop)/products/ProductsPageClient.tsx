@@ -58,24 +58,24 @@ interface ProductsPageClientProps {
 const FALLBACK_IMAGE = '/images/placeholder-product.jpg';
 
 const priceFilterOptions: FilterOption[] = [
-  { id: '0-25', label: 'Under $25' },
+  { id: '0-25', label: 'Dưới $25' },
   { id: '25-50', label: '$25 - $50' },
   { id: '50-100', label: '$50 - $100' },
   { id: '100-250', label: '$100 - $250' },
   { id: '250-500', label: '$250 - $500' },
-  { id: '500+', label: '$500+' },
+  { id: '500+', label: 'Trên $500' },
 ];
 
 const availabilityOptions: FilterOption[] = [
-  { id: 'in-stock', label: 'In Stock' },
-  { id: 'out-of-stock', label: 'Out of Stock' },
+  { id: 'in-stock', label: 'Còn hàng' },
+  { id: 'out-of-stock', label: 'Hết hàng' },
 ];
 
 const specialOptions: FilterOption[] = [
-  { id: 'on-sale', label: 'On Sale' },
-  { id: 'new', label: 'New Arrivals' },
-  { id: 'featured', label: 'Featured' },
-  { id: 'best-seller', label: 'Best Sellers' },
+  { id: 'on-sale', label: 'Đang giảm giá' },
+  { id: 'new', label: 'Hàng mới về' },
+  { id: 'featured', label: 'Nổi bật' },
+  { id: 'best-seller', label: 'Bán chạy' },
 ];
 
 const mapProductToCard = (product: ProductDTO): ProductCardItem => {
@@ -89,9 +89,9 @@ const mapProductToCard = (product: ProductDTO): ProductCardItem => {
 
   let badge: string | undefined;
   if (product.isBestSeller) {
-    badge = 'Best Seller';
+    badge = 'Bán chạy';
   } else if (product.isFeatured) {
-    badge = 'Featured';
+    badge = 'Nổi bật';
   }
 
   const isVariant = product.isVariant ?? false;
@@ -155,27 +155,27 @@ export default function ProductsPageClient({
     return [
       {
         id: 'category',
-        title: 'Category',
+        title: 'Danh mục',
         options: categoryOptions,
       },
       {
         id: 'brand',
-        title: 'Brand',
+        title: 'Thương hiệu',
         options: brandOptions,
       },
       {
         id: 'price',
-        title: 'Price Range',
+        title: 'Khoảng giá',
         options: priceFilterOptions,
       },
       {
         id: 'availability',
-        title: 'Availability',
+        title: 'Tình trạng',
         options: availabilityOptions,
       },
       {
         id: 'special',
-        title: 'Special Offers',
+        title: 'Ưu đãi đặc biệt',
         options: specialOptions,
       },
     ];
@@ -273,8 +273,8 @@ export default function ProductsPageClient({
 
   const breadcrumbItems = useMemo(
     () => [
-      { label: 'Home', href: '/' },
-      { label: 'Products' },
+      { label: 'Trang chủ', href: '/' },
+      { label: 'Sản phẩm' },
     ],
     []
   );
@@ -285,7 +285,7 @@ export default function ProductsPageClient({
         <Breadcrumb items={breadcrumbItems} className="mb-6" />
 
         <div className="mb-8">
-          <h1 className="mb-4 text-3xl font-bold text-gray-900">All Products</h1>
+          <h1 className="mb-4 text-3xl font-bold text-gray-900">Tất cả sản phẩm</h1>
           <ProductSearch value={searchQuery} onChange={handleSearchChange} />
         </div>
 
@@ -296,7 +296,7 @@ export default function ProductsPageClient({
             className="w-full"
           >
             <FiFilter className="mr-2" />
-            Filters{' '}
+            Bộ lọc{' '}
             {Object.values(selectedFilters).flat().length > 0 &&
               `(${Object.values(selectedFilters).flat().length})`}
           </Button>

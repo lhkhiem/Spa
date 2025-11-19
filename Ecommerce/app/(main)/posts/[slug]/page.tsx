@@ -6,6 +6,7 @@ import { fetchPostBySlug, fetchRelatedPosts, PostDetailDTO, PostSummaryDTO } fro
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import Button from '@/components/ui/Button/Button';
 import ShareButton from './ShareButton';
+import ContactFormSection from '@/components/layout/ContactFormSection/ContactFormSection';
 import { FiClock, FiUser, FiTag, FiArrowLeft } from 'react-icons/fi';
 
 interface PostDetailPageProps {
@@ -342,6 +343,9 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
           </section>
         </div>
       </div>
+
+      {/* Contact Form Section */}
+      <ContactFormSection />
     </div>
   );
 }

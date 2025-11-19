@@ -22,7 +22,7 @@ export default function SimpleDropdownMenu({ data, isOpen }: SimpleDropdownMenuP
             <Link
               key={item.id}
               href={item.href}
-              className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-all duration-200 relative group"
+              className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-[#98131b] transition-all duration-200 relative group"
             >
               <span className="relative z-10 flex items-center">
                 <span className="flex-1">{item.title}</span>
@@ -32,7 +32,7 @@ export default function SimpleDropdownMenu({ data, isOpen }: SimpleDropdownMenuP
                   </svg>
                 </span>
               </span>
-              <span className="absolute left-0 top-0 bottom-0 w-1 bg-red-600 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-200 origin-center" />
+              <span className="absolute left-0 top-0 bottom-0 w-1 bg-[#98131b] transform scale-y-0 group-hover:scale-y-100 transition-transform duration-200 origin-center" />
             </Link>
           ))}
         </div>

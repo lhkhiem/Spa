@@ -11,24 +11,24 @@ interface ProductSortProps {
 }
 
 const sortOptions = [
-  { value: 'featured', label: 'Featured' },
-  { value: 'newest', label: 'Newest' },
-  { value: 'price-asc', label: 'Price: Low to High' },
-  { value: 'price-desc', label: 'Price: High to Low' },
-  { value: 'name-asc', label: 'Name: A to Z' },
-  { value: 'rating', label: 'Top Rated' },
+  { value: 'featured', label: 'Nổi bật' },
+  { value: 'newest', label: 'Mới nhất' },
+  { value: 'price-asc', label: 'Giá: Thấp đến cao' },
+  { value: 'price-desc', label: 'Giá: Cao đến thấp' },
+  { value: 'name-asc', label: 'Tên: A đến Z' },
+  { value: 'rating', label: 'Đánh giá cao' },
 ];
 
 export default function ProductSort({ value, onChange, totalProducts }: ProductSortProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="text-sm text-gray-600">
-        Showing <span className="font-semibold text-gray-900">{totalProducts}</span> products
+        Hiển thị <span className="font-semibold text-gray-900">{totalProducts}</span> sản phẩm
       </div>
 
       <div className="flex items-center gap-2">
         <label htmlFor="sort" className="text-sm text-gray-700">
-          Sort by:
+          Sắp xếp:
         </label>
         <Select
           id="sort"

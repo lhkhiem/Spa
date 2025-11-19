@@ -467,9 +467,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     rating: related.rating,
     reviewCount: related.reviewCount,
     badge: related.isBestSeller
-      ? 'Best Seller'
+      ? 'Bán chạy'
       : related.isFeatured
-        ? 'Featured'
+        ? 'Nổi bật'
         : undefined,
     inStock: related.inStock,
   }));
@@ -477,8 +477,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const attributeList = product.attributes.filter((attr) => attr.name && attr.value);
 
   const reviewLabel = product.reviewCount > 0
-    ? `${product.reviewCount} Reviews`
-    : 'No reviews yet';
+    ? `${product.reviewCount} đánh giá`
+    : 'Chưa có đánh giá';
 
   const priceForCart = useMemo(
     () => Number(salePrice ?? displayPrice),
@@ -526,7 +526,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               {discountPercentage > 0 && (
                 <div className="absolute left-4 top-4 z-10 rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
                   {/* Ghi chú: hiển thị % giảm giá nếu sản phẩm đang khuyến mãi */}
-                  Save {discountPercentage}%
+                  Tiết kiệm {discountPercentage}%
                 </div>
               )}
               <Image
@@ -563,13 +563,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           <div className="space-y-6">
             <div>
               <div className="mb-2 flex flex-col gap-1 text-sm text-gray-600 md:flex-row md:items-center md:gap-2">
-                <span>{product.brandName ?? 'Professional Product'}</span>
+                <span>{product.brandName ?? 'Sản phẩm chuyên nghiệp'}</span>
                 {productSkuForDisplay && (
                   <span className="text-sm font-medium text-brand-purple-600">SKU: {productSkuForDisplay}</span>
                 )}
                 {hasVariants && (
                   <span className="text-xs uppercase tracking-wide text-gray-500">
-                    {activeVariant ? 'Variant selected' : 'Chọn biến thể để xem chi tiết'}
+                    {activeVariant ? 'Đã chọn biến thể' : 'Chọn biến thể để xem chi tiết'}
                   </span>
                 )}
               </div>
@@ -599,7 +599,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 {comparePrice && salePrice && (
                   <>
                     <span className="text-xl text-gray-500 line-through">{formatCurrency(comparePrice)}</span>
-                    <span className="text-sm font-semibold text-red-600">Save {discountPercentage}%</span>
+                    <span className="text-sm font-semibold text-red-600">Tiết kiệm {discountPercentage}%</span>
                   </>
                 )}
               </div>
@@ -672,7 +672,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <div className="flex gap-3">
                   <button className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-300 px-4 py-3 text-gray-700 hover:bg-gray-50">
                     <FiHeart className="h-5 w-5" />
-                    Save to Wishlist
+                    Lưu vào danh sách yêu thích
                   </button>
                   <button className="flex items-center justify-center gap-2 rounded-md border border-gray-300 px-4 py-3 text-gray-700 hover:bg-gray-50">
                     <FiShare2 className="h-5 w-5" />
@@ -685,9 +685,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   activeVariant ? (
                     <>
                       <span className="font-medium text-gray-900">
-                        {currentStock > 0 ? 'In Stock' : 'Out of Stock'}
+                        {currentStock > 0 ? 'Còn hàng' : 'Hết hàng'}
                       </span>
-                      <span>Available quantity: {Math.max(currentStock, 0)}</span>
+                      <span>Số lượng sẵn có: {Math.max(currentStock, 0)}</span>
                     </>
                   ) : (
                     <span className="font-medium text-gray-900">
@@ -697,9 +697,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 ) : (
                   <>
                     <span className="font-medium text-gray-900">
-                      {currentStock > 0 ? 'In Stock' : 'Out of Stock'}
+                      {currentStock > 0 ? 'Còn hàng' : 'Hết hàng'}
                     </span>
-                    <span>Available quantity: {Math.max(currentStock, 0)}</span>
+                    <span>Số lượng sẵn có: {Math.max(currentStock, 0)}</span>
                   </>
                 )}
               </div>
@@ -707,7 +707,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
             <div>
               <label className="mb-3 block text-sm font-medium text-gray-900">
-                Quantity
+                Số lượng
               </label>
               <div className="flex items-center gap-3">
                 <div className="flex items-center rounded-md border border-gray-300">
@@ -753,7 +753,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <div className="rounded-lg border border-gray-200 p-4">
                 <h3 className="mb-3 text-sm font-semibold text-gray-900">
                   {/* Ghi chú: liệt kê thông số/thuộc tính sản phẩm từ CMS */}
-                  Product Specifications
+                  Thông số sản phẩm
                 </h3>
                 <dl className="grid grid-cols-1 gap-3 text-sm text-gray-700 sm:grid-cols-2">
                   {attributeList.map((attr) => (
@@ -779,7 +779,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
-                Details
+                Chi tiết
               </button>
               <button
                 onClick={() => setActiveTab('reviews')}
@@ -789,7 +789,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
-                Customer Reviews
+                Đánh giá từ khách hàng
               </button>
             </div>
           </div>
@@ -803,7 +803,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
             {activeTab === 'reviews' && (
               <div className="rounded-lg bg-gray-100 p-6 text-gray-600">
-                <p>Review module is coming soon.</p>
+                <p>Tính năng đánh giá sẽ sớm ra mắt.</p>
               </div>
             )}
           </div>
@@ -811,7 +811,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
         {relatedCards.length > 0 && (
           <div className="mt-16">
-            <h2 className="mb-8 text-2xl font-bold text-gray-900">Related Products</h2>
+            <h2 className="mb-8 text-2xl font-bold text-gray-900">Sản phẩm liên quan</h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {relatedCards.map((productCard) => (
                 <ProductCard key={productCard.id} product={productCard} />

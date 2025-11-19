@@ -28,41 +28,41 @@ const resolveImageUrl = (value: any) => {
 const filterGroups = [
   {
     id: 'category',
-    title: 'Category',
+    title: 'Danh mục',
     options: [
-      { id: 'waxing', label: 'Waxing' },
-      { id: 'skin-care', label: 'Skin Care' },
-      { id: 'lash-brow', label: 'Lash & Brow' },
+      { id: 'waxing', label: 'Wax' },
+      { id: 'skin-care', label: 'Chăm sóc da' },
+      { id: 'lash-brow', label: 'Mi & Chân mày' },
       { id: 'massage', label: 'Massage' },
-      { id: 'manicure-pedicure', label: 'Manicure & Pedicure' },
-      { id: 'makeup', label: 'Makeup' },
+      { id: 'manicure-pedicure', label: 'Móng tay & Móng chân' },
+      { id: 'makeup', label: 'Trang điểm' },
     ],
   },
   {
     id: 'price',
-    title: 'Price Range',
+    title: 'Khoảng giá',
     options: [
-      { id: '0-25', label: 'Under $25' },
+      { id: '0-25', label: 'Dưới $25' },
       { id: '25-50', label: '$25 - $50' },
       { id: '50-100', label: '$50 - $100' },
-      { id: '100+', label: '$100+' },
+      { id: '100+', label: 'Trên $100' },
     ],
   },
   {
     id: 'availability',
-    title: 'Availability',
+    title: 'Tình trạng',
     options: [
-      { id: 'in-stock', label: 'In Stock' },
-      { id: 'out-of-stock', label: 'Out of Stock' },
+      { id: 'in-stock', label: 'Còn hàng' },
+      { id: 'out-of-stock', label: 'Hết hàng' },
     ],
   },
   {
     id: 'special',
-    title: 'Special Offers',
+    title: 'Ưu đãi đặc biệt',
     options: [
-      { id: 'on-sale', label: 'On Sale' },
-      { id: 'new', label: 'New Arrivals' },
-      { id: 'best-seller', label: 'Best Sellers' },
+      { id: 'on-sale', label: 'Đang giảm giá' },
+      { id: 'new', label: 'Hàng mới về' },
+      { id: 'best-seller', label: 'Bán chạy' },
     ],
   },
 ];
@@ -95,11 +95,11 @@ export default async function BrandPage({ params }: { params: { slug: string } }
 
     let badge: string | undefined;
     if (product.isBestSeller) {
-      badge = 'Best Seller';
+      badge = 'Bán chạy';
     } else if (hasDiscount) {
-      badge = 'Sale';
+      badge = 'Giảm giá';
     } else if (product.isFeatured) {
-      badge = 'Featured';
+      badge = 'Nổi bật';
     }
 
     const categorySlug = product.categories?.[0]?.slug ?? 'uncategorized';
@@ -125,8 +125,8 @@ export default async function BrandPage({ params }: { params: { slug: string } }
   });
 
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Brands', href: '/brands' },
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Thương hiệu', href: '/brands' },
     { label: brand.name },
   ];
 

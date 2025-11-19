@@ -59,11 +59,19 @@ const normalizeMenuHref = (raw?: string | null, fallbackSlug?: string) => {
   const trimmed = (raw ?? '').trim();
 
   if (trimmed) {
+    // Allow external/mail links and explicit '#'
     if (/^(https?:\/\/|mailto:|tel:)/i.test(trimmed) || trimmed === '#') {
       return trimmed;
     }
 
-    return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+    // Strip trailing '#' (e.g., '/brands#' -> '/brands')
+    const withoutTrailingHash = trimmed.endsWith('#') ? trimmed.slice(0, -1) : trimmed;
+
+    const ensuredSlash = withoutTrailingHash.startsWith('/')
+      ? withoutTrailingHash
+      : `/${withoutTrailingHash}`;
+
+    return ensuredSlash.replace(/\/{2,}/g, '/');
   }
 
   if (fallbackSlug) {
@@ -170,12 +178,26 @@ const transformCmsMenuItems = (items: CMSMenuItem[]): NavigationItem[] => {
 
   const topLevel = sortMenuNodes(filterActive(items));
 
-  return topLevel.map((item) => ({
-    id: item.id,
-    name: item.title,
-    href: normalizeMenuHref(item.url),
-    megaMenu: buildMegaMenuFromTree(item),
-  }));
+  return topLevel.map((item) => {
+    const rawHref = normalizeMenuHref(item.url);
+    const titleLower = (item.title || '').toLowerCase();
+
+    // Fix common CMS mis-links: map deals/ưu đãi menu to '/deals'
+    let href = rawHref;
+    if (
+      (titleLower.includes('ưu đãi') || titleLower.includes('save now')) &&
+      (href === '#' || href === '/brands' || href === '/brands/' || href === '/brands#')
+    ) {
+      href = '/deals';
+    }
+
+    return {
+      id: item.id,
+      name: item.title,
+      href,
+      megaMenu: buildMegaMenuFromTree(item),
+    } as NavigationItem;
+  });
 };
 
 export default function Header() {
@@ -238,12 +260,12 @@ export default function Header() {
       }`}
     >
       {/* Top Banner - Always visible */}
-      <div className="w-full bg-white py-2 text-center text-sm text-red-700 font-medium">
+      <div className="w-full bg-white py-2 text-center text-sm text-[#98131b] font-medium">
         Miễn phí vận chuyển cho đơn hàng trên $749+ | $4.99 vận chuyển cho đơn hàng trên $199+
       </div>
 
       {/* Main Header - Full Width Red Background */}
-      <div className="w-full bg-red-700">
+      <div className="w-full bg-[#98131b]">
         <div className="container-custom">
           <div className="flex items-center justify-between py-2.5">
             {/* Logo */}
@@ -320,7 +342,7 @@ export default function Header() {
               <Link href="/cart" className="relative text-white hover:text-gray-200">
                 <FiShoppingCart className="h-5 w-5" />
                 {isHydrated && totalItems > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs text-red-700">
+                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs text-[#98131b]">
                     {totalItems}
                   </span>
                 )}
@@ -369,7 +391,7 @@ export default function Header() {
                               <Link
                                 key={subItem.id}
                                 href={subItem.href}
-                                className="block py-1.5 text-sm text-gray-600 hover:text-red-600 transition-colors"
+                                className="block py-1.5 text-sm text-gray-600 hover:text-[#98131b] transition-colors"
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >
                                 {subItem.title}

@@ -3,41 +3,157 @@ nohup: ignoring input
 > universal-companies-frontend@0.1.0 dev
 > next dev
 
- ⚠ Port 3000 is in use, trying 3001 instead.
-  ▲ Next.js 14.2.33
-  - Local:        http://localhost:3001
-  - Environments: .env.local
-
- ✓ Starting...
- ✓ Ready in 2.1s
- ⚠ Found a change in next.config.mjs. Restarting the server to apply the changes...
   ▲ Next.js 14.2.33
   - Local:        http://localhost:3000
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 2.1s
+ ✓ Ready in 2.6s
  ○ Compiling / ...
- ✓ Compiled / in 7.1s (859 modules)
- ✓ Compiled in 813ms (383 modules)
- GET / 200 in 8037ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1594735153960-40c6b1b3c199?w=320&h=200&fit=crop 404
+ ✓ Compiled / in 4.6s (850 modules)
+ ✓ Compiled in 1027ms (383 modules)
+ GET / 200 in 5661ms
  ⚠ Cross origin request detected from 14.225.205.116 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
 Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
- ○ Compiling /faqs ...
- ✓ Compiled /faqs in 2.5s (991 modules)
- ○ Compiling /brands ...
- ✓ Compiled /brands in 629ms (998 modules)
- GET / 200 in 311ms
- GET / 200 in 118ms
- ⨯ upstream image response failed for https://images.unsplash.com/photo-1594735153960-40c6b1b3c199?w=320&h=200&fit=crop 404
- GET / 200 in 102ms
- ○ Compiling /products ...
- ✓ Compiled /products in 1852ms (1029 modules)
- GET /products 200 in 2286ms
- ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
- ○ Compiling /about ...
- ✓ Compiled /about in 747ms (1034 modules)
+ ✓ Compiled in 3.4s (850 modules)
+ ✓ Compiled in 1972ms (850 modules)
+ GET / 200 in 247ms
+ GET / 200 in 100ms
+ ✓ Compiled in 1001ms (850 modules)
+ ✓ Compiled in 755ms (850 modules)
+ ○ Compiling /posts ...
+ ✓ Compiled /posts in 1739ms (986 modules)
  ○ Compiling /contact ...
- ✓ Compiled /contact in 1238ms (1046 modules)
- GET /faqs 200 in 244ms
+ ✓ Compiled /contact in 674ms (1000 modules)
+ ✓ Compiled /categories in 399ms (1005 modules)
+ ○ Compiling /categories/[slug] ...
+ ✓ Compiled /categories/[slug] in 656ms (1036 modules)
+ ✓ Compiled /products/[slug] in 492ms (1047 modules)
+ ○ Compiling /about ...
+ ✓ Compiled /about in 813ms (1052 modules)
+ ○ Compiling /brands ...
+ ✓ Compiled /brands in 867ms (921 modules)
+ ✓ Compiled in 1823ms (915 modules)
+ ⨯ app/(shop)/brands/page.tsx (48:8) @ PageHero
+ ⨯ ReferenceError: PageHero is not defined
+    at BrandsPage (brands/page.tsx:61:89)
+digest: "2946889507"
+[0m [90m 46 |[39m     [33m<[39m[33mdiv[39m className[33m=[39m[32m"min-h-screen bg-gray-50"[39m[33m>[39m[0m
+[0m [90m 47 |[39m       {[90m/* Hero Section */[39m}[0m
+[0m[31m[1m>[22m[39m[90m 48 |[39m       [33m<[39m[33mPageHero[39m[0m
+[0m [90m    |[39m        [31m[1m^[22m[39m[0m
+[0m [90m 49 |[39m         title[33m=[39m[32m"Our Trusted Brands"[39m[0m
+[0m [90m 50 |[39m         description[33m=[39m[32m"We partner with the world's leading spa and salon brands to bring you the highest quality products. Shop by brand to find your favorites."[39m[0m
+[0m [90m 51 |[39m         backgroundImage[33m=[39m[32m"https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=1920&q=80"[39m[0m
+ ⚠ Fast Refresh had to perform a full reload when a/Ecommerce/components/ui/FadeInSection/FadeInSection.tsx","ids":["default"]}, a/Ecommerce/node_modules/next/dist/client/image-component.js","ids":[]}, a/Ecommerce/node_modules/next/dist/client/link.js","ids":["*"]} changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⨯ app/(shop)/brands/page.tsx (48:8) @ PageHero
+ ⨯ ReferenceError: PageHero is not defined
+    at BrandsPage (brands/page.tsx:61:89)
+digest: "2136949077"
+[0m [90m 46 |[39m     [33m<[39m[33mdiv[39m className[33m=[39m[32m"min-h-screen bg-gray-50"[39m[33m>[39m[0m
+[0m [90m 47 |[39m       {[90m/* Hero Section */[39m}[0m
+[0m[31m[1m>[22m[39m[90m 48 |[39m       [33m<[39m[33mPageHero[39m[0m
+[0m [90m    |[39m        [31m[1m^[22m[39m[0m
+[0m [90m 49 |[39m         title[33m=[39m[32m"Our Trusted Brands"[39m[0m
+[0m [90m 50 |[39m         description[33m=[39m[32m"We partner with the world's leading spa and salon brands to bring you the highest quality products. Shop by brand to find your favorites."[39m[0m
+[0m [90m 51 |[39m         backgroundImage[33m=[39m[32m"https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=1920&q=80"[39m[0m
+ ⨯ app/(shop)/brands/page.tsx (48:8) @ PageHero
+ ⨯ ReferenceError: PageHero is not defined
+    at BrandsPage (brands/page.tsx:61:89)
+digest: "2136949077"
+[0m [90m 46 |[39m     [33m<[39m[33mdiv[39m className[33m=[39m[32m"min-h-screen bg-gray-50"[39m[33m>[39m[0m
+[0m [90m 47 |[39m       {[90m/* Hero Section */[39m}[0m
+[0m[31m[1m>[22m[39m[90m 48 |[39m       [33m<[39m[33mPageHero[39m[0m
+[0m [90m    |[39m        [31m[1m^[22m[39m[0m
+[0m [90m 49 |[39m         title[33m=[39m[32m"Our Trusted Brands"[39m[0m
+[0m [90m 50 |[39m         description[33m=[39m[32m"We partner with the world's leading spa and salon brands to bring you the highest quality products. Shop by brand to find your favorites."[39m[0m
+[0m [90m 51 |[39m         backgroundImage[33m=[39m[32m"https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=1920&q=80"[39m[0m
+ GET /brands 200 in 331ms
+ ✓ Compiled in 729ms (929 modules)
+ ✓ Compiled in 559ms (929 modules)
+ ⨯ ./components/ui/ParallaxSection/ParallaxSection.tsx
+'client-only' cannot be imported from a Server Component module. It should only be used from a Client Component.
+
+The error was caused by using 'styled-jsx' in './components/ui/ParallaxSection/ParallaxSection.tsx'. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+
+Import trace for requested module:
+  ./components/ui/ParallaxSection/ParallaxSection.tsx
+  ./app/(main)/about/page.tsx
+ ○ Compiling /_error ...
+ ⨯ ./components/ui/ParallaxSection/ParallaxSection.tsx
+'client-only' cannot be imported from a Server Component module. It should only be used from a Client Component.
+
+The error was caused by using 'styled-jsx' in './components/ui/ParallaxSection/ParallaxSection.tsx'. It only works in a Client Component but none of its parents are marked with "use client", so they're Server Components by default.
+
+Import trace for requested module:
+  ./components/ui/ParallaxSection/ParallaxSection.tsx
+  ./app/(main)/about/page.tsx
+ GET /brands 500 in 63ms
+ ✓ Compiled /_not-found in 2.5s (1144 modules)
+ GET /_next/static/webpack/681b0cb40b23cfa2.webpack.hot-update.json 404 in 2750ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /brands 200 in 192ms
+ GET /brands 200 in 110ms
+ ✓ Compiled in 976ms (1158 modules)
+ ○ Compiling /posts ...
+ ✓ Compiled /posts in 959ms (693 modules)
+ ○ Compiling /faqs ...
+ ✓ Compiled /faqs in 910ms (1265 modules)
+ ○ Compiling /contact ...
+ ✓ Compiled /contact in 774ms (676 modules)
+ ✓ Compiled in 3.5s (1245 modules)
+ ✓ Compiled in 1037ms (1245 modules)
+ ⨯ app/(main)/posts/page.tsx (113:8) @ ParallaxSection
+ ⨯ ReferenceError: ParallaxSection is not defined
+    at PostsPage (posts/page.tsx:185:89)
+digest: "3376887895"
+[0m [90m 111 |[39m     [33m<[39m[33mdiv[39m className[33m=[39m[32m"min-h-screen bg-gray-50"[39m[33m>[39m[0m
+[0m [90m 112 |[39m       {[90m/* Hero Section with Parallax */[39m}[0m
+[0m[31m[1m>[22m[39m[90m 113 |[39m       [33m<[39m[33mParallaxSection[39m[0m
+[0m [90m     |[39m        [31m[1m^[22m[39m[0m
+[0m [90m 114 |[39m         backgroundImage[33m=[39m[32m"https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1920&q=80"[39m[0m
+[0m [90m 115 |[39m         overlay[33m=[39m{[36mtrue[39m}[0m
+[0m [90m 116 |[39m         overlayColor[33m=[39m[32m"bg-black"[39m[0m
+ ✓ Compiled in 1450ms (1231 modules)
+ ✓ Compiled in 960ms (1245 modules)
+ GET /posts 200 in 251ms
+ ✓ Compiled in 1850ms (1245 modules)
+ ✓ Compiled in 891ms (1245 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 1105ms (674 modules)
+ ✓ Compiled in 922ms (595 modules)
+ ✓ Compiled in 610ms (595 modules)
+ ✓ Compiled in 1741ms (1272 modules)
+ ✓ Compiled in 797ms (1272 modules)
+ ✓ Compiled in 555ms (597 modules)
+ ✓ Compiled in 672ms (597 modules)
+ ✓ Compiled in 420ms (597 modules)
+ ✓ Compiled in 1550ms (1272 modules)
+ ✓ Compiled in 1068ms (1272 modules)
+ ✓ Compiled in 2.1s (1272 modules)
+ ✓ Compiled in 1282ms (1272 modules)
+ ○ Compiling /about ...
+ ✓ Compiled /about in 985ms (677 modules)
+ ○ Compiling /deals ...
+ ✓ Compiled /deals in 2.3s (1266 modules)
+ GET / 200 in 336ms
+ ✓ Compiled in 1513ms (1151 modules)
+ ✓ Compiled in 777ms (598 modules)
+ ✓ Compiled in 577ms (598 modules)
+ ✓ Compiled in 1079ms (598 modules)
+ ✓ Compiled in 472ms (598 modules)
+ ✓ Compiled in 625ms (598 modules)
+ ✓ Compiled in 634ms (598 modules)
+ ✓ Compiled in 657ms (598 modules)
+ ✓ Compiled in 867ms (598 modules)
+ ✓ Compiled in 603ms (598 modules)
+ ✓ Compiled in 807ms (598 modules)
+ ✓ Compiled in 1504ms (1151 modules)
+ ○ Compiling /posts ...
+ ✓ Compiled /posts in 694ms (682 modules)
+ ✓ Compiled in 1828ms (1273 modules)
+ ✓ Compiled in 1435ms (1273 modules)
+ ✓ Compiled in 1256ms (1273 modules)
+ ✓ Compiled in 1181ms (1273 modules)
+ ○ Compiling /contact ...
+ ✓ Compiled /contact in 1346ms (682 modules)

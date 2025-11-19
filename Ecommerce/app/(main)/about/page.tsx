@@ -5,8 +5,8 @@ import Button from '@/components/ui/Button/Button';
 import ParallaxSection from '@/components/ui/ParallaxSection/ParallaxSection';
 
 export const metadata = {
-  title: 'About Us - Universal Companies',
-  description: 'Learn about Universal Companies, the spa industry\'s top distributor for over 40 years.',
+  title: 'Về Chúng Tôi - Banyco Spa Solutions',
+  description: 'Giới thiệu Banyco – đối tác cung cấp giải pháp & thiết bị spa chuyên nghiệp, đồng hành phát triển vận hành và tối ưu hoá lợi nhuận.',
 };
 
 export default function AboutPage() {
@@ -17,12 +17,13 @@ export default function AboutPage() {
         backgroundImage="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1920&h=1200"
         minHeight="tall"
         overlay={true}
-        overlayOpacity={50}
+        overlayColor="bg-black"
+        overlayOpacity="bg-opacity-60"
       >
-        <div className="text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-            "Our business is good<br />
-            when your business is better."
+        <div className="text-center text-white">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight drop-shadow-lg">
+            "Chúng tôi chỉ thực sự phát triển<br />
+            khi spa của bạn vận hành tốt hơn."
           </h1>
         </div>
       </ParallaxSection>
@@ -33,38 +34,29 @@ export default function AboutPage() {
           <div className="container-custom">
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
               <div>
-                <h2 className="mb-6 text-3xl font-bold text-gray-900">Welcome, Spa Professionals!</h2>
+                <h2 className="mb-6 text-3xl font-bold text-gray-900">Chào mừng các chuyên gia Spa!</h2>
                 <div className="space-y-4 text-gray-700">
                   <p>
-                    Are you seeking new adventure? If so, we're excited to meet you. If you're
-                    already a customer, we're committed to ensuring you have what you need to run your
-                    business together. In one place: making your life easier.
+                    Bạn đang tìm hướng đi mới để nâng cấp dịch vụ hoặc mở rộng mô hình? Chúng tôi ở đây để đồng hành. Nếu bạn đã là khách hàng, mục tiêu của chúng tôi là giúp vận hành của bạn mượt mà hơn, chi phí tối ưu hơn và biên lợi nhuận mỗi liệu trình rõ ràng hơn – tất cả tập trung tại một nền tảng duy nhất.
                   </p>
                   <p>
-                    The Universal Companies website is designed to help you do just that, with its
-                    easy online shopping tools and a growing number of marketing and business
-                    resources too--directly over the or in depth on our blogs and maintaining in hands-on
-                    learning and courses.
+                    Website Banyco được thiết kế như một “bảng điều khiển” dành cho chủ spa: mua sắm thiết bị nhanh gọn, truy cập tài nguyên marketing – vận hành, cập nhật tiêu chuẩn an toàn vệ sinh, và tham gia khoá học thực hành. Mỗi chuyên mục đều được biên tập từ kinh nghiệm triển khai thực tế tại các spa quy mô khác nhau.
                   </p>
                   <p>
-                    Be sure to bookmark{' '}
+                    Đừng quên lưu lại{' '}
                     <Link href="/" className="text-brand-purple-600 hover:underline">
-                      UniversalCompanies.com
-                    </Link>{' '}
-                    and visit often. And be sure to stay on
-                    top of the latest industry trends and opportunities,{' '}
+                      Banyco.vn
+                    </Link>{' '}và ghé thăm thường xuyên. Để nắm bắt xu hướng liệu trình mới, công nghệ điều trị và chiến lược gia tăng doanh thu, hãy{' '}
                     <Link href="/learning" className="text-brand-purple-600 hover:underline">
-                      sign up today for our business
-                    </Link>{' '}
-                    email newsletter.
+                      đăng ký nhận bản tin chuyên ngành
+                    </Link>{' '}– chúng tôi chỉ gửi nội dung có chiều sâu, không spam.
                   </p>
                   <p>
-                    You should do so a central place for you and your clients, so why not set us at
-                    least you'll like as well satisfy?
+                    Mục tiêu dài hạn: trở thành trung tâm tri thức & chuỗi cung ứng đáng tin cậy cho hệ sinh thái spa chuyên nghiệp tại Việt Nam và khu vực. Bạn vận hành tốt – chúng tôi thành công.
                   </p>
                 </div>
                 <div className="mt-8">
-                  <Button size="lg">Learn More</Button>
+                  <Button size="lg">Tìm hiểu thêm</Button>
                 </div>
               </div>
 
@@ -78,7 +70,7 @@ export default function AboutPage() {
                 />
                 <div className="text-center">
                   <h3 className="mb-1 text-xl font-semibold text-gray-900">Marti Harrington</h3>
-                  <p className="text-gray-600">President & Chairman</p>
+                  <p className="text-gray-600">Chủ tịch & Đồng sáng lập (Cố vấn quốc tế)</p>
                 </div>
               </div>
             </div>
@@ -91,11 +83,10 @@ export default function AboutPage() {
         <section className="py-16">
           <div className="container-custom">
             <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">
-              The UCo Difference
+              Điều làm chúng tôi khác biệt
             </h2>
             <p className="mb-12 text-center text-lg text-gray-600">
-              Us support differentiation? Yes. Because everything we do is inspired by your needs.
-              Work hard to support you.
+              Mọi quyết định – từ chọn nhà sản xuất, tiêu chuẩn kiểm định, đến nội dung đào tạo – đều xoay quanh nhu cầu thực tế của chủ spa và kỹ thuật viên. Không hứa suông, chỉ tập trung mang lại hiệu quả vận hành đo lường được.
             </p>
 
             <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
@@ -109,11 +100,10 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <h3 className="mb-4 text-xl font-bold text-gray-900">
-                  We are a full solutions provider.
+                  Giải pháp trọn gói – không chỉ bán thiết bị
                 </h3>
                 <p className="text-gray-600">
-                  We're able to provide support for everything from all over the business when it
-                  fulfilling a one-time order for a product.
+                  Từ khảo sát mặt bằng, bố trí quy trình dịch vụ, lập ngân sách thiết bị theo giai đoạn tăng trưởng, cho tới đào tạo sử dụng & bảo trì. Mỗi thiết bị đều gắn vào một mục tiêu tài chính / trải nghiệm khách hàng cụ thể, tránh “mua thừa” hoặc chọn sai công suất.
                 </p>
               </div>
 
@@ -126,11 +116,9 @@ export default function AboutPage() {
                     </svg>
                   </div>
                 </div>
-                <h3 className="mb-4 text-xl font-bold text-gray-900">We read labels.</h3>
+                <h3 className="mb-4 text-xl font-bold text-gray-900">Kiểm định & minh bạch thành phần</h3>
                 <p className="text-gray-600">
-                  We review and evaluate the labels of every single item we sell to ensure it
-                  is labeled ingredient accurately. We mean the words "natural" and "organic"
-                  through health use. We want ingredients.
+                  Mỗi sản phẩm skincare đều được đối chiếu thành phần: tính an toàn, nồng độ hoạt chất, chứng nhận (Cruelty-Free, Vegan, Organic). Từ “thiên nhiên” hay “hữu cơ” không phải khẩu hiệu marketing – chúng tôi yêu cầu tài liệu xác thực hoặc kết quả kiểm nghiệm của bên thứ ba.
                 </p>
               </div>
 
@@ -143,12 +131,9 @@ export default function AboutPage() {
                     </svg>
                   </div>
                 </div>
-                <h3 className="mb-4 text-xl font-bold text-gray-900">We train and educate.</h3>
+                <h3 className="mb-4 text-xl font-bold text-gray-900">Đào tạo chuẩn hoá & nâng cao</h3>
                 <p className="text-gray-600">
-                  We not only promote courses product training, but we stay up-to-date and
-                  beyond by offering advanced education to help our customers advance
-                  professional and technical skills. We're committed to professional development
-                  and job security for spa professionals.
+                  Chúng tôi xây dựng thư viện micro-learning (video ngắn quy trình), tài liệu SOP phòng trị liệu, workshop chuyên sâu (khai thác thiết bị đa chức năng, upsell dịch vụ). Mục tiêu: rút ngắn thời gian “onboarding” nhân sự mới và gia tăng tỷ lệ sử dụng tối ưu của thiết bị cao cấp.
                 </p>
               </div>
 
@@ -162,13 +147,10 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <h3 className="mb-4 text-xl font-bold text-gray-900">
-                  We are staffed by pros.
+                  Đội ngũ thực hành – không chỉ bán hàng
                 </h3>
                 <p className="text-gray-600">
-                  Many on our staff, including but not center representatives, are
-                  licensed professionals. They provide a strong knowledge of our
-                  products and services, many also have first-hand experience with them and
-                  can help you learn and understand what works best for you.
+                  Chuyên viên của chúng tôi từng trực tiếp vận hành hoặc tư vấn tại các spa, thẩm mỹ viện. Họ hiểu rõ sự khác nhau giữa thông số “trên giấy” và hiệu quả thực tế. Bạn nhận được khuyến nghị dựa trên trải nghiệm sử dụng thật – không phải catalogue nhà sản xuất.
                 </p>
               </div>
             </div>
@@ -191,32 +173,24 @@ export default function AboutPage() {
                 />
               </div>
               <div>
-                <h2 className="mb-6 text-3xl font-bold text-gray-900">Giving Back</h2>
+                <h2 className="mb-6 text-3xl font-bold text-gray-900">Giá trị cộng đồng</h2>
                 <p className="mb-4 text-gray-700">
-                  We believe that success is about more than business. It's about making a positive
-                  impact. That's why we proudly support local businesses and national organizations
-                  through monetary initiatives.
+                  Thành công không chỉ là doanh thu – mà còn là tác động tích cực. Chúng tôi dành một phần nguồn lực hỗ trợ dự án chăm sóc sức khoẻ cộng đồng, đào tạo nghề cho lao động trẻ muốn bước vào ngành spa, và nâng cao tiêu chuẩn an toàn – vệ sinh tại các cơ sở nhỏ.
                 </p>
                 <p className="mb-4 text-gray-700">
-                  Each year we take an incredible group of spa professionals on field trips to a
-                  designated location worldwide to volunteer resources for treatment needs. Since
-                  September 2008, we've contributed our 250+ to help in the fight against cancer.
+                  Mỗi năm đội ngũ chuyên viên tổ chức chuyến đi thực địa hỗ trợ tư vấn bố trí, bảo trì thiết bị tại các khu vực thiếu điều kiện. Chúng tôi cam kết tiếp tục mở rộng các chương trình chia sẻ kiến thức miễn phí – giúp ngành phát triển bền vững hơn.
                 </p>
                 <ul className="space-y-2 text-gray-700">
                   <li className="flex items-start">
                     <span className="mr-2 text-brand-purple-600">•</span>
                     <span>
-                      <strong>Community Care:</strong> Know local women your drivers to finding by
-                      free collections and food pantry donations, work closely to further neighbors
-                      efforts to help in homeless.
+                      <strong>Chăm sóc cộng đồng:</strong> Quyên góp vật tư vệ sinh – chăm sóc cơ bản cho các trung tâm hỗ trợ phụ nữ và dự án chăm lo người vô gia cư địa phương.
                     </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-brand-purple-600">•</span>
                     <span>
-                      <strong>Education & Organizations:</strong> To support our young
-                      doctors, schools, we provide on campus doctors, schools them provide well and
-                      food supply items for students.
+                      <strong>Giáo dục & Đào tạo:</strong> Phối hợp trường nghề và tổ chức phi lợi nhuận để cấp học bổng kỹ năng vận hành thiết bị spa, hỗ trợ khởi nghiệp mô hình nhỏ.
                     </span>
                   </li>
                 </ul>
@@ -230,40 +204,30 @@ export default function AboutPage() {
       <FadeInSection delay={200}>
         <section className="py-16">
           <div className="container-custom">
-            <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Timeline</h2>
+            <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Hành trình phát triển</h2>
             <p className="mb-12 text-center text-lg text-gray-600">
-              For over 40 years, we've enjoyed helping our customers grow their businesses.
+              Hơn 40 năm kinh nghiệm quốc tế trong chuỗi cung ứng & hỗ trợ vận hành spa – nay được bản địa hoá phù hợp thị trường Việt Nam.
             </p>
 
             <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
               <div className="text-center">
                 <div className="mb-4 text-4xl font-bold text-brand-purple-600">1982</div>
                 <p className="text-gray-700">
-                  Universal Companies was established in 1982, when Aluminum Models Worldwide a small,
-                  a Philadelphia-based beauty supply company. A Pennsylvania-based company manufactured a
-                  small line of nail products.
+                  Khởi nguồn từ một đơn vị cung ứng vật tư làm đẹp quy mô nhỏ tại Hoa Kỳ, tập trung vào sản phẩm móng & chăm sóc cơ bản – đặt nền tảng cho hệ thống phân phối chuyên biệt sau này.
                 </p>
               </div>
 
               <div className="text-center">
                 <div className="mb-4 text-4xl font-bold text-brand-purple-600">1992</div>
                 <p className="text-gray-700">
-                  In 1992, Universal America published its first catalog, a 40-page book that
-                  highlighted everything they earned in one piece. the
-                  thought Informed the world of our professional product availability
-                  expanding benefits of how products.
+                  Phát hành catalogue sản phẩm chuyên nghiệp đầu tiên: tiêu chuẩn hoá thông tin kỹ thuật, quy trình đặt hàng và hỗ trợ sau bán – tạo bước nhảy cho mở rộng quy mô.
                 </p>
               </div>
 
               <div className="text-center">
-                <div className="mb-4 text-4xl font-bold text-brand-purple-600">Now</div>
+                <div className="mb-4 text-4xl font-bold text-brand-purple-600">Hiện tại</div>
                 <p className="text-gray-700">
-                  Had growth continue today. Universal
-                  companies continues support more than 84,000 spa
-                  professionals in 47 countries. From the
-                  UCo Learning courses available and 5-star
-                  nationwide success is in the heart of
-                  everything we do.
+                  Mạng lưới phục vụ hơn 84,000 chuyên gia spa tại nhiều quốc gia. Tại Việt Nam, chúng tôi tập trung vào: cung ứng thiết bị chuyên nghiệp, tối ưu hoá chi phí đầu tư, đào tạo thực tế & nâng chuẩn quy trình vận hành bền vững.
                 </p>
               </div>
             </div>

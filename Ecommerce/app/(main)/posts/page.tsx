@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
 import Button from '@/components/ui/Button/Button';
-import PageHero from '@/components/ui/PageHero/PageHero';
+import ParallaxSection from '@/components/ui/ParallaxSection/ParallaxSection';
 import { fetchPosts, PostSummaryDTO } from '@/lib/api/posts';
 import { buildFromApiOrigin } from '@/config/site';
 import { FiClock, FiUser, FiTag } from 'react-icons/fi';
@@ -109,12 +109,24 @@ export default async function PostsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <PageHero
-        title="Learning Library"
-        description="Explore our collection of educational articles, tips, and insights to help you grow your spa business and enhance your professional skills."
+      {/* Hero Section with Parallax */}
+      <ParallaxSection
         backgroundImage="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1920&q=80"
-      />
+        overlay={true}
+        overlayColor="bg-black"
+        overlayOpacity="bg-opacity-60"
+      >
+        <div className="text-center text-white">
+          <FadeInSection>
+            <h1 className="mb-4 text-4xl font-bold md:text-5xl drop-shadow-lg">
+              Learning Library
+            </h1>
+            <p className="max-w-2xl mx-auto text-lg drop-shadow-md">
+              Explore our collection of educational articles, tips, and insights to help you grow your spa business and enhance your professional skills.
+            </p>
+          </FadeInSection>
+        </div>
+      </ParallaxSection>
 
       <div className="container-custom py-12">
         <Breadcrumb items={breadcrumbItems} className="mb-8" />

@@ -63,7 +63,7 @@ const config: Config = {
         // Semantic Colors
         success: '#10B981',
         warning: '#F59E0B',
-        error: '#EF4444',
+        error: '#98131b',
         info: '#3B82F6',
       },
       fontFamily: {

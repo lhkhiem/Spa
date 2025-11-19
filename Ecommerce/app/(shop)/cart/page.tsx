@@ -125,7 +125,7 @@ export default function CartPage() {
                     <button
                       type="button"
                       onClick={() => handleRemoveItem(item.productId, item.variantId)}
-                      className="inline-flex items-center gap-2 text-sm text-red-600 hover:text-red-700"
+                      className="inline-flex items-center gap-2 text-sm text-[#98131b] hover:text-[#7a0f16]"
                     >
                       <FiTrash2 className="h-4 w-4" />
                       Xóa
@@ -179,7 +179,7 @@ export default function CartPage() {
             <button
               type="button"
               onClick={handleClearCart}
-              className="text-sm font-medium text-red-600 hover:text-red-700"
+              className="text-sm font-medium text-[#98131b] hover:text-[#7a0f16]"
             >
               Xóa toàn bộ giỏ hàng
             </button>

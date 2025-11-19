@@ -29,7 +29,7 @@ export default function Button({
     secondary: 'btn-secondary',
     outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-500',
     ghost: 'bg-transparent text-brand-purple-600 hover:bg-brand-purple-50 focus:ring-brand-purple-500',
-    danger: 'bg-error text-white hover:bg-red-600 focus:ring-error',
+    danger: 'bg-error text-white hover:bg-[#98131b] focus:ring-error',
   };
 
   const sizeStyles = {

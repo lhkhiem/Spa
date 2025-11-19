@@ -46,21 +46,21 @@ interface CategoryPageClientProps {
 }
 
 const priceFilterOptions: FilterOption[] = [
-  { id: '0-25', label: 'Under $25' },
+  { id: '0-25', label: 'Dưới $25' },
   { id: '25-50', label: '$25 - $50' },
   { id: '50-100', label: '$50 - $100' },
-  { id: '100+', label: '$100+' },
+  { id: '100+', label: 'Trên $100' },
 ];
 
 const availabilityOptions: FilterOption[] = [
-  { id: 'in-stock', label: 'In Stock' },
-  { id: 'out-of-stock', label: 'Out of Stock' },
+  { id: 'in-stock', label: 'Còn hàng' },
+  { id: 'out-of-stock', label: 'Hết hàng' },
 ];
 
 const specialOptions: FilterOption[] = [
-  { id: 'on-sale', label: 'On Sale' },
-  { id: 'new', label: 'New Arrivals' },
-  { id: 'best-seller', label: 'Best Sellers' },
+  { id: 'on-sale', label: 'Đang giảm giá' },
+  { id: 'new', label: 'Hàng mới về' },
+  { id: 'best-seller', label: 'Bán chạy' },
 ];
 
 export default function CategoryPageClient({
@@ -92,22 +92,22 @@ export default function CategoryPageClient({
     () => [
       {
         id: 'brand',
-        title: 'Brand',
+        title: 'Thương hiệu',
         options: brandOptions,
       },
       {
         id: 'price',
-        title: 'Price Range',
+        title: 'Khoảng giá',
         options: priceFilterOptions,
       },
       {
         id: 'availability',
-        title: 'Availability',
+        title: 'Tình trạng',
         options: availabilityOptions,
       },
       {
         id: 'special',
-        title: 'Special Offers',
+        title: 'Ưu đãi đặc biệt',
         options: specialOptions,
       },
     ],
@@ -221,7 +221,7 @@ export default function CategoryPageClient({
         <div className="mb-4 lg:hidden">
           <Button variant="outline" onClick={() => setShowMobileFilters(!showMobileFilters)} className="w-full">
             <FiFilter className="mr-2" />
-            Filters{' '}
+            Bộ lọc{' '}
             {Object.values(selectedFilters).flat().length > 0 &&
               `(${Object.values(selectedFilters).flat().length})`}
           </Button>

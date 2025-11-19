@@ -52,3 +52,4 @@ COMMENT ON COLUMN contact_messages.subject IS 'Inquiry subject type: product, or
 
 
 
+

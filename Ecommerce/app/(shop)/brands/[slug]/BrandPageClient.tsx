@@ -144,7 +144,7 @@ export default function BrandPageClient({ products, filterGroups }: BrandPageCli
           className="w-full"
         >
           <FiFilter className="mr-2" />
-          Filters{' '}
+          Bộ lọc{' '}
           {Object.values(selectedFilters).flat().length > 0 &&
             `(${Object.values(selectedFilters).flat().length})`}
         </Button>
@@ -181,9 +181,9 @@ export default function BrandPageClient({ products, filterGroups }: BrandPageCli
             <ProductGrid products={sortedProducts} />
           ) : (
             <div className="rounded-lg bg-gray-50 p-12 text-center">
-              <p className="text-gray-600">No products found matching your filters.</p>
+              <p className="text-gray-600">Không tìm thấy sản phẩm phù hợp bộ lọc.</p>
               <Button variant="outline" onClick={handleClearAll} className="mt-4">
-                Clear Filters
+                Xóa bộ lọc
               </Button>
             </div>
           )}

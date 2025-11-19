@@ -7,48 +7,48 @@ import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
 const equipmentCategories = [
   {
     id: 'facial-equipment',
-    title: 'Facial Equipment',
-    description: 'Professional-grade facial equipment for every spa treatment',
+    title: 'Thiết bị chăm sóc da',
+    description: 'Thiết bị chăm sóc da chuẩn chuyên nghiệp cho mọi liệu trình',
     image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&h=400',
     items: ['Steamers', 'Magnifying Lamps', 'Galvanic Machines', 'Microdermabrasion', 'Ultrasonic Devices'],
     href: '/categories/facial-equipment',
   },
   {
     id: 'furniture',
-    title: 'Spa Furniture',
-    description: 'Comfortable and durable furniture designed for spa professionals',
+    title: 'Nội thất spa',
+    description: 'Nội thất êm ái, bền bỉ dành cho chuyên gia spa',
     image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400',
     items: ['Treatment Tables', 'Stools & Chairs', 'Trolleys & Carts', 'Storage Solutions'],
     href: '/categories/furniture',
   },
   {
     id: 'waxing-equipment',
-    title: 'Waxing Equipment',
-    description: 'Essential waxing equipment for professional hair removal',
+    title: 'Thiết bị wax',
+    description: 'Thiết bị wax cần thiết cho tẩy lông chuyên nghiệp',
     image: 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=600&h=400',
     items: ['Wax Warmers', 'Wax Pots', 'Professional Waxing Stations'],
     href: '/categories/waxing-equipment',
   },
   {
     id: 'nail-equipment',
-    title: 'Nail Equipment',
-    description: 'Complete nail salon equipment for manicures and pedicures',
+    title: 'Thiết bị làm móng',
+    description: 'Thiết bị đầy đủ cho salon làm móng tay/chân',
     image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&h=400',
     items: ['UV/LED Lamps', 'Nail Stations', 'Pedicure Chairs', 'Nail Dryers'],
     href: '/categories/nail-equipment',
   },
   {
     id: 'massage-equipment',
-    title: 'Massage Equipment',
-    description: 'Professional massage equipment for therapeutic treatments',
+    title: 'Thiết bị massage',
+    description: 'Thiết bị massage chuyên nghiệp cho liệu pháp trị liệu',
     image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400',
     items: ['Massage Tables', 'Hot Stone Warmers', 'Massage Chairs', 'Bolsters & Cushions'],
     href: '/categories/massage-equipment',
   },
   {
     id: 'spa-systems',
-    title: 'Spa Systems',
-    description: 'Advanced spa systems and technology',
+    title: 'Hệ thống spa',
+    description: 'Hệ thống và công nghệ spa tiên tiến',
     image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&h=400',
     items: ['Hydrotherapy Systems', 'Steam Rooms', 'Sauna Equipment', 'Shower Systems'],
     href: '/categories/spa-systems',
@@ -89,8 +89,8 @@ const featuredEquipment = [
 
 export default function EquipmentPage() {
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Equipment', href: '/equipment' },
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Thiết bị', href: '/equipment' },
   ];
 
   return (
@@ -100,18 +100,17 @@ export default function EquipmentPage() {
         <div className="container-custom">
           <FadeInSection>
             <h1 className="mb-4 text-4xl font-bold md:text-5xl">
-              Professional Spa Equipment
+              Thiết bị spa chuyên nghiệp
             </h1>
             <p className="mb-8 max-w-2xl text-lg text-purple-100">
-              Industry-leading equipment for professional spas and salons. From facial steamers to
-              pedicure chairs, we have everything you need to create the perfect spa experience.
+              Thiết bị hàng đầu cho spa và salon chuyên nghiệp. Từ máy xông hơi đến ghế pedicure, chúng tôi có mọi thứ bạn cần để tạo nên trải nghiệm spa hoàn hảo.
             </p>
             <div className="flex flex-wrap gap-4">
               <Button href="/products?category=equipment" size="lg">
-                Shop All Equipment
+                Xem tất cả thiết bị
               </Button>
               <Button href="/services" variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-purple-700">
-                Spa Development Services
+                Dịch vụ phát triển spa
               </Button>
             </div>
           </FadeInSection>
@@ -124,7 +123,7 @@ export default function EquipmentPage() {
         {/* Equipment Categories Grid */}
         <div className="mb-16">
           <FadeInSection>
-            <h2 className="mb-8 text-3xl font-bold text-gray-900">Browse by Category</h2>
+            <h2 className="mb-8 text-3xl font-bold text-gray-900">Duyệt theo danh mục</h2>
           </FadeInSection>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {equipmentCategories.map((category, index) => (
@@ -155,7 +154,7 @@ export default function EquipmentPage() {
                       ))}
                       {category.items.length > 3 && (
                         <li className="text-brand-purple-600">
-                          +{category.items.length - 3} more
+                          +{category.items.length - 3} nữa
                         </li>
                       )}
                     </ul>
@@ -170,12 +169,12 @@ export default function EquipmentPage() {
         <div className="mb-16">
           <FadeInSection>
             <div className="mb-8 flex items-center justify-between">
-              <h2 className="text-3xl font-bold text-gray-900">Featured Equipment</h2>
+              <h2 className="text-3xl font-bold text-gray-900">Thiết bị nổi bật</h2>
               <Link
                 href="/products?category=equipment"
                 className="text-brand-purple-600 hover:text-brand-purple-700"
               >
-                View All →
+                Xem tất cả →
               </Link>
             </div>
           </FadeInSection>
@@ -213,7 +212,7 @@ export default function EquipmentPage() {
                       )}
                     </div>
                     <Button href={`/products/equipment-${item.id}`} className="mt-4 w-full">
-                      View Details
+                      Xem chi tiết
                     </Button>
                   </div>
                 </div>
@@ -234,9 +233,9 @@ export default function EquipmentPage() {
                     </svg>
                   </div>
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-gray-900">Quality Guaranteed</h3>
+                <h3 className="mb-2 text-xl font-bold text-gray-900">Chất lượng đảm bảo</h3>
                 <p className="text-gray-600">
-                  All equipment is tested and certified to meet industry standards
+                  Tất cả thiết bị được kiểm tra và chứng nhận theo tiêu chuẩn ngành
                 </p>
               </div>
               <div className="text-center">
@@ -247,9 +246,9 @@ export default function EquipmentPage() {
                     </svg>
                   </div>
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-gray-900">Expert Support</h3>
+                <h3 className="mb-2 text-xl font-bold text-gray-900">Hỗ trợ chuyên môn</h3>
                 <p className="text-gray-600">
-                  Our team provides installation support and training for all equipment
+                  Đội ngũ hỗ trợ lắp đặt và đào tạo cho mọi thiết bị
                 </p>
               </div>
               <div className="text-center">
@@ -260,9 +259,9 @@ export default function EquipmentPage() {
                     </svg>
                   </div>
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-gray-900">Financing Available</h3>
+                <h3 className="mb-2 text-xl font-bold text-gray-900">Hỗ trợ tài chính</h3>
                 <p className="text-gray-600">
-                  Flexible payment options to help you grow your business
+                  Nhiều lựa chọn thanh toán linh hoạt giúp bạn phát triển kinh doanh
                 </p>
               </div>
             </div>

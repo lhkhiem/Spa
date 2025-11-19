@@ -28,33 +28,33 @@ const resolveImageUrl = (value: any) => {
 };
 
 const dealCategories = [
-  { id: 'all', name: 'All Deals', count: 0 },
-  { id: 'clearance', name: 'Clearance', count: 0 },
-  { id: 'weekly-specials', name: 'Weekly Specials', count: 0 },
-  { id: 'bulk-discounts', name: 'Bulk Discounts', count: 0 },
-  { id: 'new-customer', name: 'New Customer Offers', count: 0 },
-  { id: 'seasonal', name: 'Seasonal Sales', count: 0 },
+  { id: 'all', name: 'Tất cả ưu đãi', count: 0 },
+  { id: 'clearance', name: 'Xả kho', count: 0 },
+  { id: 'weekly-specials', name: 'Ưu đãi hàng tuần', count: 0 },
+  { id: 'bulk-discounts', name: 'Giảm giá số lượng', count: 0 },
+  { id: 'new-customer', name: 'Ưu đãi khách hàng mới', count: 0 },
+  { id: 'seasonal', name: 'Khuyến mãi theo mùa', count: 0 },
 ];
 
 const banners = [
   {
-    title: 'Flash Sale - 50% Off Select Items',
-    description: "Limited quantities available. Hurry before they're gone!",
-    cta: 'Shop Flash Sale',
+    title: 'Flash Sale - Giảm 50% nhiều sản phẩm',
+    description: 'Số lượng có hạn. Nhanh tay kẻo hết!',
+    cta: 'Mua ngay Flash Sale',
     href: '/products?sale=flash',
     bgColor: 'from-red-600 to-pink-600',
   },
   {
-    title: 'Free Shipping on Orders $199+',
-    description: 'Stock up and save on shipping. Offer valid through this week.',
-    cta: 'Shop Now',
+    title: 'Miễn phí vận chuyển cho đơn từ $199+',
+    description: 'Mua nhiều tiết kiệm phí ship. Áp dụng trong tuần này.',
+    cta: 'Mua ngay',
     href: '/products',
     bgColor: 'from-purple-600 to-blue-600',
   },
   {
-    title: 'Bulk Buy & Save Up to 40%',
-    description: 'The more you buy, the more you save. Perfect for busy salons.',
-    cta: 'View Bulk Deals',
+    title: 'Mua số lượng lớn tiết kiệm đến 40%',
+    description: 'Mua càng nhiều càng rẻ. Phù hợp cho spa/salon bận rộn.',
+    cta: 'Xem ưu đãi mua sỉ',
     href: '/products?category=bulk-discounts',
     bgColor: 'from-green-600 to-teal-600',
   },
@@ -82,11 +82,11 @@ export default async function DealsPage() {
 
     let badge: string | undefined;
     if (product.isBestSeller) {
-      badge = 'Best Seller';
+      badge = 'Bán chạy';
     } else if (hasDiscount) {
-      badge = 'Sale';
+      badge = 'Giảm giá';
     } else if (product.isFeatured) {
-      badge = 'Featured';
+      badge = 'Nổi bật';
     }
 
     return {
@@ -106,8 +106,8 @@ export default async function DealsPage() {
   });
 
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Save Now!', href: '/deals' },
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Ưu đãi', href: '/deals' },
   ];
 
   return (
@@ -116,21 +116,21 @@ export default async function DealsPage() {
       <div className="relative bg-gradient-to-r from-red-600 to-pink-600 py-16 text-white">
         <div className="container-custom">
           <FadeInSection>
-            <h1 className="mb-4 text-4xl font-bold md:text-5xl">Save Now!</h1>
+            <h1 className="mb-4 text-4xl font-bold md:text-5xl">Ưu đãi</h1>
             <p className="mb-8 max-w-2xl text-lg text-red-100">
-              Discover amazing deals on professional spa and salon products. Limited time offers,
-              clearance items, and exclusive bundles - all in one place.
+              Khám phá ưu đãi hấp dẫn cho sản phẩm spa và salon chuyên nghiệp. Ưu đãi có thời hạn,
+              xả kho và combo độc quyền – tất cả trong một nơi.
             </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" className="bg-white text-red-600 hover:bg-red-50">
-                Shop All Deals
+                Xem tất cả ưu đãi
               </Button>
               <Button
                 variant="outline"
                 size="lg"
                 className="border-white text-white hover:bg-white hover:text-red-600"
               >
-                Sign Up for Deal Alerts
+                Đăng ký nhận thông báo ưu đãi
               </Button>
             </div>
           </FadeInSection>
@@ -174,7 +174,7 @@ export default async function DealsPage() {
         {/* Deal Categories */}
         <FadeInSection>
           <div className="mb-8">
-            <h2 className="mb-4 text-2xl font-bold text-gray-900">Browse by Category</h2>
+            <h2 className="mb-4 text-2xl font-bold text-gray-900">Duyệt theo danh mục</h2>
             <div className="flex flex-wrap gap-3">
               {dealCategories.map((category) => (
                 <Link
@@ -193,9 +193,9 @@ export default async function DealsPage() {
         <div className="mb-12">
           <FadeInSection>
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-3xl font-bold text-gray-900">Today's Best Deals</h2>
+              <h2 className="text-3xl font-bold text-gray-900">Ưu đãi tốt nhất hôm nay</h2>
               <div className="rounded-full bg-red-100 px-4 py-2 text-sm font-semibold text-red-600">
-                ⏰ Ending Soon
+                ⏰ Sắp kết thúc
               </div>
             </div>
           </FadeInSection>
@@ -209,7 +209,7 @@ export default async function DealsPage() {
             </div>
           ) : (
             <div className="rounded-lg bg-gray-50 p-12 text-center">
-              <p className="text-gray-600">No deals available at the moment. Check back soon!</p>
+              <p className="text-gray-600">Hiện chưa có ưu đãi. Vui lòng quay lại sau!</p>
             </div>
           )}
         </div>
@@ -222,18 +222,18 @@ export default async function DealsPage() {
                 <div className="relative h-64 md:h-auto">
                   <Image
                     src={featuredDeals[0]?.image ?? FALLBACK_IMAGE}
-                    alt="Deal of the Week"
+                    alt="Ưu đãi của tuần"
                     fill
                     className="object-cover"
                   />
                 </div>
                 <div className="p-8 text-white md:p-12">
                   <div className="mb-4 inline-block rounded-full bg-yellow-400 px-4 py-1 text-sm font-bold text-purple-900">
-                    DEAL OF THE WEEK
+                    ƯU ĐÃI CỦA TUẦN
                   </div>
                   <h2 className="mb-4 text-3xl font-bold">{featuredDeals[0]?.name}</h2>
                   <p className="mb-6 text-lg text-purple-100">
-                    Limited quantities available - shop now before they're gone!
+                    Số lượng có hạn – mua ngay kẻo lỡ!
                   </p>
                   <div className="mb-6">
                     {featuredDeals[0]?.salePrice && (
@@ -252,7 +252,7 @@ export default async function DealsPage() {
                     size="lg"
                     className="bg-yellow-400 text-purple-900 hover:bg-yellow-300"
                   >
-                    Claim This Deal
+                    Nhận ưu đãi
                   </Button>
                 </div>
               </div>
@@ -263,21 +263,20 @@ export default async function DealsPage() {
         {/* Newsletter Signup */}
         <FadeInSection>
           <div className="rounded-2xl bg-white p-8 text-center shadow-lg md:p-12">
-            <h2 className="mb-4 text-3xl font-bold text-gray-900">Never Miss a Deal</h2>
+            <h2 className="mb-4 text-3xl font-bold text-gray-900">Đừng bỏ lỡ ưu đãi</h2>
             <p className="mb-6 text-gray-600">
-              Sign up for our newsletter and be the first to know about exclusive offers, flash
-              sales, and new product launches.
+              Đăng ký nhận bản tin để cập nhật ưu đãi độc quyền, flash sale và sản phẩm mới.
             </p>
             <div className="mx-auto flex max-w-md gap-2">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Nhập email của bạn"
                 className="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:border-brand-purple-500 focus:outline-none focus:ring-2 focus:ring-brand-purple-500/20"
               />
-              <Button size="lg">Subscribe</Button>
+              <Button size="lg">Đăng ký</Button>
             </div>
             <p className="mt-4 text-sm text-gray-500">
-              By subscribing, you agree to receive marketing emails. Unsubscribe anytime.
+              Bằng việc đăng ký, bạn đồng ý nhận email marketing. Có thể hủy bất kỳ lúc nào.
             </p>
           </div>
         </FadeInSection>

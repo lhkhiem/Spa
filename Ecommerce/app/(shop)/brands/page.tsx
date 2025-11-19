@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
-import PageHero from '@/components/ui/PageHero/PageHero';
+import ParallaxSection from '@/components/ui/ParallaxSection/ParallaxSection';
 import { fetchBrands } from '@/lib/api/brands';
 import { buildFromApiOrigin } from '@/config/site';
 
@@ -20,8 +20,8 @@ const resolveLogoUrl = (logoUrl: string | null | undefined): string => {
 
 export default async function BrandsPage() {
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Brands', href: '/brands' },
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Thương hiệu', href: '/brands' },
   ];
 
   // Fetch all brands from DB
@@ -44,12 +44,24 @@ export default async function BrandsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <PageHero
-        title="Our Trusted Brands"
-        description="We partner with the world's leading spa and salon brands to bring you the highest quality products. Shop by brand to find your favorites."
+      {/* Hero Section with Parallax */}
+      <ParallaxSection
         backgroundImage="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=1920&q=80"
-      />
+        overlay={true}
+        overlayColor="bg-black"
+        overlayOpacity="bg-opacity-60"
+      >
+        <div className="text-center text-white">
+          <FadeInSection>
+            <h1 className="mb-4 text-4xl font-bold md:text-5xl drop-shadow-lg">
+              Thương hiệu đối tác
+            </h1>
+            <p className="max-w-2xl mx-auto text-lg drop-shadow-md">
+              Chúng tôi hợp tác cùng các thương hiệu spa và salon hàng đầu thế giới để mang đến sản phẩm chất lượng cao nhất. Mua theo thương hiệu để tìm đúng sản phẩm bạn yêu thích.
+            </p>
+          </FadeInSection>
+        </div>
+      </ParallaxSection>
 
       <div className="container-custom py-12">
         <Breadcrumb items={breadcrumbItems} className="mb-8" />
@@ -72,7 +84,7 @@ export default async function BrandsPage() {
         {featuredBrandsData.length > 0 && (
           <div className="mb-12">
             <FadeInSection>
-              <h2 className="mb-6 text-2xl font-bold text-gray-900">Featured Brands</h2>
+              <h2 className="mb-6 text-2xl font-bold text-gray-900">Thương hiệu nổi bật</h2>
             </FadeInSection>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {featuredBrandsData.map((brand, index) => (
@@ -111,7 +123,7 @@ export default async function BrandsPage() {
                           </span>
                         )}
                         <span className="text-sm text-gray-500">
-                          {brand.product_count || 0} {brand.product_count === 1 ? 'product' : 'products'}
+                          {brand.product_count || 0} sản phẩm
                         </span>
                       </div>
                     </div>
@@ -126,7 +138,7 @@ export default async function BrandsPage() {
         <div className="mb-12">
           <FadeInSection>
             <h2 className="mb-6 text-2xl font-bold text-gray-900">
-              {featuredBrandsData.length > 0 ? 'All Brands' : 'Brands'}
+              {featuredBrandsData.length > 0 ? 'Tất cả thương hiệu' : 'Thương hiệu'}
             </h2>
           </FadeInSection>
           {allBrands.length > 0 ? (
@@ -167,7 +179,7 @@ export default async function BrandsPage() {
                           </span>
                         )}
                         <span className="text-sm text-gray-500">
-                          {brand.product_count || 0} {brand.product_count === 1 ? 'product' : 'products'}
+                          {brand.product_count || 0} sản phẩm
                         </span>
                       </div>
                     </div>
@@ -177,7 +189,7 @@ export default async function BrandsPage() {
             </div>
           ) : (
             <div className="rounded-lg bg-gray-50 p-12 text-center">
-              <p className="text-gray-600">No brands available at the moment.</p>
+              <p className="text-gray-600">Hiện chưa có thương hiệu.</p>
             </div>
           )}
         </div>
@@ -186,7 +198,7 @@ export default async function BrandsPage() {
         <FadeInSection>
           <div className="rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 p-8 md:p-12">
             <h2 className="mb-8 text-center text-3xl font-bold text-gray-900">
-              Why Shop by Brand?
+              Vì sao mua theo thương hiệu?
             </h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">
@@ -202,9 +214,9 @@ export default async function BrandsPage() {
                     </svg>
                   </div>
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-gray-900">Trusted Quality</h3>
+                <h3 className="mb-2 text-xl font-bold text-gray-900">Chất lượng đáng tin cậy</h3>
                 <p className="text-gray-600">
-                  Every brand we carry is carefully vetted for quality and performance
+                  Mỗi thương hiệu đều được tuyển chọn kỹ càng về chất lượng và hiệu quả
                 </p>
               </div>
               <div className="text-center">
@@ -220,9 +232,9 @@ export default async function BrandsPage() {
                     </svg>
                   </div>
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-gray-900">Expert Knowledge</h3>
+                <h3 className="mb-2 text-xl font-bold text-gray-900">Kiến thức chuyên gia</h3>
                 <p className="text-gray-600">
-                  Access training resources and product knowledge for each brand
+                  Tài nguyên đào tạo và kiến thức sản phẩm cho từng thương hiệu
                 </p>
               </div>
               <div className="text-center">
@@ -238,9 +250,9 @@ export default async function BrandsPage() {
                     </svg>
                   </div>
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-gray-900">Fast Shipping</h3>
+                <h3 className="mb-2 text-xl font-bold text-gray-900">Giao hàng nhanh</h3>
                 <p className="text-gray-600">
-                  Get your favorite brands delivered quickly with our shipping options
+                  Nhận hàng nhanh chóng với các phương án vận chuyển linh hoạt
                 </p>
               </div>
             </div>
@@ -251,16 +263,16 @@ export default async function BrandsPage() {
         <FadeInSection>
           <div className="mt-12 text-center">
             <h2 className="mb-4 text-2xl font-bold text-gray-900">
-              Can't find the brand you're looking for?
+              Không tìm thấy thương hiệu bạn cần?
             </h2>
             <p className="mb-6 text-gray-600">
-              Contact us to inquire about specific brands or product availability
+              Liên hệ với chúng tôi để hỏi về thương hiệu hoặc tình trạng hàng hóa
             </p>
             <Link
               href="/contact"
               className="inline-block rounded-lg bg-brand-purple-600 px-8 py-3 font-semibold text-white transition-all hover:bg-brand-purple-700"
             >
-              Contact Us
+              Liên hệ
             </Link>
           </div>
         </FadeInSection>

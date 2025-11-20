@@ -61,6 +61,9 @@ const allowedOrigins = [
   'http://localhost:3000', // Website khách khi chạy Next.js dev trên máy
   'http://127.0.0.1:3000', // Dự phòng khi truy cập bằng 127.0.0.1
   'http://127.0.0.1:3010',
+  // Production domains
+  'http://banyco-demo.pressup.vn', // Production website
+  'https://banyco-demo.pressup.vn', // Production website (HTTPS)
 ];
 
 app.use(cors({

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+echo "=== Updating Environment Variables for Domain Support ==="
+
+# Backup existing .env files
+echo "Creating backups..."
+[ -f /var/www/Spa/Ecommerce/.env.local ] && cp /var/www/Spa/Ecommerce/.env.local /var/www/Spa/Ecommerce/.env.local.backup
+[ -f /var/www/Spa/CMS/backend/.env ] && cp /var/www/Spa/CMS/backend/.env /var/www/Spa/CMS/backend/.env.backup
+
+echo ""
+echo "=== Option 1: For Domain (Production) ==="
+echo "Run these commands:"
+echo ""
+echo "# Ecommerce Frontend"
+echo "cd /var/www/Spa/Ecommerce"
+echo "cat > .env.local << 'ENVEOF'"
+echo "NEXT_PUBLIC_API_URL=http://banyco-demo.pressup.vn/api"
+echo "NEXT_PUBLIC_SITE_URL=http://banyco-demo.pressup.vn"
+echo "NEXT_PUBLIC_CMS_BASE_URL=http://banyco-demo.pressup.vn/api"
+echo "ENVEOF"
+echo ""
+echo "# Backend - Add to .env"
+echo "cd /var/www/Spa/CMS/backend"
+echo "echo 'WEBSITE_ORIGIN=http://banyco-demo.pressup.vn' >> .env"
+echo ""
+echo "=== Option 2: For Localhost (Development) ==="
+echo "Run these commands:"
+echo ""
+echo "# Ecommerce Frontend"
+echo "cd /var/www/Spa/Ecommerce"
+echo "cat > .env.local << 'ENVEOF'"
+echo "NEXT_PUBLIC_API_URL=http://localhost:3011/api"
+echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000"
+echo "NEXT_PUBLIC_CMS_BASE_URL=http://localhost:3011/api"
+echo "ENVEOF"
+echo ""
+echo "=== After updating, restart services: ==="
+echo "pm2 restart all"
+echo "# Or if using npm:"
+echo "# Kill current processes and run: npm run dev"

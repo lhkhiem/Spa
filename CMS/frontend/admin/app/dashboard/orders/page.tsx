@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Eye, Filter } from 'lucide-react';
+import { Search, Eye, Filter, Trash2 } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
@@ -77,6 +77,26 @@ export default function OrdersPage() {
       setOrders([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (orderId: string, orderNumber: string) => {
+    if (!confirm(`Are you sure you want to delete order ${orderNumber}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(buildApiUrl(`/api/orders/${orderId}`), {
+        withCredentials: true,
+      });
+      
+      toast.success('Order deleted successfully');
+      // Update state without full reload
+      setOrders(prevOrders => prevOrders.filter(o => o.id !== orderId));
+      setTotal(prevTotal => prevTotal - 1);
+    } catch (error) {
+      console.error('Failed to delete order:', error);
+      toast.error('Failed to delete order');
     }
   };
 
@@ -231,13 +251,23 @@ export default function OrdersPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/dashboard/orders/${order.id}`}
-                      className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                    >
-                      <Eye className="h-4 w-4" />
-                      View
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/dashboard/orders/${order.id}`}
+                        className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(order.id, order.order_number)}
+                        className="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-700 hover:underline"
+                        title="Delete order"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

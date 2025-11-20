@@ -33,6 +33,7 @@ import publicPostsRoutes from './routes/publicPosts';
 import publicHomepageRoutes from './routes/publicHomepage';
 import publicProductsRoutes from './routes/publicProducts';
 import contactRoutes from './routes/contacts';
+import consultationRoutes from './routes/consultations';
 import emailRoutes from './routes/email';
 import publicAuthRoutes from './routes/publicAuth'; // Customer authentication
 // import publicUserRoutes from './routes/publicUser'; // Disabled: Customer user management not needed
@@ -97,6 +98,7 @@ app.use('/api/public/posts', publicPostsRoutes);
 app.use('/api/public/homepage', publicHomepageRoutes);
 app.use('/api/public/products', publicProductsRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/consultations', consultationRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/public/auth', publicAuthRoutes); // Customer authentication
 // app.use('/api/public/user', publicUserRoutes); // Disabled: Customer user management not needed

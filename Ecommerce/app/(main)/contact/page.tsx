@@ -82,7 +82,7 @@ export default function ContactPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section with Parallax */}
       <ParallaxSection
-        backgroundImage="https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1920&q=80"
+        backgroundImage="https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=1920&q=80"
         overlay={true}
         overlayColor="bg-black"
         overlayOpacity="bg-opacity-60"

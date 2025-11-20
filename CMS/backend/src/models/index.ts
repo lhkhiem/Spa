@@ -18,6 +18,7 @@ import ValueProp from './ValueProp';
 import { ProductOption } from './ProductOption';
 import Address from './Address';
 import ContactMessage from './ContactMessage';
+import ConsultationSubmission from './ConsultationSubmission';
 
 // Define all associations here
 // Define explicit through models (no timestamps) for many-to-many junctions
@@ -126,6 +127,27 @@ User.hasMany(ContactMessage, {
   as: 'repliedMessages',
 });
 
+// Consultation Submission associations
+ConsultationSubmission.belongsTo(User, {
+  foreignKey: 'assigned_to',
+  as: 'assignedUser',
+});
+
+ConsultationSubmission.belongsTo(User, {
+  foreignKey: 'replied_by',
+  as: 'repliedByUser',
+});
+
+User.hasMany(ConsultationSubmission, {
+  foreignKey: 'assigned_to',
+  as: 'assignedConsultations',
+});
+
+User.hasMany(ConsultationSubmission, {
+  foreignKey: 'replied_by',
+  as: 'repliedConsultations',
+});
+
 // Export all models
 export {
   Post,
@@ -146,5 +168,6 @@ export {
   ProductOption,
   Address,
   ContactMessage,
+  ConsultationSubmission,
 };
 

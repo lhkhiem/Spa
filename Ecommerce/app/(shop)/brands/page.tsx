@@ -6,7 +6,7 @@ import ParallaxSection from '@/components/ui/ParallaxSection/ParallaxSection';
 import { fetchBrands } from '@/lib/api/brands';
 import { buildFromApiOrigin } from '@/config/site';
 
-const FALLBACK_LOGO = 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=300&h=150';
+const FALLBACK_LOGO = 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=150';
 
 const resolveLogoUrl = (logoUrl: string | null | undefined): string => {
   if (!logoUrl) return FALLBACK_LOGO;
@@ -46,7 +46,7 @@ export default async function BrandsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section with Parallax */}
       <ParallaxSection
-        backgroundImage="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=1920&q=80"
+        backgroundImage="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1920&q=80"
         overlay={true}
         overlayColor="bg-black"
         overlayOpacity="bg-opacity-60"

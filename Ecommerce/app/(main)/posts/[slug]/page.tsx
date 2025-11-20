@@ -148,26 +148,29 @@ const RelatedPostCard = ({ post }: { post: PostSummaryDTO }) => {
 };
 
 export default async function PostDetailPage({ params }: PostDetailPageProps) {
-  const { slug } = params;
-  const normalizedSlug = normalizeSlug(slug);
+  let { slug } = params;
   
-  // Try with normalized slug first
-  let post = await fetchPostBySlug(normalizedSlug);
+  // Clean slug - remove trailing/leading dashes and whitespace
+  slug = slug.trim().replace(/^-+|-+$/g, '');
   
-  // If not found, try with original slug (in case it needs exact match)
-  if (!post && slug !== normalizedSlug) {
-    post = await fetchPostBySlug(slug);
-  }
+  // Try multiple slug variations
+  const slugVariations = [
+    slug, // Cleaned original
+    normalizeSlug(slug), // Normalized
+  ];
   
-  // If still not found, try decoding the slug
-  if (!post) {
+  // Remove duplicates
+  const uniqueSlugs = Array.from(new Set(slugVariations.filter(Boolean)));
+  
+  let post = null;
+  for (const slugToTry of uniqueSlugs) {
     try {
-      const decodedSlug = decodeURIComponent(slug);
-      if (decodedSlug !== slug) {
-        post = await fetchPostBySlug(normalizeSlug(decodedSlug));
+      post = await fetchPostBySlug(slugToTry);
+      if (post) {
+        break;
       }
     } catch (e) {
-      // Decode failed, continue
+      // Continue to next variation
     }
   }
 
@@ -185,68 +188,125 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-red-900 via-red-800 to-rose-900">
+      {/* Hero Section - Compact & Elegant */}
+      <section className="relative min-h-[50vh] md:min-h-[55vh] flex items-center overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        {/* Background Image */}
         {post.imageUrl && (
-          <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0">
             <Image
               src={post.imageUrl}
               alt={post.title}
               fill
               className="object-cover"
-              style={{ filter: 'blur(1px)' }}
               priority
+              style={{
+                filter: 'brightness(0.35) saturate(1.1)',
+              }}
             />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-r from-red-900/60 via-red-800/50 to-rose-900/60" />
-        <div className="relative container-custom py-16 md:py-24 z-10">
-          <Breadcrumb items={breadcrumbItems} className="mb-6 text-gray-100" />
-          
-          <div className="max-w-7xl">
+        
+        {/* Gradient Overlay - Dark blue/gray instead of red */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/85 to-indigo-900/90" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        
+        {/* Subtle texture overlay */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] bg-[size:20px_20px]" />
+        
+        {/* Content */}
+        <div className="relative container-custom py-12 md:py-16 z-10">
+          <div className="max-w-4xl mx-auto">
+            {/* Breadcrumb - Simple text only */}
+            <div className="mb-6">
+              <nav className="flex text-white/90" aria-label="Breadcrumb">
+                <ol className="flex items-center space-x-2 text-sm">
+                  {breadcrumbItems.map((item, index) => (
+                    <li key={index} className="flex items-center">
+                      {index > 0 && (
+                        <svg
+                          className="mx-2 h-4 w-4 text-white/70"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                      {item.href && index < breadcrumbItems.length - 1 ? (
+                        <Link
+                          href={item.href}
+                          className="text-white/90 hover:text-white transition-colors"
+                        >
+                          {item.label}
+                        </Link>
+                      ) : (
+                        <span className="text-white">{item.label}</span>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            </div>
+            
+            {/* Topic Badge - Clickable link */}
             {post.topic && (
-              <div className="mb-4">
-                <span className="inline-block rounded-full bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm">
+              <div className="mb-5">
+                <Link
+                  href={`/posts?topic=${encodeURIComponent(post.topic)}`}
+                  className="inline-flex items-center gap-2 rounded-full bg-white/25 backdrop-blur-md border border-white/35 px-4 py-1.5 text-xs font-semibold text-white shadow-xl hover:bg-white/35 hover:border-white/45 transition-all cursor-pointer"
+                >
+                  <FiTag className="h-3.5 w-3.5" />
                   {post.topic}
-                </span>
+                </Link>
               </div>
             )}
             
-            <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl lg:text-6xl drop-shadow-lg">
+            {/* Title - High contrast white text */}
+            <h1 className="mb-5 text-3xl font-bold leading-tight text-white md:text-4xl lg:text-5xl drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
               {post.title}
             </h1>
 
+            {/* Excerpt */}
             {post.excerpt && (
-              <p className="mb-8 text-xl text-gray-100 md:text-2xl drop-shadow-md">{post.excerpt}</p>
+              <p className="mb-8 text-base leading-relaxed text-white/95 md:text-lg lg:text-xl font-normal drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] max-w-3xl">
+                {post.excerpt}
+              </p>
             )}
 
-            <div className="flex flex-wrap items-center gap-6 text-gray-100">
+            {/* Meta Information */}
+            <div className="flex flex-wrap items-center gap-4 text-white/95">
               {post.author && (
-                <div className="flex items-center">
-                  <FiUser className="mr-2 h-5 w-5" />
-                  <span className="font-medium">{post.author.name}</span>
+                <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white/25 shadow-md">
+                  <FiUser className="h-4 w-4 text-white" />
+                  <span className="text-sm font-medium">{post.author.name}</span>
                 </div>
               )}
               
               {post.publishedAt && (
-                <div className="flex items-center">
-                  <span>{formatDate(post.publishedAt)}</span>
+                <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white/25 shadow-md">
+                  <span className="text-sm font-medium">{formatDate(post.publishedAt)}</span>
                 </div>
               )}
               
               {post.readTime && (
-                <div className="flex items-center">
-                  <FiClock className="mr-2 h-5 w-5" />
-                  <span>{post.readTime}</span>
+                <div className="flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white/25 shadow-md">
+                  <FiClock className="h-4 w-4 text-white" />
+                  <span className="text-sm font-medium">{post.readTime}</span>
                 </div>
               )}
             </div>
           </div>
         </div>
-      </div>
+        
+        {/* Bottom Gradient Fade - Smooth transition to content */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-gray-50/50 to-gray-50 pointer-events-none" />
+      </section>
 
-      {/* Main Content */}
-      <div className="container-custom py-12">
+      {/* Main Content - Seamless transition */}
+      <div className="container-custom py-12 -mt-24">
         <div className="mx-auto max-w-7xl">
           {/* Featured Image */}
           {post.imageUrl ? (
@@ -319,28 +379,6 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
             </section>
           )}
 
-          {/* CTA Section */}
-          <section className="relative rounded-2xl overflow-hidden p-8 md:p-12 text-center">
-            {/* Subtle Background Pattern */}
-            <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 via-rose-50/30 to-pink-50/50" />
-            <div 
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%239C92AC\" fill-opacity=\"0.4\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')",
-              }}
-            />
-            <div className="relative z-10">
-              <h2 className="mb-4 text-3xl font-bold text-gray-900">
-                Khám phá thêm tài nguyên học tập
-              </h2>
-              <p className="mb-8 text-lg text-gray-600">
-                Tham gia các khóa học miễn phí và nâng cao kỹ năng của bạn
-              </p>
-              <Button href="/learning" size="lg" className="bg-red-700 text-white hover:bg-red-800 shadow-lg transition-all">
-                Xem tất cả khóa học
-              </Button>
-            </div>
-          </section>
         </div>
       </div>
 

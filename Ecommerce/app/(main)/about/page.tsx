@@ -14,7 +14,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-white">
       {/* Hero Section with TRUE Parallax Effect */}
       <ParallaxSection 
-        backgroundImage="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1920&h=1200"
+        backgroundImage="https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=1920&h=1200"
         minHeight="tall"
         overlay={true}
         overlayColor="bg-black"
@@ -165,7 +165,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
               <div>
                 <Image
-                  src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&h=400"
+                  src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400"
                   alt="Giving Back"
                   width={600}
                   height={400}

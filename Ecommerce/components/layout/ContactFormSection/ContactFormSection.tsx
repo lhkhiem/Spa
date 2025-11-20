@@ -2,6 +2,9 @@
 
 import { useState, FormEvent } from 'react';
 import { vietnamProvinces } from '@/lib/data/provinces';
+import { submitConsultationForm } from '@/lib/api/consultations';
+import { handleApiError } from '@/lib/api/client';
+import toast from 'react-hot-toast';
 
 export default function ContactFormSection() {
   const [formData, setFormData] = useState({
@@ -18,23 +21,35 @@ export default function ContactFormSection() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // TODO: Implement API call to backend
-    console.log('Form data:', formData);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Reset form
-    setFormData({
-      name: '',
-      phone: '',
-      email: '',
-      province: '',
-      message: '',
-    });
-    
-    setIsSubmitting(false);
-    alert('Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi trong thời gian sớm nhất.');
+    try {
+      const response = await submitConsultationForm({
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email || undefined,
+        province: formData.province,
+        message: formData.message || undefined,
+      });
+
+      if (response.success) {
+        // Reset form
+        setFormData({
+          name: '',
+          phone: '',
+          email: '',
+          province: '',
+          message: '',
+        });
+        
+        toast.success(response.message || 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi trong thời gian sớm nhất.');
+      } else {
+        toast.error(response.error || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast.error(errorMessage || 'Có lỗi xảy ra. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

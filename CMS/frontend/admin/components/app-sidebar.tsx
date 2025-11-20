@@ -26,8 +26,8 @@ import {
   Code,
   Sparkles,
   MessageSquareQuote,
-  BookOpen,
   Mail,
+  PhoneCall,
 } from 'lucide-react';
 
 const navigation = [
@@ -53,11 +53,6 @@ const navigation = [
         title: 'Posts',
         href: '/dashboard/posts',
         icon: FileText,
-      },
-      {
-        title: 'Education Resources',
-        href: '/dashboard/education-resources',
-        icon: BookOpen,
       },
       {
         title: 'Topics',
@@ -109,6 +104,11 @@ const navigation = [
         title: 'Contact Messages',
         href: '/dashboard/contacts',
         icon: Mail,
+      },
+      {
+        title: 'Consultations',
+        href: '/dashboard/consultations',
+        icon: PhoneCall,
       },
       // Disabled: Customer management features not needed
       // {

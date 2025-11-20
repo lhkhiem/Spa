@@ -203,6 +203,7 @@ export const createPost = async (req: Request, res: Response) => {
       published_at,
       read_time,
       readTime,
+      is_featured,
     } = req.body;
 
     if (!title) {
@@ -253,6 +254,7 @@ export const createPost = async (req: Request, res: Response) => {
       seo: safeSeo,
       header_code: safeHeaderCode,
       read_time: safeReadTimeValue,
+      is_featured: is_featured !== undefined ? Boolean(is_featured) : true, // Default to true
     });
     
     console.log('[createPost] Post saved with cover_asset_id:', (post as any).cover_asset_id);
@@ -306,6 +308,7 @@ export const updatePost = async (req: Request, res: Response) => {
       published_at,
       read_time,
       readTime,
+      is_featured,
     } = req.body;
 
     const post = await Post.findByPk(id);
@@ -363,6 +366,7 @@ export const updatePost = async (req: Request, res: Response) => {
       seo: seo !== undefined ? seo : (post as any).seo,
       header_code: header_code !== undefined ? header_code : (post as any).header_code,
       read_time: safeReadTimeValue,
+      is_featured: is_featured !== undefined ? Boolean(is_featured) : ((post as any).is_featured !== undefined ? (post as any).is_featured : true),
       updated_at: new Date(),
     });
 

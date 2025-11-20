@@ -126,7 +126,7 @@ export default function FAQsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section with Parallax */}
       <ParallaxSection
-        backgroundImage="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1920&q=80"
+        backgroundImage="https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=1920&q=80"
         overlay={true}
         overlayColor="bg-black"
         overlayOpacity="bg-opacity-60"

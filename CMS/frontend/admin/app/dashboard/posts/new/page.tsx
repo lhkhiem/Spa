@@ -38,7 +38,7 @@ export default function NewPostPage(){
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   
   // Post type and conditional fields
-  const [isFeatured, setIsFeatured] = useState(false);
+  const [isFeatured, setIsFeatured] = useState(true); // Default to true
 
   const handleSelectFeaturedImage = async (value: string | string[]) => {
     const assetId = Array.isArray(value) ? value[0] : value;

@@ -41,6 +41,7 @@ export interface PostSummaryDTO {
   readTime: string | null;
   category: string | null;
   topic: string | null;
+  tags?: string[];
   imageUrl: string | null;
   publishedAt: string | null;
 }
@@ -114,7 +115,131 @@ export const fetchPostBySlug = async (slug: string): Promise<PostDetailDTO | nul
     return null;
   }
 
-  // Try CMS API first (most likely source)
+  // Clean slug - remove trailing/leading dashes and whitespace
+  const cleanSlug = slug.trim().replace(/^-+|-+$/g, '');
+
+  // Try public API first (correct endpoint: /api/public/posts/slug/:slug)
+  try {
+    console.log('[fetchPostBySlug] Attempting to fetch post with slug:', cleanSlug);
+    
+    // Try with cleaned slug
+    try {
+      const response = await apiClient.get<ApiDetailResponse<PostDetailDTO>>(
+        `/public/posts/slug/${cleanSlug}`
+      );
+
+      console.log('[fetchPostBySlug] Public API response:', {
+        success: response.data?.success,
+        hasData: !!response.data?.data,
+        status: response.status,
+      });
+
+      if (response.data?.success && response.data?.data) {
+        const rawPost = response.data.data;
+        console.log('[fetchPostBySlug] Post found:', rawPost.title);
+        
+        // Handle topics - can be array of {id, name} or string
+        let topic: string | null = null;
+        if (rawPost.topics && Array.isArray(rawPost.topics) && rawPost.topics.length > 0) {
+          topic = rawPost.topics[0].name || rawPost.topics[0];
+        } else if (rawPost.topic) {
+          topic = typeof rawPost.topic === 'string' ? rawPost.topic : rawPost.topic?.name;
+        }
+
+        // Handle tags - can be array of {id, name} or array of strings
+        let tags: string[] = [];
+        if (rawPost.tags && Array.isArray(rawPost.tags)) {
+          tags = rawPost.tags.map((tag: any) => 
+            typeof tag === 'string' ? tag : (tag.name || tag)
+          ).filter(Boolean);
+        }
+
+        return {
+          id: rawPost.id,
+          title: rawPost.title,
+          slug: rawPost.slug,
+          excerpt: rawPost.excerpt || rawPost.description || null,
+          content: rawPost.content || rawPost.body || rawPost.description || null,
+          readTime: rawPost.read_time || rawPost.readTime || null,
+          category: rawPost.category?.name || rawPost.category || null,
+          topic,
+          tags,
+          postType: rawPost.post_type || 'blog',
+          imageUrl: normalizeMediaUrl(
+            rawPost.cover_asset?.url || rawPost.cover_asset?.cdn_url || rawPost.image_url || rawPost.cover_image || rawPost.image
+          ),
+          publishedAt: rawPost.published_at || rawPost.publishedAt || rawPost.created_at || null,
+          author: rawPost.author
+            ? {
+                id: rawPost.author.id,
+                name: rawPost.author.name || rawPost.author.username || 'Admin',
+                avatar: normalizeMediaUrl(rawPost.author.avatar),
+              }
+            : null,
+        };
+      }
+    } catch (e: any) {
+      console.log('[fetchPostBySlug] First attempt failed, trying original slug:', e.message);
+      
+      // Try with original slug (in case cleaned version doesn't match)
+      if (slug !== cleanSlug) {
+        try {
+          const response = await apiClient.get<ApiDetailResponse<PostDetailDTO>>(
+            `/public/posts/slug/${slug}`
+          );
+
+          if (response.data?.success && response.data?.data) {
+            const rawPost = response.data.data;
+            
+            // Handle topics and tags
+            let topic: string | null = null;
+            if (rawPost.topics && Array.isArray(rawPost.topics) && rawPost.topics.length > 0) {
+              topic = rawPost.topics[0].name || rawPost.topics[0];
+            } else if (rawPost.topic) {
+              topic = typeof rawPost.topic === 'string' ? rawPost.topic : rawPost.topic?.name;
+            }
+
+            let tags: string[] = [];
+            if (rawPost.tags && Array.isArray(rawPost.tags)) {
+              tags = rawPost.tags.map((tag: any) => 
+                typeof tag === 'string' ? tag : (tag.name || tag)
+              ).filter(Boolean);
+            }
+
+            return {
+              id: rawPost.id,
+              title: rawPost.title,
+              slug: rawPost.slug,
+              excerpt: rawPost.excerpt || rawPost.description || null,
+              content: rawPost.content || rawPost.body || rawPost.description || null,
+              readTime: rawPost.read_time || rawPost.readTime || null,
+              category: rawPost.category?.name || rawPost.category || null,
+              topic,
+              tags,
+              postType: rawPost.post_type || 'blog',
+              imageUrl: normalizeMediaUrl(
+                rawPost.cover_asset?.url || rawPost.cover_asset?.cdn_url || rawPost.image_url || rawPost.cover_image || rawPost.image
+              ),
+              publishedAt: rawPost.published_at || rawPost.publishedAt || rawPost.created_at || null,
+              author: rawPost.author
+                ? {
+                    id: rawPost.author.id,
+                    name: rawPost.author.name || rawPost.author.username || 'Admin',
+                    avatar: normalizeMediaUrl(rawPost.author.avatar),
+                  }
+                : null,
+            };
+          }
+        } catch (e2) {
+          console.error('[fetchPostBySlug] Encoded slug also failed:', e2);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[fetchPostBySlug] Public API failed:', handleApiError(error));
+  }
+
+  // Try CMS API as fallback (admin route, might need auth)
   try {
     const cmsBaseUrl = process.env.NEXT_PUBLIC_CMS_BASE_URL;
     if (cmsBaseUrl) {
@@ -124,20 +249,36 @@ export const fetchPostBySlug = async (slug: string): Promise<PostDetailDTO | nul
       const rawPost = await tryFetchPost(slug, apiPath);
       
       if (rawPost) {
+        // Handle topics and tags
+        let topic: string | null = null;
+        if (rawPost.topics && Array.isArray(rawPost.topics) && rawPost.topics.length > 0) {
+          topic = rawPost.topics[0].name || rawPost.topics[0];
+        } else if (rawPost.topic) {
+          topic = typeof rawPost.topic === 'string' ? rawPost.topic : rawPost.topic?.name;
+        }
+
+        let tags: string[] = [];
+        if (rawPost.tags && Array.isArray(rawPost.tags)) {
+          tags = rawPost.tags.map((tag: any) => 
+            typeof tag === 'string' ? tag : (tag.name || tag)
+          ).filter(Boolean);
+        }
+
         return {
           id: rawPost.id,
           title: rawPost.title,
           slug: rawPost.slug,
-          excerpt: rawPost.excerpt || rawPost.description,
-          content: rawPost.content || rawPost.body || rawPost.description,
-          readTime: rawPost.read_time || rawPost.readTime || '5 min read',
-          category: rawPost.category?.name || rawPost.category || 'Learning Library',
-          topic: rawPost.topic || rawPost.category?.name || 'Learning Library',
+          excerpt: rawPost.excerpt || rawPost.description || null,
+          content: rawPost.content || rawPost.body || rawPost.description || null,
+          readTime: rawPost.read_time || rawPost.readTime || null,
+          category: rawPost.category?.name || rawPost.category || null,
+          topic,
+          tags,
           postType: rawPost.post_type || 'blog',
           imageUrl: normalizeMediaUrl(
-            rawPost.cover_asset?.url || rawPost.image_url || rawPost.cover_image || rawPost.image
+            rawPost.cover_asset?.url || rawPost.cover_asset?.cdn_url || rawPost.image_url || rawPost.cover_image || rawPost.image
           ),
-          publishedAt: rawPost.published_at || rawPost.publishedAt || rawPost.created_at,
+          publishedAt: rawPost.published_at || rawPost.publishedAt || rawPost.created_at || null,
           author: rawPost.author
             ? {
                 id: rawPost.author.id,
@@ -145,48 +286,11 @@ export const fetchPostBySlug = async (slug: string): Promise<PostDetailDTO | nul
                 avatar: normalizeMediaUrl(rawPost.author.avatar),
               }
             : null,
-          tags: rawPost.tags || rawPost.tag_list || [],
         };
       }
     }
   } catch (cmsError) {
     console.error('[fetchPostBySlug] CMS API failed:', cmsError);
-  }
-
-  // Try public API as fallback
-  try {
-    // Try with original slug
-    try {
-      const response = await apiClient.get<ApiDetailResponse<PostDetailDTO>>(
-        `/public/posts/${slug}`
-      );
-
-      if (response.data?.data) {
-        const post = response.data.data;
-        return {
-          ...post,
-          imageUrl: normalizeMediaUrl(post.imageUrl),
-        };
-      }
-    } catch (e) {
-      // Try with encoded slug
-      const encodedSlug = encodeURIComponent(slug);
-      if (encodedSlug !== slug) {
-        const response = await apiClient.get<ApiDetailResponse<PostDetailDTO>>(
-          `/public/posts/${encodedSlug}`
-        );
-
-        if (response.data?.data) {
-          const post = response.data.data;
-          return {
-            ...post,
-            imageUrl: normalizeMediaUrl(post.imageUrl),
-          };
-        }
-      }
-    }
-  } catch (error) {
-    console.error('[fetchPostBySlug] Public API failed:', handleApiError(error));
   }
 
   // Return mock data for development/testing if all APIs fail
@@ -452,34 +556,84 @@ export const fetchPosts = async (params?: {
       };
     }
 
-    const payload = (await response.json()) as ApiResponse<{
-      data: any[];
-      total?: number;
-      page?: number;
-      pageSize?: number;
-      totalPages?: number;
-    }>;
+    const payload = await response.json();
+    
+    console.log('[fetchPosts] Raw API response:', {
+      hasSuccess: 'success' in payload,
+      hasData: 'data' in payload,
+      dataType: Array.isArray(payload.data) ? 'array' : typeof payload.data,
+      dataLength: Array.isArray(payload.data) ? payload.data.length : 'N/A',
+      total: payload.total,
+      firstItem: Array.isArray(payload.data) && payload.data.length > 0 ? payload.data[0] : null,
+    });
 
-    const posts = payload.data?.data || payload.data || [];
-    const total = payload.data?.total || posts.length;
-    const page = payload.data?.page || params?.page || 1;
-    const pageSize = payload.data?.pageSize || params?.pageSize || 20;
-    const totalPages = payload.data?.totalPages || Math.ceil(total / pageSize);
+    // Handle different response formats
+    // Format 1: { success: true, data: [...], total: ... }
+    // Format 2: { data: { data: [...], total: ... } }
+    let posts: any[] = [];
+    let total = 0;
+    let page = params?.page || 1;
+    let pageSize = params?.pageSize || 20;
+    
+    if (payload.success && Array.isArray(payload.data)) {
+      // Format 1: Direct array in data
+      posts = payload.data;
+      total = payload.total || posts.length;
+      page = payload.page || page;
+      pageSize = payload.pageSize || pageSize;
+    } else if (payload.data && Array.isArray(payload.data)) {
+      // Format 2: Array in data.data
+      posts = payload.data;
+      total = payload.total || payload.data?.total || posts.length;
+      page = payload.page || payload.data?.page || page;
+      pageSize = payload.pageSize || payload.data?.pageSize || pageSize;
+    } else if (payload.data?.data && Array.isArray(payload.data.data)) {
+      // Format 3: Nested data.data
+      posts = payload.data.data;
+      total = payload.data.total || posts.length;
+      page = payload.data.page || page;
+      pageSize = payload.data.pageSize || pageSize;
+    }
+    
+    const totalPages = Math.ceil(total / pageSize);
 
     return {
-      data: posts.map((post: any) => ({
-        id: post.id,
-        title: post.title,
-        slug: post.slug,
-        excerpt: post.excerpt || post.description || null,
-        readTime: post.read_time || post.readTime || null,
-        category: post.category?.name || post.category || null,
-        topic: post.topic || post.category?.name || null,
-        imageUrl: normalizeMediaUrl(
-          post.cover_asset?.url || post.image_url || post.cover_image || post.image
-        ),
-        publishedAt: post.published_at || post.publishedAt || post.created_at || null,
-      })),
+      data: posts.map((post: any) => {
+        // Handle topics - can be array of {id, name} or string
+        let topic: string | null = null;
+        if (post.topics && Array.isArray(post.topics) && post.topics.length > 0) {
+          topic = post.topics[0].name || post.topics[0];
+        } else if (post.topic) {
+          topic = typeof post.topic === 'string' ? post.topic : post.topic?.name;
+        } else if (post.category?.name) {
+          topic = post.category.name;
+        }
+
+        // Handle tags - can be array of {id, name} or array of strings
+        let tags: string[] = [];
+        if (post.tags && Array.isArray(post.tags)) {
+          tags = post.tags.map((tag: any) => 
+            typeof tag === 'string' ? tag : (tag.name || tag)
+          ).filter(Boolean);
+        } else if (post.tag_list && Array.isArray(post.tag_list)) {
+          tags = post.tag_list;
+        }
+
+        return {
+          id: post.id,
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt || post.description || null,
+          readTime: post.read_time || post.readTime || null,
+          category: post.category?.name || post.category || null,
+          topic,
+          tags,
+          imageUrl: normalizeMediaUrl(
+            post.cover_asset?.url || post.cover_asset?.cdn_url || post.image_url || post.cover_image || post.image
+          ),
+          publishedAt: post.published_at || post.publishedAt || post.created_at || null,
+        };
+      }),
       meta: {
         total,
         page,

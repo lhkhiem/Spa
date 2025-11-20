@@ -38,6 +38,7 @@ export default function EditPostPage(){
   const [allTags, setAllTags] = useState<Array<{id:string; name:string}>>([]);
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [isFeatured, setIsFeatured] = useState(true); // Default to true
 
   const handleSelectFeaturedImage = async (value: string | string[]) => {
     const assetId = Array.isArray(value) ? value[0] : value;
@@ -113,6 +114,7 @@ export default function EditPostPage(){
       setAuthorId(data.author_id || '');
       setPubDate(data.published_at ? String(data.published_at).slice(0,10) : '');
       setReadTime(data.read_time || data.readTime || '');
+      setIsFeatured(data.is_featured !== undefined ? data.is_featured : true); // Default to true if not set
       // Preselect relations if API provides them (optional)
       if (Array.isArray(data.topics)) setSelectedTopicIds(data.topics.map((t:any)=>t.id));
       if (Array.isArray(data.tags)) setSelectedTagIds(data.tags.map((t:any)=>t.id));
@@ -164,6 +166,7 @@ export default function EditPostPage(){
         content,
         status,
         published_at: status === 'published' ? (pubDate ? pubDate : new Date().toISOString()) : null,
+        is_featured: isFeatured,
         topics: selectedTopicIds,
         tags: selectedTagIds,
         read_time: readTime?.trim() ? readTime.trim() : null,
@@ -311,6 +314,18 @@ export default function EditPostPage(){
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
               </select>
+            </div>
+            <div>
+              <label className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  checked={isFeatured} 
+                  onChange={(e)=>setIsFeatured(e.target.checked)} 
+                  className="rounded"
+                />
+                <span className="text-sm font-medium">Featured Post</span>
+              </label>
+              <p className="text-xs text-muted-foreground mt-1">Show this post on homepage and featured sections</p>
             </div>
             {/* Topics */}
             <div>

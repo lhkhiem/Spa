@@ -64,6 +64,8 @@ const allowedOrigins = [
   // Production domains
   'http://banyco-demo.pressup.vn', // Production website
   'https://banyco-demo.pressup.vn', // Production website (HTTPS)
+  'http://admin.banyco-demo.pressup.vn', // CMS Admin subdomain
+  'https://admin.banyco-demo.pressup.vn', // CMS Admin subdomain (HTTPS)
 ];
 
 app.use(cors({

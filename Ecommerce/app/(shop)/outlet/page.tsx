@@ -35,14 +35,11 @@ export default async function OutletPage() {
   // Filter for products with significant discounts (outlet items)
   const clearanceItems = productsResponse.data
     .filter((product: ProductDTO) => {
-      const hasDiscount =
-        product.comparePrice !== null &&
-        product.comparePrice !== undefined &&
-        product.comparePrice > product.price;
+      if (!product.comparePrice) return false;
+      const hasDiscount = product.comparePrice > product.price;
       if (!hasDiscount) return false;
 
-      const discountPercent =
-        ((product.comparePrice - product.price) / product.comparePrice) * 100;
+      const discountPercent = ((product.comparePrice - product.price) / product.comparePrice) * 100;
       return discountPercent >= 30; // At least 30% off for outlet items
     })
     .slice(0, 4)
@@ -147,7 +144,7 @@ export default async function OutletPage() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {clearanceItems.map((product, index) => (
                 <FadeInSection key={product.id} delay={index * 100}>
-                  <ProductCard product={product} />
+                  <ProductCard product={{ ...product, variantId: product.variantId ?? undefined }} />
                 </FadeInSection>
               ))}
             </div>

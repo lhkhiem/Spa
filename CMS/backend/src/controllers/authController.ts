@@ -31,8 +31,17 @@ export const register = async (req: Request, res: Response) => {
       email: user.email,
       name: user.name,
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Registration failed' });
+  } catch (error: any) {
+    console.error('Registration failed:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+    });
+    res.status(500).json({ 
+      error: 'Registration failed',
+      message: process.env.NODE_ENV === 'development' ? error?.message : undefined
+    });
   }
 };
 
@@ -43,9 +52,20 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Check if user has a password hash
+    if (!user.password_hash) {
+      console.error('User found but password_hash is missing:', { userId: user.id, email: user.email });
+      return res.status(500).json({ error: 'User account configuration error' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
@@ -78,8 +98,17 @@ export const login = async (req: Request, res: Response) => {
         role: (user as any).role,
       },
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Login failed' });
+  } catch (error: any) {
+    console.error('Login failed:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+    });
+    res.status(500).json({ 
+      error: 'Login failed',
+      message: process.env.NODE_ENV === 'development' ? error?.message : undefined
+    });
   }
 };
 

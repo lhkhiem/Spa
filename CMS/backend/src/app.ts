@@ -66,11 +66,13 @@ const allowedOrigins = [
   'https://banyco-demo.pressup.vn', // Production website (HTTPS)
   'http://admin.banyco-demo.pressup.vn', // CMS Admin subdomain
   'https://admin.banyco-demo.pressup.vn', // CMS Admin subdomain (HTTPS)
+  'http://api.banyco-demo.pressup.vn', // API subdomain
+  'https://api.banyco-demo.pressup.vn', // API subdomain (HTTPS)
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Request không có Origin (như Postman, server-to-server) → cho phép
+    // Request không có Origin (như Postman, server-to-server, hoặc same-origin requests) → cho phép
     if (!origin) {
       return callback(null, true);
     }
@@ -78,6 +80,8 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
+    // Log để debug
+    console.warn(`[CORS] Origin not allowed: ${origin}`);
     // Origin lạ → chặn và báo lỗi rõ ràng
     return callback(new Error(`Origin ${origin} not allowed by CORS`));
   },

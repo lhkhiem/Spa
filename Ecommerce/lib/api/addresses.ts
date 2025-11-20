@@ -25,7 +25,8 @@ export interface CreateAddressData {
   type: 'shipping' | 'billing' | 'both';
 }
 
-export interface UpdateAddressData extends CreateAddressData {}
+// UpdateAddressData is the same as CreateAddressData for now
+export type UpdateAddressData = CreateAddressData;
 
 /**
  * Convert camelCase address data to snake_case for backend API

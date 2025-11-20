@@ -137,7 +137,7 @@ export default function CheckoutPage() {
       state: formData.state,
       postalCode: formData.zipCode,
       country: formData.country,
-      // phone removed - now stored separately as customer_phone
+      phone: formData.phone, // Required by OrderAddressPayload
       email: formData.email,
     };
 

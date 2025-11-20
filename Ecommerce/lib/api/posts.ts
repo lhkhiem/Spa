@@ -140,10 +140,10 @@ export const fetchPostBySlug = async (slug: string): Promise<PostDetailDTO | nul
         
         // Handle topics - can be array of {id, name} or string
         let topic: string | null = null;
-        if (rawPost.topics && Array.isArray(rawPost.topics) && rawPost.topics.length > 0) {
-          topic = rawPost.topics[0].name || rawPost.topics[0];
+        if ((rawPost as any).topics && Array.isArray((rawPost as any).topics) && (rawPost as any).topics.length > 0) {
+          topic = (rawPost as any).topics[0].name || (rawPost as any).topics[0];
         } else if (rawPost.topic) {
-          topic = typeof rawPost.topic === 'string' ? rawPost.topic : rawPost.topic?.name;
+          topic = typeof rawPost.topic === 'string' ? rawPost.topic : (rawPost.topic as any)?.name;
         }
 
         // Handle tags - can be array of {id, name} or array of strings
@@ -158,22 +158,22 @@ export const fetchPostBySlug = async (slug: string): Promise<PostDetailDTO | nul
           id: rawPost.id,
           title: rawPost.title,
           slug: rawPost.slug,
-          excerpt: rawPost.excerpt || rawPost.description || null,
-          content: rawPost.content || rawPost.body || rawPost.description || null,
-          readTime: rawPost.read_time || rawPost.readTime || null,
-          category: rawPost.category?.name || rawPost.category || null,
+          excerpt: rawPost.excerpt || (rawPost as any).description || null,
+          content: rawPost.content || (rawPost as any).body || (rawPost as any).description || null,
+          readTime: (rawPost as any).read_time || (rawPost as any).readTime || null,
+          category: (typeof rawPost.category === 'object' && rawPost.category ? (rawPost.category as any).name : null) || rawPost.category || null,
           topic,
           tags,
-          postType: rawPost.post_type || 'blog',
+          postType: (rawPost as any).post_type || 'blog',
           imageUrl: normalizeMediaUrl(
-            rawPost.cover_asset?.url || rawPost.cover_asset?.cdn_url || rawPost.image_url || rawPost.cover_image || rawPost.image
+            (rawPost as any).cover_asset?.url || (rawPost as any).cover_asset?.cdn_url || (rawPost as any).image_url || (rawPost as any).cover_image || (rawPost as any).image
           ),
-          publishedAt: rawPost.published_at || rawPost.publishedAt || rawPost.created_at || null,
+          publishedAt: (rawPost as any).published_at || (rawPost as any).publishedAt || (rawPost as any).created_at || null,
           author: rawPost.author
             ? {
-                id: rawPost.author.id,
-                name: rawPost.author.name || rawPost.author.username || 'Admin',
-                avatar: normalizeMediaUrl(rawPost.author.avatar),
+                id: (rawPost.author as any).id,
+                name: (rawPost.author as any).name || (rawPost.author as any).username || 'Admin',
+                avatar: normalizeMediaUrl((rawPost.author as any).avatar),
               }
             : null,
         };
@@ -193,10 +193,10 @@ export const fetchPostBySlug = async (slug: string): Promise<PostDetailDTO | nul
             
             // Handle topics and tags
             let topic: string | null = null;
-            if (rawPost.topics && Array.isArray(rawPost.topics) && rawPost.topics.length > 0) {
-              topic = rawPost.topics[0].name || rawPost.topics[0];
+            if ((rawPost as any).topics && Array.isArray((rawPost as any).topics) && (rawPost as any).topics.length > 0) {
+              topic = (rawPost as any).topics[0].name || (rawPost as any).topics[0];
             } else if (rawPost.topic) {
-              topic = typeof rawPost.topic === 'string' ? rawPost.topic : rawPost.topic?.name;
+              topic = typeof rawPost.topic === 'string' ? rawPost.topic : (rawPost.topic as any)?.name;
             }
 
             let tags: string[] = [];
@@ -210,22 +210,22 @@ export const fetchPostBySlug = async (slug: string): Promise<PostDetailDTO | nul
               id: rawPost.id,
               title: rawPost.title,
               slug: rawPost.slug,
-              excerpt: rawPost.excerpt || rawPost.description || null,
-              content: rawPost.content || rawPost.body || rawPost.description || null,
-              readTime: rawPost.read_time || rawPost.readTime || null,
-              category: rawPost.category?.name || rawPost.category || null,
+              excerpt: rawPost.excerpt || (rawPost as any).description || null,
+              content: rawPost.content || (rawPost as any).body || (rawPost as any).description || null,
+              readTime: (rawPost as any).read_time || (rawPost as any).readTime || null,
+              category: (typeof rawPost.category === 'object' && rawPost.category ? (rawPost.category as any).name : null) || rawPost.category || null,
               topic,
               tags,
-              postType: rawPost.post_type || 'blog',
+              postType: (rawPost as any).post_type || 'blog',
               imageUrl: normalizeMediaUrl(
-                rawPost.cover_asset?.url || rawPost.cover_asset?.cdn_url || rawPost.image_url || rawPost.cover_image || rawPost.image
+                (rawPost as any).cover_asset?.url || (rawPost as any).cover_asset?.cdn_url || (rawPost as any).image_url || (rawPost as any).cover_image || (rawPost as any).image
               ),
-              publishedAt: rawPost.published_at || rawPost.publishedAt || rawPost.created_at || null,
+              publishedAt: (rawPost as any).published_at || (rawPost as any).publishedAt || (rawPost as any).created_at || null,
               author: rawPost.author
                 ? {
-                    id: rawPost.author.id,
-                    name: rawPost.author.name || rawPost.author.username || 'Admin',
-                    avatar: normalizeMediaUrl(rawPost.author.avatar),
+                    id: (rawPost.author as any).id,
+                    name: (rawPost.author as any).name || (rawPost.author as any).username || 'Admin',
+                    avatar: normalizeMediaUrl((rawPost.author as any).avatar),
                   }
                 : null,
             };
@@ -251,10 +251,10 @@ export const fetchPostBySlug = async (slug: string): Promise<PostDetailDTO | nul
       if (rawPost) {
         // Handle topics and tags
         let topic: string | null = null;
-        if (rawPost.topics && Array.isArray(rawPost.topics) && rawPost.topics.length > 0) {
-          topic = rawPost.topics[0].name || rawPost.topics[0];
+        if ((rawPost as any).topics && Array.isArray((rawPost as any).topics) && (rawPost as any).topics.length > 0) {
+          topic = (rawPost as any).topics[0].name || (rawPost as any).topics[0];
         } else if (rawPost.topic) {
-          topic = typeof rawPost.topic === 'string' ? rawPost.topic : rawPost.topic?.name;
+          topic = typeof rawPost.topic === 'string' ? rawPost.topic : (rawPost.topic as any)?.name;
         }
 
         let tags: string[] = [];
@@ -268,22 +268,22 @@ export const fetchPostBySlug = async (slug: string): Promise<PostDetailDTO | nul
           id: rawPost.id,
           title: rawPost.title,
           slug: rawPost.slug,
-          excerpt: rawPost.excerpt || rawPost.description || null,
-          content: rawPost.content || rawPost.body || rawPost.description || null,
-          readTime: rawPost.read_time || rawPost.readTime || null,
-          category: rawPost.category?.name || rawPost.category || null,
+          excerpt: rawPost.excerpt || (rawPost as any).description || null,
+          content: rawPost.content || (rawPost as any).body || (rawPost as any).description || null,
+          readTime: (rawPost as any).read_time || (rawPost as any).readTime || null,
+          category: (typeof rawPost.category === 'object' && rawPost.category ? (rawPost.category as any).name : null) || rawPost.category || null,
           topic,
           tags,
-          postType: rawPost.post_type || 'blog',
+          postType: (rawPost as any).post_type || 'blog',
           imageUrl: normalizeMediaUrl(
-            rawPost.cover_asset?.url || rawPost.cover_asset?.cdn_url || rawPost.image_url || rawPost.cover_image || rawPost.image
+            (rawPost as any).cover_asset?.url || (rawPost as any).cover_asset?.cdn_url || (rawPost as any).image_url || (rawPost as any).cover_image || (rawPost as any).image
           ),
-          publishedAt: rawPost.published_at || rawPost.publishedAt || rawPost.created_at || null,
+          publishedAt: (rawPost as any).published_at || (rawPost as any).publishedAt || (rawPost as any).created_at || null,
           author: rawPost.author
             ? {
-                id: rawPost.author.id,
-                name: rawPost.author.name || rawPost.author.username || 'Admin',
-                avatar: normalizeMediaUrl(rawPost.author.avatar),
+                id: (rawPost.author as any).id,
+                name: (rawPost.author as any).name || (rawPost.author as any).username || 'Admin',
+                avatar: normalizeMediaUrl((rawPost.author as any).avatar),
               }
             : null,
         };
@@ -540,7 +540,10 @@ export const fetchPosts = async (params?: {
     const url = buildApiUrl(`/public/posts${queryString ? `?${queryString}` : ''}`);
 
     const response = await fetch(url, {
-      next: { revalidate: 60 },
+      cache: 'no-store', // Disable caching to ensure fresh data
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
     if (!response.ok) {

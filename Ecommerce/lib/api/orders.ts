@@ -183,6 +183,6 @@ export const createOrder = async (payload: CreateOrderPayload): Promise<Order> =
  */
 export const cancelOrder = async (orderId: string): Promise<Order> => {
   const response = await apiClient.post<OrderResponse>(API_ENDPOINTS.ORDERS.CANCEL(orderId));
-  return response.data.data;
+  return mapOrderDTOToOrder(response.data.data);
 };
 

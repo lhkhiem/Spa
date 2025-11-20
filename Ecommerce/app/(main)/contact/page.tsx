@@ -35,7 +35,7 @@ export default function ContactPage() {
       const response = await submitContactForm({
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email || undefined, // email không bắt buộc
+        email: formData.email || '', // email không bắt buộc
         phone: formData.phone, // số điện thoại bắt buộc
         subject: formData.subject,
         message: formData.message,

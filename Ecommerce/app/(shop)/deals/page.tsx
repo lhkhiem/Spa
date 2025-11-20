@@ -203,7 +203,7 @@ export default async function DealsPage() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {featuredDeals.map((product, index) => (
                 <FadeInSection key={product.id} delay={index * 50}>
-                  <ProductCard product={product} />
+                  <ProductCard product={{ ...product, variantId: product.variantId ?? undefined }} />
                 </FadeInSection>
               ))}
             </div>

@@ -405,14 +405,6 @@ export default function OrderLookupPage() {
                       <div>
                         <p className="mb-2 text-sm font-medium text-gray-600">Thông tin vận chuyển:</p>
                         <div className="space-y-2">
-                          {order.shipping_method && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-gray-600">Phương thức:</span>
-                              <span className="text-sm font-medium text-gray-900">
-                                {getShippingMethodLabel(order.shipping_method)}
-                              </span>
-                            </div>
-                          )}
                           {order.shipping_cost !== undefined && order.shipping_cost !== null && (
                             <div className="flex items-center justify-between">
                               <span className="text-sm text-gray-600">Phí vận chuyển:</span>

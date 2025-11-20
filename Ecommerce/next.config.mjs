@@ -24,6 +24,36 @@ const nextConfig = {
         port: '3011',
         pathname: '**',
       },
+      {
+        protocol: 'http',
+        hostname: 'banyco-demo.pressup.vn',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'banyco-demo.pressup.vn',
+        pathname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'admin.banyco-demo.pressup.vn',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'admin.banyco-demo.pressup.vn',
+        pathname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'api.banyco-demo.pressup.vn',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.banyco-demo.pressup.vn',
+        pathname: '**',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
   },

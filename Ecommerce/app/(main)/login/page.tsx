@@ -13,7 +13,7 @@ import { login } from '@/lib/api/auth';
 import { LoginCredentials } from '@/lib/types/user';
 import toast from 'react-hot-toast';
 
-interface LoginFormData extends LoginCredentials {}
+type LoginFormData = LoginCredentials;
 
 export default function LoginPage() {
   const router = useRouter();

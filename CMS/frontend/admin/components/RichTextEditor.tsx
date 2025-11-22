@@ -3,8 +3,8 @@
 import dynamic from 'next/dynamic';
 import React from 'react';
 
-// Dynamically import CKEditor to avoid SSR issues
-const CKEditorWrapper = dynamic(() => import('./CKEditorWrapper'), {
+// Dynamically import TinyMCE to avoid SSR issues
+const TinyMCEEditor = dynamic(() => import('./TinyMCEEditor'), {
   ssr: false,
   loading: () => (
     <div className="w-full min-h-[300px] rounded-lg border border-input bg-background p-4 flex items-center justify-center text-muted-foreground">
@@ -23,7 +23,7 @@ export interface RichTextEditorProps {
 }
 
 export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
-  return <CKEditorWrapper value={value} onChange={onChange} placeholder={placeholder} />;
+  return <TinyMCEEditor value={value} onChange={onChange} placeholder={placeholder} />;
 }
 
 

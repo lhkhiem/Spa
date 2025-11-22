@@ -3,17 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import type { Editor as TinyMCEInstance } from 'tinymce';
-import {
-  Bold as BoldIcon,
-  Code2,
-  Image as ImageIcon,
-  Italic as ItalicIcon,
-  Link2,
-  Maximize2,
-  Strikethrough as StrikethroughIcon,
-  Table as TableIcon,
-  Underline as UnderlineIcon,
-} from 'lucide-react';
 import MediaPicker from './MediaPicker';
 
 export interface TinyMCEEditorProps {
@@ -66,11 +55,11 @@ const WORD_LIKE_PLUGINS = [
 ];
 
 const WORD_LIKE_TOOLBAR = [
-  'undo redo | save print preview fullscreen',
-  'formatselect fontselect fontsizeselect | bold italic underline strikethrough superscript subscript removeformat',
-  'forecolor backcolor | alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist',
-  'link image media customMediaLibrary | blockquote code codesample | table tabledelete | hr pagebreak nonbreaking insertdatetime',
-  'charmap emoticons | searchreplace visualblocks visualchars | ltr rtl | template',
+  'undo redo | save print preview fullscreen | code | visualblocks',
+  'styleselect formatselect fontselect fontsizeselect | bold italic underline strikethrough | superscript subscript | forecolor backcolor | removeformat',
+  'alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist',
+  'link image media customMediaLibrary | table tabledelete | blockquote | hr pagebreak insertdatetime',
+  'charmap emoticons | searchreplace | ltr rtl | template',
 ].join('\n');
 
 export default function TinyMCEEditor({
@@ -80,7 +69,6 @@ export default function TinyMCEEditor({
 }: TinyMCEEditorProps) {
   const editorRef = useRef<TinyMCEInstance | null>(null);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
-  const [editorReady, setEditorReady] = useState(false);
 
   const handleEditorChange = useCallback(
     (next: string) => {
@@ -104,52 +92,16 @@ export default function TinyMCEEditor({
   useEffect(() => {
     return () => {
       editorRef.current = null;
-      setEditorReady(false);
     };
   }, []);
 
-  const execCommand = useCallback((command: string, value?: any) => {
-    if (!editorRef.current) return;
-    editorRef.current.execCommand(command, false, value);
-    editorRef.current.focus();
-  }, []);
-
-  const quickActions = [
-    { icon: BoldIcon, label: 'Đậm', onClick: () => execCommand('Bold') },
-    { icon: ItalicIcon, label: 'Nghiêng', onClick: () => execCommand('Italic') },
-    { icon: UnderlineIcon, label: 'Gạch chân', onClick: () => execCommand('Underline') },
-    { icon: StrikethroughIcon, label: 'Gạch ngang', onClick: () => execCommand('Strikethrough') },
-    { icon: Link2, label: 'Chèn link', onClick: () => execCommand('mceLink') },
-    { icon: ImageIcon, label: 'Thêm ảnh', onClick: () => setMediaPickerOpen(true) },
-    { icon: TableIcon, label: 'Bảng', onClick: () => execCommand('mceInsertTable') },
-    { icon: Code2, label: 'Xem code', onClick: () => execCommand('mceCodeEditor') },
-    { icon: Maximize2, label: 'Toàn màn', onClick: () => execCommand('mceFullScreen') },
-  ];
-
   return (
     <>
-      <div className="mb-2 flex flex-wrap gap-2 rounded-md border border-border bg-muted/60 p-2">
-        {quickActions.map(({ icon: Icon, label, onClick }) => (
-          <button
-            key={label}
-            type="button"
-            title={label}
-            onClick={onClick}
-            disabled={!editorReady}
-            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Icon className="h-4 w-4" />
-            <span className="hidden sm:inline">{label}</span>
-          </button>
-        ))}
-      </div>
-
       <Editor
         apiKey={TINYMCE_API_KEY || undefined}
         tinymceScriptSrc={TINYMCE_SCRIPT_SRC}
         onInit={(_, editor) => {
           editorRef.current = editor;
-          setEditorReady(true);
         }}
         value={value}
         onEditorChange={handleEditorChange}

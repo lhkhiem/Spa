@@ -232,7 +232,12 @@ export default function OrdersPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className="font-medium text-foreground">
-                      ${order.total.toFixed(2)}
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(Math.round(order.total))}
                     </span>
                   </td>
                   <td className="px-4 py-3">

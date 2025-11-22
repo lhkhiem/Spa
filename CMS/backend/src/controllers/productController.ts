@@ -256,9 +256,9 @@ export const createProduct = async (req: Request, res: Response) => {
         content: content ? JSON.stringify(content) : null,
         brand_id: brand_id || null,
         sku: sku || null,
-        price,
-        compare_price: compare_price || null,
-        cost_price: cost_price || null,
+        price: Math.round(price), // Round to integer for VNĐ (no decimals)
+        compare_price: compare_price ? Math.round(compare_price) : null,
+        cost_price: cost_price ? Math.round(cost_price) : null,
         stock: stock || 0,
         status: status || 'draft',
         is_featured: is_featured ?? false,
@@ -396,15 +396,15 @@ export const updateProduct = async (req: Request, res: Response) => {
     }
     if (price !== undefined) {
       updateFields.push('price = :price');
-      replacements.price = price;
+      replacements.price = Math.round(price); // Round to integer for VNĐ
     }
     if (compare_price !== undefined) {
       updateFields.push('compare_price = :compare_price');
-      replacements.compare_price = compare_price;
+      replacements.compare_price = compare_price ? Math.round(compare_price) : null;
     }
     if (cost_price !== undefined) {
       updateFields.push('cost_price = :cost_price');
-      replacements.cost_price = cost_price;
+      replacements.cost_price = cost_price ? Math.round(cost_price) : null;
     }
     if (stock !== undefined) {
       updateFields.push('stock = :stock');

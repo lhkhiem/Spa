@@ -312,30 +312,76 @@ export default function MediaPicker({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const fileArray = Array.from(files);
+    const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+    const WARNING_SIZE = 10 * 1024 * 1024; // 10MB
+
+    // Validate file sizes
+    const largeFiles: string[] = [];
+    const oversizedFiles: string[] = [];
+    
+    for (const file of fileArray) {
+      if (file.size > MAX_FILE_SIZE) {
+        oversizedFiles.push(`${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      } else if (file.size >= WARNING_SIZE) {
+        largeFiles.push(`${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      }
+    }
+
+    // Show error for oversized files
+    if (oversizedFiles.length > 0) {
+      alert(`File quá lớn (giới hạn 100MB): ${oversizedFiles.join(', ')}`);
+      e.target.value = ''; // Reset input
+      return;
+    }
+
+    // Show warning for large files
+    if (largeFiles.length > 0) {
+      const proceed = window.confirm(
+        `Cảnh báo: Các file sau có dung lượng >= 10MB sẽ được nén và chuyển đổi sang .webp:\n${largeFiles.join('\n')}\n\nBạn có muốn tiếp tục?`
+      );
+      if (!proceed) {
+        e.target.value = ''; // Reset input
+        return;
+      }
+    }
+
     setUploading(true);
     try {
-      for (const file of Array.from(files)) {
+      for (const file of fileArray) {
         const formData = new FormData();
         formData.append('file', file);
         if (selectedFolderId) {
           formData.append('folder_id', selectedFolderId);
         }
 
-        await axios.post(`${BACKEND_URL}/api/media/upload`, formData, {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
+        try {
+          await axios.post(`${BACKEND_URL}/api/media/upload`, formData, {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            },
+            maxContentLength: 100 * 1024 * 1024, // 100MB
+            maxBodyLength: 100 * 1024 * 1024, // 100MB
+          });
+        } catch (axiosError: any) {
+          const errorMessage = axiosError.response?.data?.error || 
+                              axiosError.message || 
+                              'Upload failed';
+          throw new Error(errorMessage);
+        }
       }
 
       // Refresh media list and folders
       fetchFolders();
       fetchMedia();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to upload files:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Upload failed';
+      alert(`Upload failed: ${errorMessage}`);
     } finally {
       setUploading(false);
+      e.target.value = ''; // Reset input
     }
   };
 

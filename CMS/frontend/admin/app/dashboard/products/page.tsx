@@ -467,7 +467,14 @@ export default function ProductsPage() {
                     ) : product.category_name || '—'}
                   </td>
                   <td className="px-4 py-4 text-sm text-muted-foreground">{product.brand_name || '—'}</td>
-                  <td className="px-4 py-4 text-sm font-medium text-foreground whitespace-nowrap">${Number(product.price).toFixed(2)}</td>
+                  <td className="px-4 py-4 text-sm font-medium text-foreground whitespace-nowrap">
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format(Math.round(Number(product.price)))}
+                  </td>
                   <td className="px-3 py-4 text-sm text-muted-foreground text-center">{product.stock}</td>
                   <td className="px-3 py-4">
                     <label className="flex items-center justify-center gap-2 text-sm text-foreground">

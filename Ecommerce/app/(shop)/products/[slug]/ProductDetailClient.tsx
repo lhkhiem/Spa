@@ -101,8 +101,9 @@ interface ProductDetailClientProps {
   product: ProductDetailForClient;
 }
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+import { formatPrice } from '@/lib/utils/formatters';
+
+const formatCurrency = formatPrice; // Use VNĐ formatter
 
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const router = useRouter();

@@ -7,7 +7,7 @@ import {
   FolderPlus, Folder, FolderOpen, Image as ImageIcon,
   Trash2, Eye, Copy, X, MoreVertical, Edit2, Move,
   ChevronRight, ChevronDown, Check, SortAsc, SortDesc,
-  File, Download, Pencil
+  File, Download, Pencil, Link2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDropzone } from 'react-dropzone';
@@ -72,6 +72,9 @@ export default function MediaLibraryPage() {
   const [newFolderName, setNewFolderName] = useState('');
   const [renameFolderName, setRenameFolderName] = useState('');
   const [renameFileName, setRenameFileName] = useState('');
+  const [showUrlUploadModal, setShowUrlUploadModal] = useState(false);
+  const [urlToUpload, setUrlToUpload] = useState('');
+  const [urlUploading, setUrlUploading] = useState(false);
 
   useEffect(() => {
     fetchFolders();
@@ -165,9 +168,42 @@ export default function MediaLibraryPage() {
   const handleFileUpload = async (files: File[] | FileList | null) => {
     if (!files || files.length === 0) return;
 
+    const fileArray = Array.from(files);
+    const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+    const WARNING_SIZE = 10 * 1024 * 1024; // 10MB
+
+    // Validate file sizes
+    const largeFiles: string[] = [];
+    const oversizedFiles: string[] = [];
+    
+    for (const file of fileArray) {
+      if (file.size > MAX_FILE_SIZE) {
+        oversizedFiles.push(`${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      } else if (file.size >= WARNING_SIZE) {
+        largeFiles.push(`${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      }
+    }
+
+    // Show error for oversized files
+    if (oversizedFiles.length > 0) {
+      toast.error(
+        `File quá lớn (giới hạn 100MB): ${oversizedFiles.join(', ')}`
+      );
+      return;
+    }
+
+    // Show warning for large files
+    if (largeFiles.length > 0) {
+      const proceed = window.confirm(
+        `Cảnh báo: Các file sau có dung lượng >= 10MB sẽ được nén và chuyển đổi sang .webp:\n${largeFiles.join('\n')}\n\nBạn có muốn tiếp tục?`
+      );
+      if (!proceed) {
+        return;
+      }
+    }
+
     setUploading(true);
     try {
-      const fileArray = Array.from(files);
       for (let i = 0; i < fileArray.length; i++) {
         const formData = new FormData();
         formData.append('file', fileArray[i]);
@@ -184,7 +220,22 @@ export default function MediaLibraryPage() {
           body: formData,
         });
 
-        if (!response.ok) throw new Error(`Failed to upload ${fileArray[i].name}`);
+        if (!response.ok) {
+          let errorMessage = `Failed to upload ${fileArray[i].name}`;
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (e) {
+            // If response is not JSON, try to get text
+            try {
+              const errorText = await response.text();
+              if (errorText) errorMessage = errorText;
+            } catch (e2) {
+              // Use default error message
+            }
+          }
+          throw new Error(errorMessage);
+        }
       }
 
       toast.success(`${fileArray.length} file(s) uploaded successfully!`);
@@ -193,6 +244,59 @@ export default function MediaLibraryPage() {
       console.error('Upload failed:', error);
       toast.error(error.message || 'Upload failed');
     } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleUrlUpload = async () => {
+    const trimmedUrl = urlToUpload.trim();
+    if (!trimmedUrl) {
+      toast.error('Vui lòng nhập URL ảnh hợp lệ');
+      return;
+    }
+
+    try {
+      new URL(trimmedUrl);
+    } catch {
+      toast.error('URL không hợp lệ');
+      return;
+    }
+
+    setUrlUploading(true);
+    setUploading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/media/upload/by-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ url: trimmedUrl, folder_id: selectedFolder }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Không thể tải ảnh từ link';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          try {
+            const errorText = await response.text();
+            if (errorText) errorMessage = errorText;
+          } catch {
+            // ignore secondary errors
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      toast.success('Đã thêm ảnh từ link!');
+      setShowUrlUploadModal(false);
+      setUrlToUpload('');
+      fetchMedia();
+    } catch (error: any) {
+      console.error('[handleUrlUpload] Error:', error);
+      toast.error(error.message || 'Không thể tải ảnh');
+    } finally {
+      setUrlUploading(false);
       setUploading(false);
     }
   };
@@ -242,14 +346,19 @@ export default function MediaLibraryPage() {
   };
 
   const handleRenameFile = async (fileId: string) => {
-    if (!renameFileName.trim()) return;
+    const finalName = renameFileName.trim();
+    if (!finalName) return;
+
+    const fileToRename = media.find(m => m.id === fileId);
+    const currentFileName = fileToRename?.file_name || fileToRename?.url.split('/').pop() || '';
+    const fileExt = currentFileName.substring(currentFileName.lastIndexOf('.'));
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/media/${fileId}/rename`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ newName: renameFileName }),
+        body: JSON.stringify({ newName: finalName + fileExt }),
       });
 
       if (!response.ok) throw new Error('Failed to rename file');
@@ -454,6 +563,13 @@ export default function MediaLibraryPage() {
             accept="image/jpeg,image/png,image/gif,image/webp"
           />
           <button
+            onClick={() => setShowUrlUploadModal(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <Link2 className="h-4 w-4" />
+            Thêm bằng link
+          </button>
+          <button
             onClick={() => setShowNewFolderModal(true)}
             className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
           >
@@ -573,18 +689,11 @@ export default function MediaLibraryPage() {
                     {media.map(asset => (
                       <div
                         key={asset.id}
-                        className={`relative group rounded-lg border overflow-hidden cursor-pointer transition-all ${
+                        className={`relative group rounded-lg border overflow-hidden transition-all ${
                           selectedFiles.has(asset.id)
                             ? 'border-primary ring-2 ring-primary'
                             : 'border-border hover:border-primary/50 hover:shadow-md'
                         }`}
-                        onClick={(e) => {
-                          if (e.shiftKey || e.ctrlKey || e.metaKey) {
-                            toggleFileSelection(asset.id);
-                          } else {
-                            setPreviewFile(asset);
-                          }
-                        }}
                         onContextMenu={(e) => {
                           e.preventDefault();
                           if (!selectedFiles.has(asset.id)) {
@@ -593,7 +702,10 @@ export default function MediaLibraryPage() {
                           setContextMenu({ x: e.clientX, y: e.clientY, itemId: asset.id, type: 'file' });
                         }}
                       >
-                        <div className="aspect-square overflow-hidden bg-muted">
+                        <div 
+                          className="aspect-square overflow-hidden bg-muted cursor-pointer"
+                          onClick={() => toggleFileSelection(asset.id)}
+                        >
                           <img
                             src={`${API_BASE_URL}${asset.thumb_url || asset.url}`}
                             alt={asset.file_name || 'Media'}
@@ -602,37 +714,61 @@ export default function MediaLibraryPage() {
                         </div>
                         <div className="p-2 text-xs truncate bg-card">
                           {asset.file_name || asset.url.split('/').pop()}
-                      </div>
+                        </div>
                         {selectedFiles.has(asset.id) && (
-                          <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg">
+                          <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg z-10">
                             <Check className="h-4 w-4 text-primary-foreground" />
-                    </div>
+                          </div>
                         )}
-                        <div className="absolute bottom-10 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <input
-                            type="checkbox"
-                            checked={selectedFiles.has(asset.id)}
-                            onChange={() => toggleFileSelection(asset.id)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-5 h-5 cursor-pointer rounded border-2 border-white shadow-lg"
-                          />
-                  </div>
-                </div>
-              ))}
+                        {/* Action buttons - show on hover */}
+                        <div 
+                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-20 pointer-events-none"
+                        >
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setPreviewFile(asset);
+                            }}
+                            className="p-2 bg-background rounded-full hover:bg-primary hover:text-primary-foreground transition-colors shadow-lg pointer-events-auto"
+                            title="View"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              const fileName = asset.file_name || asset.url.split('/').pop() || '';
+                              const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+                              setRenameFileName(nameWithoutExt);
+                              setShowRenameFileModal(asset.id);
+                            }}
+                            className="p-2 bg-background rounded-full hover:bg-primary hover:text-primary-foreground transition-colors shadow-lg pointer-events-auto"
+                            title="Rename"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              handleDeleteFiles([asset.id]);
+                            }}
+                            className="p-2 bg-background rounded-full hover:bg-destructive hover:text-destructive-foreground transition-colors shadow-lg pointer-events-auto"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
             </div>
           ) : (
                   <div className="rounded-lg border border-border bg-card overflow-hidden shadow-sm">
                     <table className="min-w-full divide-y divide-border">
                 <thead className="bg-muted/50">
                   <tr>
-                          <th className="px-4 py-3 text-left w-12">
-                            <input
-                              type="checkbox"
-                              checked={selectedFiles.size === media.length && media.length > 0}
-                              onChange={(e) => e.target.checked ? selectAll() : deselectAll()}
-                              className="w-4 h-4 rounded"
-                            />
-                          </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Preview</th>
                           <th 
                             className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase cursor-pointer hover:text-foreground select-none"
@@ -680,19 +816,16 @@ export default function MediaLibraryPage() {
                             className={`transition-colors hover:bg-accent/30 ${selectedFiles.has(asset.id) ? 'bg-primary/10' : ''}`}
                           >
                             <td className="px-4 py-3">
-                              <input
-                                type="checkbox"
-                                checked={selectedFiles.has(asset.id)}
-                                onChange={() => toggleFileSelection(asset.id)}
-                                className="w-4 h-4 rounded"
-                              />
-                            </td>
-                            <td className="px-4 py-3">
-                              <img
-                                src={`${API_BASE_URL}${asset.thumb_url || asset.url}`}
-                                alt={asset.file_name || 'Media'}
-                                className="h-10 w-10 object-cover rounded"
-                              />
+                              <div 
+                                className="cursor-pointer"
+                                onClick={() => toggleFileSelection(asset.id)}
+                              >
+                                <img
+                                  src={`${API_BASE_URL}${asset.thumb_url || asset.url}`}
+                                  alt={asset.file_name || 'Media'}
+                                  className={`h-10 w-10 object-cover rounded ${selectedFiles.has(asset.id) ? 'ring-2 ring-primary' : ''}`}
+                                />
+                              </div>
                             </td>
                             <td className="px-4 py-3 text-sm text-foreground max-w-xs truncate">
                               {asset.file_name || asset.url.split('/').pop()}
@@ -709,21 +842,37 @@ export default function MediaLibraryPage() {
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
                                 <button
-                                  onClick={() => setPreviewFile(asset)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPreviewFile(asset);
+                                  }}
                                   className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors text-xs"
-                                  title="Preview"
+                                  title="View"
                                 >
                                   <Eye className="h-3 w-3" />
                                 </button>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setContextMenu({ x: e.clientX, y: e.clientY, itemId: asset.id, type: 'file' });
+                                    const fileName = asset.file_name || asset.url.split('/').pop() || '';
+                                    const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+                                    setRenameFileName(nameWithoutExt);
+                                    setShowRenameFileModal(asset.id);
                                   }}
-                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-input bg-background hover:bg-accent transition-colors text-xs"
-                                  title="More options"
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors text-xs"
+                                  title="Rename"
                                 >
-                                  <MoreVertical className="h-3 w-3" />
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteFiles([asset.id]);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors text-xs"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-3 w-3" />
                                 </button>
                               </div>
                         </td>
@@ -1014,6 +1163,61 @@ export default function MediaLibraryPage() {
         </div>
       )}
 
+      {/* Upload via URL Modal */}
+      {showUrlUploadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card rounded-lg p-6 max-w-md w-full">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-full bg-primary/10 text-primary">
+                <Link2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold">Thêm ảnh bằng link</h3>
+                <p className="text-sm text-muted-foreground">
+                  Dán URL ảnh (JPEG, PNG, GIF, WebP) công khai, truy cập trực tiếp. Ảnh sẽ được tải xuống và nén &lt;= 100KB tự động.
+                </p>
+              </div>
+            </div>
+            <input
+              type="url"
+              value={urlToUpload}
+              onChange={(e) => setUrlToUpload(e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="w-full px-3 py-2 rounded-lg border border-input bg-background mt-4"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleUrlUpload();
+                }
+              }}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end mt-4">
+              <button
+                onClick={() => {
+                  setShowUrlUploadModal(false);
+                  setUrlToUpload('');
+                }}
+                className="px-4 py-2 rounded-lg border border-input hover:bg-accent transition-colors"
+                disabled={urlUploading}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleUrlUpload}
+                disabled={!urlToUpload.trim() || urlUploading}
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2"
+              >
+                {urlUploading && (
+                  <span className="h-4 w-4 border-2 border-primary-foreground/60 border-t-transparent rounded-full animate-spin" />
+                )}
+                {urlUploading ? 'Đang tải...' : 'Tải ảnh'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* New Folder Modal */}
       {showNewFolderModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -1087,43 +1291,53 @@ export default function MediaLibraryPage() {
       )}
 
       {/* Rename File Modal */}
-      {showRenameFileModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-card rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold mb-4">Rename File</h3>
-            <input
-              type="text"
-              value={renameFileName}
-              onChange={(e) => setRenameFileName(e.target.value)}
-              placeholder="New file name"
-              className="w-full px-3 py-2 rounded-lg border border-input bg-background mb-4"
-              onKeyPress={(e) => e.key === 'Enter' && handleRenameFile(showRenameFileModal)}
-              autoFocus
-            />
-            <p className="text-sm text-muted-foreground mb-4">
-              Enter the new name (extension will be preserved)
-            </p>
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => {
-                  setShowRenameFileModal(null);
-                  setRenameFileName('');
+      {showRenameFileModal && (() => {
+        const fileToRename = media.find(m => m.id === showRenameFileModal);
+        const currentFileName = fileToRename?.file_name || fileToRename?.url.split('/').pop() || '';
+        const currentNameWithoutExt = currentFileName.replace(/\.[^/.]+$/, '');
+        const displayName = renameFileName || currentNameWithoutExt;
+        
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-card rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-lg font-bold mb-2">Rename File</h3>
+              <p className="text-sm text-muted-foreground mb-4">Current: {currentFileName}</p>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setRenameFileName(e.target.value)}
+                placeholder="New file name (without extension)"
+                className="w-full px-3 py-2 rounded-lg border border-input bg-background mb-4"
+                onKeyPress={(e) => e.key === 'Enter' && handleRenameFile(showRenameFileModal)}
+                onFocus={(e) => {
+                  if (!renameFileName && currentNameWithoutExt) {
+                    setRenameFileName(currentNameWithoutExt);
+                  }
                 }}
-                className="px-4 py-2 rounded-lg border border-input hover:bg-accent transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleRenameFile(showRenameFileModal)}
-                disabled={!renameFileName.trim()}
-                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Rename
-              </button>
+                autoFocus
+              />
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => {
+                    setShowRenameFileModal(null);
+                    setRenameFileName('');
+                  }}
+                  className="px-4 py-2 rounded-lg border border-input hover:bg-accent transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleRenameFile(showRenameFileModal)}
+                  disabled={!displayName.trim()}
+                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Rename
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Move Files Modal */}
       {showMoveFilesModal && (

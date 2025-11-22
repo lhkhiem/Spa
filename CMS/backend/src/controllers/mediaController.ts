@@ -1,11 +1,136 @@
 import { Request, Response } from 'express';
+import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
+import { Readable } from 'stream';
 import MediaFolder from '../models/MediaFolder';
 import Asset from '../models/Asset';
-import { processImage, deleteImageFiles, getFileSize } from '../utils/media';
+import { processImage, deleteImageFiles, getFileSize, ensureUploadDir } from '../utils/media';
 import { Op } from 'sequelize';
+
+const MAX_UPLOAD_FILE_SIZE_MB = 100;
+const MAX_UPLOAD_FILE_SIZE = MAX_UPLOAD_FILE_SIZE_MB * 1024 * 1024;
+const folderIdRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const allowedUrlExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+
+const normalizeFolderId = (input: any): string | null => {
+  if (!input || typeof input !== 'string') {
+    return null;
+  }
+  const trimmed = input.trim();
+  return folderIdRegex.test(trimmed) ? trimmed : null;
+};
+
+const sanitizeFileName = (name: string) => {
+  return name.replace(/[^a-zA-Z0-9-_]/g, '_');
+};
+
+const buildAssetResponse = (
+  asset: Asset,
+  processed: { thumb: string; medium: string; large: string; original: string },
+  fileId: string,
+  originalName: string,
+  fileSize: number
+) => {
+  const json = asset.toJSON() as any;
+  return {
+    ...json,
+    file_name: originalName,
+    file_size: fileSize,
+    thumb_url: `/uploads/${fileId}/${processed.thumb}`,
+    medium_url: `/uploads/${fileId}/${processed.medium}`,
+    large_url: `/uploads/${fileId}/${processed.large}`,
+  };
+};
+
+const cleanupTempFile = (filePath: string) => {
+  try {
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log('[media] Temp file deleted:', filePath);
+    }
+  } catch (cleanupError) {
+    console.error('[media] Failed to delete temp file:', cleanupError);
+  }
+};
+
+const processTempUpload = async (
+  tempFilePath: string,
+  originalName: string,
+  folderInput: any
+) => {
+  const uploadDate = new Date().toISOString().split('T')[0];
+  const uniqueId = uuidv4();
+  const relativeFileId = path.join(uploadDate, uniqueId);
+  const specificDir = path.join(process.cwd(), 'storage', 'uploads', uploadDate, uniqueId);
+
+  let processed;
+  try {
+    processed = await processImage(tempFilePath, specificDir, originalName);
+  } finally {
+    cleanupTempFile(tempFilePath);
+  }
+
+  const processedOriginalPath = path.join(specificDir, processed.original);
+  const processedFileSize = getFileSize(processedOriginalPath);
+  const validFolderId = normalizeFolderId(folderInput);
+
+  const asset = await Asset.create({
+    id: uuidv4(),
+    type: 'image',
+    provider: 'local',
+    url: `/uploads/${relativeFileId}/${processed.original}`,
+    cdn_url: null,
+    width: processed.width,
+    height: processed.height,
+    format: 'webp',
+    sizes: processed.sizes,
+    folder_id: validFolderId,
+  });
+
+  return buildAssetResponse(asset, processed, relativeFileId, originalName, processedFileSize);
+};
+
+const downloadStreamToFile = async (
+  stream: Readable,
+  destination: string
+): Promise<void> => {
+  await new Promise<void>((resolve, reject) => {
+    let finished = false;
+    let downloaded = 0;
+    const writer = fs.createWriteStream(destination);
+
+    const closeWithError = (error: Error) => {
+      if (finished) return;
+      finished = true;
+      try {
+        stream.destroy(error);
+      } catch {
+        // ignore secondary destroy errors
+      }
+      writer.destroy(error);
+      reject(error);
+    };
+
+    stream.on('data', (chunk: Buffer) => {
+      downloaded += chunk.length;
+      if (downloaded > MAX_UPLOAD_FILE_SIZE) {
+        closeWithError(new Error('REMOTE_FILE_TOO_LARGE'));
+      }
+    });
+
+    stream.on('error', (error) => closeWithError(error));
+    writer.on('error', (error) => closeWithError(error));
+    writer.on('finish', () => {
+      if (finished) return;
+      finished = true;
+      resolve();
+    });
+
+    stream.pipe(writer);
+  });
+};
 
 // GET /api/media/folders - list all folders with hierarchy
 export const listFolders = async (_req: Request, res: Response) => {
@@ -90,70 +215,156 @@ export const deleteFolder = async (req: Request, res: Response) => {
 
 // POST /api/media/upload - upload media file
 export const uploadMedia = async (req: Request, res: Response) => {
+  console.log('[uploadMedia] Starting upload...');
+  console.log('[uploadMedia] Request file:', req.file ? {
+    originalname: req.file.originalname,
+    mimetype: req.file.mimetype,
+    size: req.file.size,
+    path: req.file.path
+  } : 'No file');
+  
   try {
     if (!req.file) {
+      console.log('[uploadMedia] No file in request');
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
     const file = req.file;
-    const uploadDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const uploadDir = path.join(process.cwd(), 'storage', 'uploads', uploadDate);
-    const uniqueId = uuidv4();
-    const fileId = path.join(uploadDate, uniqueId);
+    console.log(
+      '[uploadMedia] Processing file:',
+      file.originalname,
+      `(${(file.size / 1024 / 1024).toFixed(2)}MB)`
+    );
 
-    // Create unique folder for this upload
-    const specificDir = path.join(uploadDir, uniqueId);
-
-    // Process image (create thumbnails)
-    const processed = await processImage(file.path, specificDir, file.originalname);
-
-    // Get file size
-    const fileSize = getFileSize(file.path);
-
-    // Store in database
-    // Validate folder_id - must be valid UUID or null
-    console.log('[uploadMedia] Received folder_id:', req.body.folder_id);
-    let validFolderId = null;
-    if (req.body.folder_id && req.body.folder_id !== '' && req.body.folder_id !== 'null') {
-      // Check if it's a valid UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (uuidRegex.test(req.body.folder_id)) {
-        validFolderId = req.body.folder_id;
-        console.log('[uploadMedia] Valid folder_id:', validFolderId);
-      } else {
-        console.log('[uploadMedia] Invalid folder_id format, storing as null');
-      }
-    } else {
-      console.log('[uploadMedia] No folder_id provided, storing as null');
+    if (!fs.existsSync(file.path)) {
+      console.error('[uploadMedia] Temp file does not exist:', file.path);
+      return res.status(400).json({ error: 'File upload failed. Temp file not found.' });
     }
 
-    const asset = await Asset.create({
-      id: uuidv4(),
-      type: 'image',
-      provider: 'local',
-      url: `/uploads/${fileId}/${processed.original}`,
-      cdn_url: null,
-      width: processed.width,
-      height: processed.height,
-      format: path.extname(file.originalname).substring(1),
-      sizes: processed.sizes,
-      folder_id: validFolderId,
-    });
-
-    // Add additional info for response
-    const response = {
-      ...asset.toJSON(),
-      file_name: file.originalname,
-      file_size: fileSize,
-      thumb_url: `/uploads/${fileId}/${processed.thumb}`,
-      medium_url: `/uploads/${fileId}/${processed.medium}`,
-      large_url: `/uploads/${fileId}/${processed.large}`,
-    };
-
-    res.status(201).json(response);
+    const responsePayload = await processTempUpload(file.path, file.originalname, req.body.folder_id);
+    res.status(201).json(responsePayload);
   } catch (error: any) {
     console.error('[uploadMedia] Error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('[uploadMedia] Error stack:', error.stack);
+    
+    // Clean up temp file on error
+    try {
+      if (req.file?.path && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+        console.log('[uploadMedia] Cleaned up temp file on error');
+      }
+    } catch (cleanupError) {
+      console.error('[uploadMedia] Error cleaning up temp file:', cleanupError);
+    }
+    
+    // Provide more specific error messages
+    let errorMessage = error.message || 'Upload failed';
+    let statusCode = 500;
+    
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      errorMessage = `File quá lớn. Giới hạn tối đa là ${MAX_UPLOAD_FILE_SIZE_MB}MB.`;
+      statusCode = 413;
+    } else if (error.message?.includes('Only image files')) {
+      errorMessage = 'Chỉ chấp nhận file ảnh (JPEG, PNG, GIF, WebP)';
+      statusCode = 400;
+    } else if (error.message?.includes('ENOENT') || error.message?.includes('no such file')) {
+      errorMessage = 'Lỗi xử lý file. Vui lòng thử lại.';
+      statusCode = 500;
+    } else if (error.message?.includes('sharp')) {
+      errorMessage = 'Lỗi xử lý ảnh. File có thể bị hỏng hoặc không đúng định dạng.';
+      statusCode = 400;
+    }
+    
+    res.status(statusCode).json({ error: errorMessage });
+  }
+};
+
+export const uploadMediaFromUrl = async (req: Request, res: Response) => {
+  console.log('[uploadMediaFromUrl] Starting upload by URL');
+  const { url, folder_id } = req.body || {};
+
+  if (!url || typeof url !== 'string' || url.trim() === '') {
+    return res.status(400).json({ error: 'URL ảnh là bắt buộc.' });
+  }
+
+  const trimmedUrl = url.trim();
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = new URL(trimmedUrl);
+  } catch {
+    return res.status(400).json({ error: 'URL không hợp lệ.' });
+  }
+
+  if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+    return res.status(400).json({ error: 'URL phải sử dụng giao thức http hoặc https.' });
+  }
+
+  const decodedPath = decodeURIComponent(parsedUrl.pathname || '');
+  const lastSegment = decodedPath.split('/').filter(Boolean).pop() || 'remote-image';
+  const rawExt = path.extname(lastSegment).toLowerCase();
+  const extension = allowedUrlExtensions.includes(rawExt) ? rawExt : '.jpg';
+  const baseName = sanitizeFileName(rawExt ? lastSegment.replace(rawExt, '') : lastSegment) || 'remote-image';
+  const originalName = `${baseName}${extension}`;
+
+  const tempDir = path.join(process.cwd(), 'storage', 'temp');
+  ensureUploadDir(tempDir);
+  const tempFilePath = path.join(tempDir, `remote-${Date.now()}-${uuidv4()}${extension}`);
+
+  try {
+    const response = await axios.get(trimmedUrl, {
+      responseType: 'stream',
+      timeout: 60000,
+      headers: { Accept: 'image/*' },
+      maxContentLength: Infinity,
+    });
+
+    const contentType = response.headers['content-type'] || '';
+    const stream = response.data as unknown as Readable;
+    if (contentType && !contentType.startsWith('image/')) {
+      stream.destroy();
+      return res.status(400).json({ error: 'URL phải trỏ đến file ảnh hợp lệ.' });
+    }
+
+    const contentLength = Number(response.headers['content-length'] || 0);
+    if (!Number.isNaN(contentLength) && contentLength > MAX_UPLOAD_FILE_SIZE) {
+      stream.destroy();
+      return res.status(413).json({
+        error: `File quá lớn. Giới hạn tối đa là ${MAX_UPLOAD_FILE_SIZE_MB}MB.`,
+      });
+    }
+
+    await downloadStreamToFile(stream, tempFilePath);
+    const responsePayload = await processTempUpload(tempFilePath, originalName, folder_id);
+    res.status(201).json(responsePayload);
+  } catch (error: any) {
+    cleanupTempFile(tempFilePath);
+    console.error('[uploadMediaFromUrl] Error:', error);
+
+    let statusCode = 500;
+    let errorMessage = 'Không thể tải ảnh từ URL. Vui lòng thử lại.';
+
+    if (error?.message === 'REMOTE_FILE_TOO_LARGE') {
+      statusCode = 413;
+      errorMessage = `File quá lớn. Giới hạn tối đa là ${MAX_UPLOAD_FILE_SIZE_MB}MB.`;
+    } else if (axios.isAxiosError(error)) {
+      const remoteStatus = error.response?.status;
+      if (remoteStatus === 404) {
+        statusCode = 404;
+        errorMessage = 'Không tìm thấy file tại URL đã cung cấp.';
+      } else if (remoteStatus === 401 || remoteStatus === 403) {
+        statusCode = 400;
+        errorMessage = 'Link yêu cầu đăng nhập hoặc không công khai. Hãy dùng URL ảnh trực tiếp (.jpg, .png, .webp) có thể truy cập công khai.';
+      } else {
+        statusCode = 400;
+        errorMessage = `Tải ảnh thất bại (HTTP ${remoteStatus ?? 'không xác định'}). Vui lòng kiểm tra lại URL.`;
+      }
+    } else if (error?.code === 'ECONNABORTED') {
+      statusCode = 504;
+      errorMessage = 'Tải ảnh quá thời gian. Vui lòng thử lại.';
+    }
+
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 

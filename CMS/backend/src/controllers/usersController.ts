@@ -68,3 +68,101 @@ export const createUser = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: 'Failed to create user' });
   }
 };
+
+// Update a user (owner only)
+export const updateUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const actor = req.user as any;
+    if (!actor || actor.role !== 'owner') {
+      return res.status(403).json({ error: 'Insufficient permission' });
+    }
+
+    const { id } = req.params;
+    const { email, password, name, role, status } = req.body as {
+      email?: string; password?: string; name?: string; role?: string; status?: string;
+    };
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Prevent editing owner role (safety)
+    if ((user as any).role === 'owner' && role && role !== 'owner') {
+      return res.status(400).json({ error: 'Cannot change owner role' });
+    }
+
+    // Update fields
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) {
+      // Check email uniqueness if changed
+      const existing = await User.findOne({ where: { email } });
+      if (existing && existing.id !== id) {
+        return res.status(400).json({ error: 'Email already exists' });
+      }
+      user.email = email;
+    }
+    if (password !== undefined) {
+      // Password policy: min 8, at least one letter and one number
+      const pwdOk = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-={}\[\]:;"'`~<>,.?\/]{8,}$/.test(password);
+      if (!pwdOk) {
+        return res.status(400).json({ error: 'Password must be at least 8 characters and include letters and numbers' });
+      }
+      user.password_hash = await bcrypt.hash(password, 10);
+    }
+    if (role !== undefined) {
+      const allowedRoles = ['admin', 'editor', 'author'];
+      if (allowedRoles.includes(role)) {
+        (user as any).role = role;
+      }
+    }
+    if (status !== undefined && (status === 'active' || status === 'inactive')) {
+      user.status = status;
+    }
+
+    await user.save();
+
+    res.json({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: (user as any).role,
+      status: user.status,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+};
+
+// Delete a user (owner only)
+export const deleteUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const actor = req.user as any;
+    if (!actor || actor.role !== 'owner') {
+      return res.status(403).json({ error: 'Insufficient permission' });
+    }
+
+    const { id } = req.params;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Prevent deleting owner (safety)
+    if ((user as any).role === 'owner') {
+      return res.status(400).json({ error: 'Cannot delete owner user' });
+    }
+
+    // Prevent deleting yourself
+    if (user.id === actor.id) {
+      return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+
+    await user.destroy();
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+};

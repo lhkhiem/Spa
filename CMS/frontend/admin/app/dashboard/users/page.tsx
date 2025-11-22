@@ -18,13 +18,114 @@ interface User {
   lastLogin: string;
 }
 
+interface FormErrors {
+  name?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
 export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const { user: currentUser } = useAuthStore();
   const [showDialog, setShowDialog] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'admin' });
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', role: 'admin', status: 'active' });
+  const [errors, setErrors] = useState<FormErrors>({});
   const isOwner = currentUser?.role === 'owner';
+  
+  // Debug: log user role
+  useEffect(() => {
+    console.log('Current user:', currentUser);
+    console.log('Is owner:', isOwner);
+  }, [currentUser, isOwner]);
+  
+  // Real-time validation
+  const validateField = (name: string, value: string, currentPassword?: string, currentConfirmPassword?: string) => {
+    const newErrors: FormErrors = { ...errors };
+    const password = currentPassword !== undefined ? currentPassword : form.password;
+    const confirmPassword = currentConfirmPassword !== undefined ? currentConfirmPassword : form.confirmPassword;
+    
+    if (name === 'name') {
+      if (!value.trim()) {
+        newErrors.name = 'Tên là bắt buộc';
+      } else {
+        delete newErrors.name;
+      }
+    }
+    
+    if (name === 'email') {
+      if (!value.trim()) {
+        newErrors.email = 'Email là bắt buộc';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        newErrors.email = 'Email không hợp lệ';
+      } else {
+        delete newErrors.email;
+      }
+    }
+    
+    if (name === 'password') {
+      if (!editingUser && !value) {
+        newErrors.password = 'Mật khẩu là bắt buộc';
+      } else if (value && value.length < 8) {
+        newErrors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
+      } else if (value && !/[A-Za-z]/.test(value)) {
+        newErrors.password = 'Mật khẩu phải chứa ít nhất 1 chữ cái';
+      } else if (value && !/[0-9]/.test(value)) {
+        newErrors.password = 'Mật khẩu phải chứa ít nhất 1 số';
+      } else {
+        delete newErrors.password;
+      }
+      
+      // Re-validate confirm password if password changed
+      if (confirmPassword && confirmPassword !== value) {
+        newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+      } else if (confirmPassword && confirmPassword === value) {
+        delete newErrors.confirmPassword;
+      }
+    }
+    
+    if (name === 'confirmPassword') {
+      if (!editingUser && !value) {
+        newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu';
+      } else if (value && value !== password) {
+        newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+      } else {
+        delete newErrors.confirmPassword;
+      }
+    }
+    
+    setErrors(newErrors);
+  };
+  
+  const isFormValid = () => {
+    // Check required fields
+    if (!form.name?.trim() || !form.email?.trim()) return false;
+    
+    // Email format check
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return false;
+    
+    // Password validation (required for new users, optional for editing)
+    if (!editingUser) {
+      if (!form.password || !form.confirmPassword) return false;
+      if (form.password.length < 8) return false;
+      if (!/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) return false;
+      if (form.password !== form.confirmPassword) return false;
+    } else {
+      // When editing, if password is provided, it must be valid
+      if (form.password) {
+        if (form.password.length < 8) return false;
+        if (!/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) return false;
+        if (form.password !== form.confirmPassword) return false;
+      }
+    }
+    
+    // Check for any validation errors
+    if (Object.keys(errors).length > 0) return false;
+    
+    return true;
+  };
 
   const fetchUsers = async () => {
     try {
@@ -54,28 +155,134 @@ export default function UsersPage() {
   }, []);
 
   const onCreateUser = async () => {
+    // Validate all fields
+    validateField('name', form.name);
+    validateField('email', form.email);
+    validateField('password', form.password);
+    validateField('confirmPassword', form.confirmPassword);
+    
+    if (!isFormValid()) {
+      toast.error('Vui lòng điền đầy đủ và đúng thông tin');
+      return;
+    }
+    
     try {
-      // Basic client validation
-      if (!form.name || !form.email || !form.password) {
-        toast.error('Please fill in all fields');
-        return;
-      }
-      if (form.password.length < 8) {
-        toast.error('Password must be at least 8 characters');
-        return;
-      }
-      await axios.post(
+      // Remove status and confirmPassword from payload
+      const { status, confirmPassword, ...payload } = form;
+      const response = await axios.post(
         buildApiUrl('/api/users'),
-        { ...form },
+        payload,
         { withCredentials: true }
       );
-      toast.success('User created');
+      toast.success('Tạo user thành công');
       setShowDialog(false);
-      setForm({ name: '', email: '', password: '', role: 'admin' });
+      resetForm();
       fetchUsers();
     } catch (e: any) {
-      toast.error(e.response?.data?.error || 'Create user failed');
+      const errorMessage = e.response?.data?.error || e.message || 'Tạo user thất bại';
+      toast.error(errorMessage);
     }
+  };
+
+  const onUpdateUser = async () => {
+    if (!editingUser) return;
+    
+    // Validate all fields
+    validateField('name', form.name);
+    validateField('email', form.email);
+    if (form.password) {
+      validateField('password', form.password);
+      if (form.confirmPassword) {
+        validateField('confirmPassword', form.confirmPassword);
+      }
+    }
+    
+    // Check if form is valid (password is optional when editing)
+    if (!form.name || !form.email) {
+      toast.error('Vui lòng điền đầy đủ thông tin');
+      return;
+    }
+    if (form.password && form.password !== form.confirmPassword) {
+      toast.error('Mật khẩu xác nhận không khớp');
+      return;
+    }
+    if (form.password && (form.password.length < 8 || !/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password))) {
+      toast.error('Mật khẩu không hợp lệ');
+      return;
+    }
+    
+    try {
+      const payload: any = { name: form.name, email: form.email, role: form.role, status: form.status };
+      if (form.password && form.password.length > 0) {
+        payload.password = form.password;
+      }
+      await axios.put(
+        buildApiUrl(`/api/users/${editingUser.id}`),
+        payload,
+        { withCredentials: true }
+      );
+      toast.success('Cập nhật user thành công');
+      setShowDialog(false);
+      resetForm();
+      fetchUsers();
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || 'Cập nhật user thất bại');
+    }
+  };
+
+  const onDeleteUser = async (user: User) => {
+    if (!confirm(`Are you sure you want to delete user "${user.name}"? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await axios.delete(
+        buildApiUrl(`/api/users/${user.id}`),
+        { withCredentials: true }
+      );
+      toast.success('User deleted');
+      fetchUsers();
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || 'Delete user failed');
+    }
+  };
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    setForm({
+      name: user.name,
+      email: user.email,
+      password: '',
+      confirmPassword: '',
+      role: user.role,
+      status: user.status,
+    });
+    setErrors({});
+    setShowDialog(true);
+  };
+  
+  const handleFormChange = (name: string, value: string) => {
+    setForm(prev => {
+      const newForm = { ...prev, [name]: value };
+      // Validate the changed field with new form values
+      if (name === 'password') {
+        validateField('password', value, value, newForm.confirmPassword);
+        // Also re-validate confirmPassword if it exists
+        if (newForm.confirmPassword) {
+          validateField('confirmPassword', newForm.confirmPassword, value, newForm.confirmPassword);
+        }
+      } else if (name === 'confirmPassword') {
+        validateField('confirmPassword', value, newForm.password, value);
+      } else {
+        validateField(name, value);
+      }
+      return newForm;
+    });
+  };
+  
+  const resetForm = () => {
+    setForm({ name: '', email: '', password: '', confirmPassword: '', role: 'admin', status: 'active' });
+    setErrors({});
+    setEditingUser(null);
   };
 
   return (
@@ -182,15 +389,31 @@ export default function UsersPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {user.lastLogin}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                    <button className="text-primary hover:underline inline-flex items-center gap-1">
-                      <Edit className="h-3 w-3" />
-                      Edit
-                    </button>
-                    <button className="text-destructive hover:underline inline-flex items-center gap-1">
-                      <Trash2 className="h-3 w-3" />
-                      Delete
-                    </button>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center gap-3">
+                      {isOwner ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleEdit(user)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onDeleteUser(user)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">No permission</span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -221,66 +444,192 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Create User Dialog */}
+      {/* Create/Edit User Dialog */}
       {showDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowDialog(false)} />
-          <div className="relative z-10 w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl">
+          <div className="absolute inset-0 bg-black/40" onClick={() => {
+            setShowDialog(false);
+            resetForm();
+          }} />
+          <div 
+            className="relative z-10 w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl" 
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
+          >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium">Add User</h3>
-              <button onClick={() => setShowDialog(false)} className="text-muted-foreground hover:text-foreground">
+              <h3 className="text-lg font-medium">{editingUser ? 'Edit User' : 'Add User'}</h3>
+              <button onClick={() => {
+                setShowDialog(false);
+                resetForm();
+              }} className="text-muted-foreground hover:text-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
+                <label className="block text-sm font-medium mb-1">
+                  Tên <span className="text-destructive">*</span>
+                </label>
                 <input
                   type="text"
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
+                  onChange={(e) => handleFormChange('name', e.target.value)}
+                  onBlur={(e) => validateField('name', e.target.value)}
+                  className={`w-full px-3 py-2 rounded-lg border bg-background text-sm ${
+                    errors.name ? 'border-destructive' : 'border-input'
+                  }`}
+                  placeholder="Nhập tên người dùng"
                 />
+                {errors.name && (
+                  <p className="mt-1 text-xs text-destructive">{errors.name}</p>
+                )}
               </div>
+              
               <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
+                <label className="block text-sm font-medium mb-1">
+                  Email <span className="text-destructive">*</span>
+                </label>
                 <input
                   type="email"
                   value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
+                  onChange={(e) => handleFormChange('email', e.target.value)}
+                  onBlur={(e) => validateField('email', e.target.value)}
+                  className={`w-full px-3 py-2 rounded-lg border bg-background text-sm ${
+                    errors.email ? 'border-destructive' : 'border-input'
+                  }`}
+                  placeholder="user@example.com"
                 />
+                {errors.email && (
+                  <p className="mt-1 text-xs text-destructive">{errors.email}</p>
+                )}
               </div>
+              
               <div>
-                <label className="block text-sm font-medium mb-1">Password</label>
+                <label className="block text-sm font-medium mb-1">
+                  Mật khẩu <span className="text-destructive">*</span>
+                  {editingUser && <span className="text-muted-foreground text-xs font-normal ml-2">(để trống nếu không đổi)</span>}
+                </label>
                 <input
                   type="password"
                   value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
-                  placeholder="At least 8 chars, include numbers"
+                  onChange={(e) => handleFormChange('password', e.target.value)}
+                  onBlur={(e) => validateField('password', e.target.value)}
+                  className={`w-full px-3 py-2 rounded-lg border bg-background text-sm ${
+                    errors.password ? 'border-destructive' : 'border-input'
+                  }`}
+                  placeholder={editingUser ? "Để trống nếu không đổi mật khẩu" : "Nhập mật khẩu"}
                 />
+                {errors.password && (
+                  <p className="mt-1 text-xs text-destructive">{errors.password}</p>
+                )}
+                {!editingUser && (
+                  <div className="mt-2 p-2 bg-muted/50 rounded text-xs text-muted-foreground">
+                    <p className="font-medium mb-1">Yêu cầu mật khẩu:</p>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      <li className={form.password.length >= 8 ? 'text-green-600' : ''}>
+                        Ít nhất 8 ký tự {form.password.length >= 8 ? '✓' : ''}
+                      </li>
+                      <li className={/[A-Za-z]/.test(form.password) ? 'text-green-600' : ''}>
+                        Có ít nhất 1 chữ cái {/[A-Za-z]/.test(form.password) ? '✓' : ''}
+                      </li>
+                      <li className={/[0-9]/.test(form.password) ? 'text-green-600' : ''}>
+                        Có ít nhất 1 số {/[0-9]/.test(form.password) ? '✓' : ''}
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
+              
+              {(!editingUser || form.password) && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Xác nhận mật khẩu <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={form.confirmPassword}
+                    onChange={(e) => handleFormChange('confirmPassword', e.target.value)}
+                    onBlur={(e) => validateField('confirmPassword', e.target.value)}
+                    className={`w-full px-3 py-2 rounded-lg border bg-background text-sm ${
+                      errors.confirmPassword ? 'border-destructive' : 'border-input'
+                    }`}
+                    placeholder="Nhập lại mật khẩu"
+                  />
+                  {errors.confirmPassword && (
+                    <p className="mt-1 text-xs text-destructive">{errors.confirmPassword}</p>
+                  )}
+                  {form.confirmPassword && form.password === form.confirmPassword && !errors.confirmPassword && (
+                    <p className="mt-1 text-xs text-green-600">✓ Mật khẩu khớp</p>
+                  )}
+                </div>
+              )}
+              
               <div>
-                <label className="block text-sm font-medium mb-1">Role</label>
+                <label className="block text-sm font-medium mb-1">Vai trò</label>
                 <select
                   value={form.role}
                   onChange={(e) => setForm({ ...form, role: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
+                  disabled={editingUser?.role === 'owner'}
                 >
                   <option value="admin">Admin</option>
                   <option value="editor">Editor</option>
                   <option value="author">Author</option>
                 </select>
               </div>
+              
+              {editingUser && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">Trạng thái</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm({ ...form, status: e.target.value as 'active' | 'inactive' })}
+                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              )}
             </div>
             <div className="mt-6 flex justify-end gap-2">
-              <button className="px-3 py-2 rounded-lg border border-input text-sm" onClick={() => setShowDialog(false)}>Cancel</button>
               <button
-                className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/90"
-                onClick={onCreateUser}
+                type="button"
+                className="px-3 py-2 rounded-lg border border-input text-sm"
+                onClick={() => {
+                  setShowDialog(false);
+                  resetForm();
+                }}
               >
-                Create User
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!isOwner || !isFormValid()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!isOwner) {
+                    toast.error('Không đủ quyền');
+                    return;
+                  }
+                  if (!isFormValid()) {
+                    toast.error('Vui lòng điền đầy đủ và đúng thông tin');
+                    return;
+                  }
+                  if (editingUser) {
+                    onUpdateUser();
+                  } else {
+                    onCreateUser();
+                  }
+                }}
+              >
+                {editingUser ? 'Cập nhật' : 'Tạo user'}
               </button>
             </div>
           </div>

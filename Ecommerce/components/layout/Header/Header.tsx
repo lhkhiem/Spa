@@ -261,7 +261,7 @@ export default function Header() {
     >
       {/* Top Banner - Always visible */}
       <div className="w-full bg-white py-2 text-center text-sm text-[#98131b] font-medium">
-        Miễn phí vận chuyển cho đơn hàng trên $749+ | $4.99 vận chuyển cho đơn hàng trên $199+
+        Miễn phí vận chuyển cho đơn hàng trên 749.000₫+ | 4.990₫ vận chuyển cho đơn hàng trên 199.000₫+
       </div>
 
       {/* Main Header - Full Width Red Background */}

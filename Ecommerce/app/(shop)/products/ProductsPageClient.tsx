@@ -58,12 +58,12 @@ interface ProductsPageClientProps {
 const FALLBACK_IMAGE = '/images/placeholder-product.jpg';
 
 const priceFilterOptions: FilterOption[] = [
-  { id: '0-25', label: 'Dưới $25' },
-  { id: '25-50', label: '$25 - $50' },
-  { id: '50-100', label: '$50 - $100' },
-  { id: '100-250', label: '$100 - $250' },
-  { id: '250-500', label: '$250 - $500' },
-  { id: '500+', label: 'Trên $500' },
+  { id: '0-200000', label: 'Dưới 200.000₫' },
+  { id: '200000-500000', label: '200.000₫ - 500.000₫' },
+  { id: '500000-1000000', label: '500.000₫ - 1.000.000₫' },
+  { id: '1000000-2500000', label: '1.000.000₫ - 2.500.000₫' },
+  { id: '2500000-5000000', label: '2.500.000₫ - 5.000.000₫' },
+  { id: '5000000+', label: 'Trên 5.000.000₫' },
 ];
 
 const availabilityOptions: FilterOption[] = [

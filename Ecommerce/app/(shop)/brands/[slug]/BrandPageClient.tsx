@@ -68,10 +68,10 @@ export default function BrandPageClient({ products, filterGroups }: BrandPageCli
       filtered = filtered.filter((p) => {
         const price = p.salePrice || p.price;
         return selectedFilters.price.some((range) => {
-          if (range === '0-25') return price < 25;
-          if (range === '25-50') return price >= 25 && price < 50;
-          if (range === '50-100') return price >= 50 && price < 100;
-          if (range === '100+') return price >= 100;
+          if (range === '0-200000') return price < 200000;
+          if (range === '200000-500000') return price >= 200000 && price < 500000;
+          if (range === '500000-1000000') return price >= 500000 && price < 1000000;
+          if (range === '1000000+') return price >= 1000000;
           return false;
         });
       });

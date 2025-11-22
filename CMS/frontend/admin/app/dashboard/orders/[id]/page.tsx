@@ -12,12 +12,15 @@ import { useAuthStore } from '@/store/authStore';
 
 const toCurrency = (value: number | string | null | undefined) => {
   const numeric = Number(value ?? 0);
-  if (!Number.isFinite(numeric)) return '$0.00';
-  return numeric.toLocaleString('en-US', {
+  if (!Number.isFinite(numeric)) return '0 đ';
+  // VNĐ - no decimals, format as integer
+  const rounded = Math.round(numeric);
+  return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  });
+    currency: 'VND',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(rounded);
 };
 
 const formatDateTime = (value: string | Date | null | undefined) => {

@@ -10,10 +10,7 @@ import type { ProductDTO } from '@/lib/api/products';
 
 const FALLBACK_IMAGE = '/images/placeholder-product.jpg';
 
-const formatPrice = (value: any) => {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : 0;
-};
+import { formatPrice } from '@/lib/utils/formatters';
 
 const resolveImageUrl = (value: any) => {
   if (!value || typeof value !== 'string') {
@@ -95,8 +92,8 @@ export default async function DealsPage() {
       variantId: isVariant ? product.variantId : undefined,
       slug: product.slug,
       name: product.name,
-      price: formatPrice(primaryPrice),
-      salePrice: salePrice ? formatPrice(salePrice) : undefined,
+      price: Math.round(primaryPrice), // VNĐ - integer only
+      salePrice: salePrice ? Math.round(salePrice) : undefined,
       image: resolveImageUrl(product.thumbnailUrl),
       rating: product.rating ?? 0,
       reviewCount: product.reviewCount ?? 0,

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import sharp from 'sharp';
+import sharp, { ResizeOptions } from 'sharp';
 
 export interface ImageSizes {
   thumb?: string;
@@ -31,63 +31,213 @@ export function ensureUploadDir(uploadPath: string): void {
 /**
  * Process uploaded image: create thumbnails and resize versions
  */
+const TARGET_FILE_SIZE_BYTES = 100 * 1024; // 100KB
+const QUALITY_STEPS = [85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15];
+
+interface VariantOptions {
+  resize?: ResizeOptions;
+  allowScaleDown?: boolean;
+  minScale?: number;
+  scaleStep?: number;
+  targetBytes?: number;
+  logLabel?: string;
+}
+
+interface VariantResult {
+  width: number;
+  height: number;
+  bytes: number;
+  quality: number;
+}
+
+async function saveVariantUnderTarget(
+  filePath: string,
+  outputPath: string,
+  options: VariantOptions
+): Promise<VariantResult> {
+  const targetBytes = options.targetBytes ?? TARGET_FILE_SIZE_BYTES;
+  const allowScaleDown = options.allowScaleDown ?? true;
+  const minScale = allowScaleDown ? options.minScale ?? 0.4 : 1;
+  const scaleStep = options.scaleStep ?? 0.85;
+  const label = options.logLabel || 'variant';
+
+  let currentScale = 1;
+  let lastResult: { data: Buffer; info: sharp.OutputInfo; quality: number; scale: number } | null = null;
+
+  while (currentScale >= minScale) {
+    for (const quality of QUALITY_STEPS) {
+      let pipeline = sharp(filePath);
+      if (options.resize) {
+        const resizeOptions: ResizeOptions = { ...options.resize };
+        if (allowScaleDown && (resizeOptions.width || resizeOptions.height)) {
+          if (resizeOptions.width) {
+            resizeOptions.width = Math.max(1, Math.floor(resizeOptions.width * currentScale));
+          }
+          if (resizeOptions.height) {
+            resizeOptions.height = Math.max(1, Math.floor(resizeOptions.height * currentScale));
+          }
+        }
+        pipeline = pipeline.resize(resizeOptions);
+      }
+
+      const result = await pipeline
+        .webp({ quality, effort: 6 })
+        .toBuffer({ resolveWithObject: true });
+
+      lastResult = { data: result.data, info: result.info, quality, scale: currentScale };
+
+      if (result.data.length <= targetBytes) {
+        await fs.promises.writeFile(outputPath, result.data);
+        console.log(
+          `[processImage] ${label} saved ${(result.data.length / 1024).toFixed(1)}KB @q${quality} scale ${currentScale.toFixed(
+            2
+          )}`
+        );
+        return {
+          width: result.info.width,
+          height: result.info.height,
+          bytes: result.data.length,
+          quality,
+        };
+      }
+    }
+
+    if (!allowScaleDown) {
+      break;
+    }
+
+    currentScale *= scaleStep;
+  }
+
+  if (lastResult) {
+    await fs.promises.writeFile(outputPath, lastResult.data);
+    console.warn(
+      `[processImage] ${label} fallback ${(lastResult.data.length / 1024).toFixed(1)}KB @q${
+        lastResult.quality
+      } scale ${lastResult.scale.toFixed(2)}`
+    );
+    return {
+      width: lastResult.info.width,
+      height: lastResult.info.height,
+      bytes: lastResult.data.length,
+      quality: lastResult.quality,
+    };
+  }
+
+  throw new Error(`Failed to generate ${label} variant`);
+}
+
 export async function processImage(
   filePath: string,
   outputDir: string,
   fileName: string
 ): Promise<ProcessedImage> {
-  ensureUploadDir(outputDir);
+  console.log('[processImage] Starting process:', { filePath, outputDir, fileName });
+  
+  try {
+    ensureUploadDir(outputDir);
+    console.log('[processImage] Output directory ensured');
 
-  const fileExt = path.extname(fileName);
-  const baseName = path.basename(fileName, fileExt);
+    const fileExt = path.extname(fileName);
+    const baseName = path.basename(fileName, fileExt);
 
-  // Get original dimensions
-  const metadata = await sharp(filePath).metadata();
-  const width = metadata.width || 0;
-  const height = metadata.height || 0;
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Input file does not exist: ${filePath}`);
+    }
 
-  // Process different sizes
-  const sizes: ImageSizes = {};
+    console.log('[processImage] Reading image metadata...');
+    let metadata;
+    try {
+      metadata = await sharp(filePath).metadata();
+      console.log('[processImage] Image metadata:', { width: metadata.width, height: metadata.height, format: metadata.format });
+    } catch (sharpError: any) {
+      console.error('[processImage] Error reading metadata:', sharpError);
+      throw new Error(`Invalid image file or corrupted: ${sharpError.message || 'Unknown error'}`);
+    }
+    
+    const width = metadata.width || 0;
+    const height = metadata.height || 0;
 
-  // Thumbnail (150x150)
-  const thumbPath = path.join(outputDir, `${baseName}_thumb.webp`);
-  await sharp(filePath)
-    .resize(150, 150, { fit: 'cover', position: 'center' })
-    .webp({ quality: 80 })
-    .toFile(thumbPath);
-  sizes.thumb = path.basename(thumbPath);
+    const sizes: ImageSizes = {};
 
-  // Medium (800x800 max, maintain aspect ratio)
-  const mediumPath = path.join(outputDir, `${baseName}_medium.webp`);
-  await sharp(filePath)
-    .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 85 })
-    .toFile(mediumPath);
-  sizes.medium = path.basename(mediumPath);
+    console.log('[processImage] Creating thumbnail (<=100KB)...');
+    const thumbPath = path.join(outputDir, `${baseName}_thumb.webp`);
+    try {
+      await saveVariantUnderTarget(filePath, thumbPath, {
+        resize: { width: 150, height: 150, fit: 'cover', position: 'center' },
+        allowScaleDown: false,
+        logLabel: 'thumbnail',
+      });
+      sizes.thumb = path.basename(thumbPath);
+    } catch (thumbError: any) {
+      console.error('[processImage] Error creating thumbnail:', thumbError);
+      throw new Error(`Failed to create thumbnail: ${thumbError.message}`);
+    }
 
-  // Large (1600x1600 max, maintain aspect ratio)
-  const largePath = path.join(outputDir, `${baseName}_large.webp`);
-  await sharp(filePath)
-    .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 90 })
-    .toFile(largePath);
-  sizes.large = path.basename(largePath);
+    console.log('[processImage] Creating medium size (<=100KB)...');
+    const mediumPath = path.join(outputDir, `${baseName}_medium.webp`);
+    try {
+      await saveVariantUnderTarget(filePath, mediumPath, {
+        resize: { width: 800, height: 800, fit: 'inside', withoutEnlargement: true },
+        allowScaleDown: true,
+        minScale: 0.4,
+        logLabel: 'medium',
+      });
+      sizes.medium = path.basename(mediumPath);
+    } catch (mediumError: any) {
+      console.error('[processImage] Error creating medium size:', mediumError);
+      throw new Error(`Failed to create medium size: ${mediumError.message}`);
+    }
 
-  // Keep original
-  const originalPath = path.join(outputDir, `original_${baseName}${fileExt}`);
-  await sharp(filePath)
-    .toFile(originalPath);
-  sizes.original = path.basename(originalPath);
+    console.log('[processImage] Creating large size (<=100KB)...');
+    const largePath = path.join(outputDir, `${baseName}_large.webp`);
+    try {
+      await saveVariantUnderTarget(filePath, largePath, {
+        resize: { width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true },
+        allowScaleDown: true,
+        minScale: 0.4,
+        logLabel: 'large',
+      });
+      sizes.large = path.basename(largePath);
+    } catch (largeError: any) {
+      console.error('[processImage] Error creating large size:', largeError);
+      throw new Error(`Failed to create large size: ${largeError.message}`);
+    }
 
-  return {
-    original: sizes.original,
-    thumb: sizes.thumb,
-    medium: sizes.medium,
-    large: sizes.large,
-    width,
-    height,
-    sizes,
-  };
+    console.log('[processImage] Creating original size (<=100KB)...');
+    const originalPath = path.join(outputDir, `original_${baseName}.webp`);
+    const originalMaxDimension = 2048;
+    const originalResult = await saveVariantUnderTarget(filePath, originalPath, {
+      resize: {
+        width: Math.min(width || originalMaxDimension, originalMaxDimension),
+        height: Math.min(height || originalMaxDimension, originalMaxDimension),
+        fit: 'inside',
+        withoutEnlargement: true,
+      },
+      allowScaleDown: true,
+      minScale: 0.3,
+      logLabel: 'original',
+    }).catch((originalError) => {
+      console.error('[processImage] Error creating original WebP:', originalError);
+      throw new Error(`Failed to create original WebP: ${(originalError as Error).message}`);
+    });
+
+    sizes.original = path.basename(originalPath);
+
+    console.log('[processImage] All sizes processed successfully');
+    return {
+      original: sizes.original,
+      thumb: sizes.thumb,
+      medium: sizes.medium,
+      large: sizes.large,
+      width: originalResult.width,
+      height: originalResult.height,
+      sizes,
+    };
+  } catch (error: any) {
+    console.error('[processImage] Unexpected error:', error);
+    throw error;
+  }
 }
 
 /**

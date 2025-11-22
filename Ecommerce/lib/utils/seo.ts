@@ -81,7 +81,7 @@ export function generateProductStructuredData(product: any) {
     offers: {
       '@type': 'Offer',
       price: product.salePrice || product.price,
-      priceCurrency: 'USD',
+      priceCurrency: 'VND',
       availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       url: `${siteConfig.url}/products/${product.slug}`,
     },

@@ -29,7 +29,7 @@ const FALLBACK_VALUE_PROPS: ValuePropItem[] = [
   {
     id: 'fallback-1',
     title: 'Miễn Phí Vận Chuyển',
-    subtitle: 'Đơn hàng từ $749+',
+    subtitle: 'Đơn hàng từ 749.000₫+',
     Icon: FiTruck,
     iconColor: '#2563eb',
     iconBackground: '#bfdbfe',
@@ -37,7 +37,7 @@ const FALLBACK_VALUE_PROPS: ValuePropItem[] = [
   {
     id: 'fallback-2',
     title: 'Giảm Giá Vận Chuyển',
-    subtitle: '$4.99 cho đơn hàng $199+',
+    subtitle: '4.990₫ cho đơn hàng 199.000₫+',
     Icon: FiDollarSign,
     iconColor: '#10b981',
     iconBackground: '#bbf7d0',

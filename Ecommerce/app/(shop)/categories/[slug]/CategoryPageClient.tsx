@@ -46,10 +46,10 @@ interface CategoryPageClientProps {
 }
 
 const priceFilterOptions: FilterOption[] = [
-  { id: '0-25', label: 'Dưới $25' },
-  { id: '25-50', label: '$25 - $50' },
-  { id: '50-100', label: '$50 - $100' },
-  { id: '100+', label: 'Trên $100' },
+  { id: '0-200000', label: 'Dưới 200.000₫' },
+  { id: '200000-500000', label: '200.000₫ - 500.000₫' },
+  { id: '500000-1000000', label: '500.000₫ - 1.000.000₫' },
+  { id: '1000000+', label: 'Trên 1.000.000₫' },
 ];
 
 const availabilityOptions: FilterOption[] = [
@@ -144,10 +144,10 @@ export default function CategoryPageClient({
       filtered = filtered.filter((p) => {
         const price = p.salePrice || p.price;
         return selectedFilters.price?.some((range) => {
-          if (range === '0-25') return price < 25;
-          if (range === '25-50') return price >= 25 && price < 50;
-          if (range === '50-100') return price >= 50 && price < 100;
-          if (range === '100+') return price >= 100;
+          if (range === '0-200000') return price < 200000;
+          if (range === '200000-500000') return price >= 200000 && price < 500000;
+          if (range === '500000-1000000') return price >= 500000 && price < 1000000;
+          if (range === '1000000+') return price >= 1000000;
           return false;
         });
       });

@@ -54,6 +54,18 @@
     @apply bg-gray-500;
   }
 
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+    width: 0;
+    height: 0;
+  }
+
   /* Container */
   .container-custom {
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;

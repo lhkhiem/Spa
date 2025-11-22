@@ -478,7 +478,9 @@ export const createOrder = async (req: Request, res: Response) => {
           transaction
         });
 
-        // Update product stock
+        // Update product stock using StockService (with tracking)
+        // Note: StockService uses its own transaction, so we need to handle this carefully
+        // For now, we'll update stock within the existing transaction and record movement separately
         const stockUpdateQuery = `
           UPDATE products
           SET stock = stock - :quantity,
@@ -493,9 +495,34 @@ export const createOrder = async (req: Request, res: Response) => {
           type: QueryTypes.UPDATE,
           transaction
         });
+        
+        // Record stock movement after transaction commits
+        // We'll do this after commit to avoid nested transaction issues
       }
 
       await transaction.commit();
+
+      // Record stock movements after transaction commits (to track inventory changes)
+      const { StockService } = await import('../services/stockService');
+      const userId = (req as any).user?.id;
+      
+      for (const item of items) {
+        try {
+          await StockService.updateStock(
+            item.product_id,
+            item.variant_info?.variantId || null,
+            -item.quantity, // negative for sale
+            'sale',
+            'order',
+            orderId,
+            `Order ${orderNumber} - Sale`,
+            userId
+          );
+        } catch (error: any) {
+          // Log error but don't fail the order creation
+          console.error(`[createOrder] Failed to record stock movement for product ${item.product_id}:`, error.message);
+        }
+      }
 
       // Get full order with items
       const fullOrderQuery = `
@@ -750,6 +777,36 @@ export const updateOrder = async (req: Request, res: Response) => {
         updates.push('delivered_at = CURRENT_TIMESTAMP');
       } else if (status === 'cancelled') {
         updates.push('cancelled_at = CURRENT_TIMESTAMP');
+        
+        // Restore stock when order is cancelled
+        // Get order items first
+        const itemsQuery = `SELECT product_id, quantity, variant_info FROM order_items WHERE order_id = :id`;
+        const orderItems: any[] = await sequelize.query(itemsQuery, {
+          replacements: { id },
+          type: QueryTypes.SELECT
+        });
+        
+        // Restore stock for each item
+        const { StockService } = await import('../services/stockService');
+        const userId = (req as any).user?.id;
+        
+        for (const item of orderItems) {
+          try {
+            const variantInfo = item.variant_info ? JSON.parse(item.variant_info) : null;
+            await StockService.updateStock(
+              item.product_id,
+              variantInfo?.variantId || null,
+              item.quantity, // positive to restore stock
+              'return',
+              'order',
+              id,
+              `Order cancelled - Stock restored`,
+              userId
+            );
+          } catch (error: any) {
+            console.error(`[updateOrder] Failed to restore stock for product ${item.product_id}:`, error.message);
+          }
+        }
       }
     }
 

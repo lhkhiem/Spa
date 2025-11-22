@@ -32,17 +32,47 @@ const normalizeMediaUrl = (value: string | null | undefined): string | null => {
   }
 
   const cleaned = value.replace(/\\/g, '/');
+  let url: string;
+  
   if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
-    return cleaned;
+    url = cleaned;
+  } else {
+    const baseUrl =
+      process.env.FILE_BASE_URL ||
+      process.env.CMS_BASE_URL ||
+      process.env.API_BASE_URL ||
+      'http://localhost:3011';
+    url = `${baseUrl}${cleaned.startsWith('/') ? '' : '/'}${cleaned}`;
   }
-
-  const baseUrl =
-    process.env.FILE_BASE_URL ||
-    process.env.CMS_BASE_URL ||
-    process.env.API_BASE_URL ||
-    'http://localhost:3011';
-
-  return `${baseUrl}${cleaned.startsWith('/') ? '' : '/'}${cleaned}`;
+  
+  // Always replace IP address with domain name (which has HTTPS via reverse proxy)
+  // This fixes Mixed Content issues when frontend is served over HTTPS
+  const ipPattern = /https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?/;
+  const ipMatch = url.match(ipPattern);
+  if (ipMatch) {
+    // Replace IP with api subdomain (which has HTTPS via reverse proxy)
+    // Don't include port because nginx reverse proxy handles it
+    url = url.replace(ipMatch[0], 'https://api.banyco-demo.pressup.vn');
+  }
+  
+  // Convert HTTP to HTTPS for production domains
+  // This fixes Mixed Content issues when site is served over HTTPS
+  if (url.startsWith('http://')) {
+    // In production, always convert to HTTPS
+    // In development (localhost), only convert if explicitly configured
+    const isProduction = process.env.NODE_ENV === 'production' || 
+                         url.includes('banyco-demo.pressup.vn') || 
+                         url.includes('pressup.vn') ||
+                         url.includes('api.banyco-demo.pressup.vn');
+    const isLocalhost = url.includes('localhost') || url.includes('127.0.0.1');
+    
+    // Convert to HTTPS for production, or if explicitly configured for localhost
+    if (isProduction || (isLocalhost && process.env.FORCE_HTTPS === 'true')) {
+      url = url.replace('http://', 'https://');
+    }
+  }
+  
+  return url;
 };
 
 const parseCsvParam = (input: unknown): string[] => {
@@ -94,12 +124,18 @@ const buildPriceConditions = (
   const conditions: string[] = [];
 
   ranges.forEach((range, index) => {
-    if (range === '100+') {
-      replacements[`priceMin${index}`] = 100;
-      conditions.push(`p.price >= :priceMin${index}`);
+    // Handle ranges ending with '+' (e.g., '1000000+', '5000000+')
+    if (range.endsWith('+')) {
+      const minRaw = range.slice(0, -1); // Remove the '+'
+      const min = Number(minRaw);
+      if (Number.isFinite(min)) {
+        replacements[`priceMin${index}`] = min;
+        conditions.push(`p.price >= :priceMin${index}`);
+      }
       return;
     }
 
+    // Handle ranges with '-' (e.g., '200000-500000')
     const [minRaw, maxRaw] = range.split('-').map((value) => value.trim());
     const min = Number(minRaw);
     const max = Number(maxRaw);

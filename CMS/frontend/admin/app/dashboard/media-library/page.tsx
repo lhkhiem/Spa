@@ -112,11 +112,45 @@ export default function MediaLibraryPage() {
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
+    const fileArray = Array.from(files);
+    const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+    const WARNING_SIZE = 10 * 1024 * 1024; // 10MB
+
+    // Validate file sizes
+    const largeFiles: string[] = [];
+    const oversizedFiles: string[] = [];
+    
+    for (const file of fileArray) {
+      if (file.size > MAX_FILE_SIZE) {
+        oversizedFiles.push(`${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      } else if (file.size >= WARNING_SIZE) {
+        largeFiles.push(`${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      }
+    }
+
+    // Show error for oversized files
+    if (oversizedFiles.length > 0) {
+      toast.error(
+        `File quá lớn (giới hạn 100MB): ${oversizedFiles.join(', ')}`
+      );
+      return;
+    }
+
+    // Show warning for large files
+    if (largeFiles.length > 0) {
+      const proceed = window.confirm(
+        `Cảnh báo: Các file sau có dung lượng >= 10MB sẽ được nén và chuyển đổi sang .webp:\n${largeFiles.join('\n')}\n\nBạn có muốn tiếp tục?`
+      );
+      if (!proceed) {
+        return;
+      }
+    }
+
     setUploading(true);
     try {
-      for (let i = 0; i < files.length; i++) {
+      for (let i = 0; i < fileArray.length; i++) {
         const formData = new FormData();
-        formData.append('file', files[i]);
+        formData.append('file', fileArray[i]);
         if (selectedFolder) formData.append('folder_id', selectedFolder);
 
         const response = await fetch(`${API_BASE_URL}/api/media/upload`, {
@@ -125,10 +159,13 @@ export default function MediaLibraryPage() {
           body: formData,
         });
 
-        if (!response.ok) throw new Error(`Failed to upload ${files[i].name}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          throw new Error(errorData.error || `Failed to upload ${fileArray[i].name}`);
+        }
       }
 
-      toast.success(`${files.length} file(s) uploaded successfully!`);
+      toast.success(`${fileArray.length} file(s) uploaded successfully!`);
       fetchMedia();
     } catch (error: any) {
       console.error('Upload failed:', error);

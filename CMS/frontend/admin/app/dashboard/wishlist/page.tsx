@@ -118,10 +118,14 @@ export default function WishlistPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    // VNĐ - no decimals, format as integer
+    const rounded = Math.round(amount);
+    return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(rounded);
   };
 
   const formatDate = (dateString: string) => {

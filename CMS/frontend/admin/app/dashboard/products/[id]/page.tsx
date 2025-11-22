@@ -36,14 +36,47 @@ export default function ProductFormPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingProduct, setLoadingProduct] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const originalSlugRef = useRef<string>('');
+  const fetchAttemptedRef = useRef(false);
+  const [formKey, setFormKey] = useState(0); // Force re-render key
+  const [dataLoaded, setDataLoaded] = useState(false); // Track if data has been loaded
+
+  useEffect(() => {
+    // Reset state when product ID changes
+    if (isEdit && params.id) {
+      setDataLoaded(false);
+      setFormData({
+        name: '',
+        slug: '',
+        description: '',
+        sku: '',
+        price: '',
+        compare_price: '',
+        stock: '0',
+        status: 'draft',
+        category_id: '',
+        brand_id: '',
+        is_featured: false,
+        is_best_seller: false
+      });
+      setSelectedCategories([]);
+      setThumbnailId('');
+      setGalleryImages([]);
+      fetchAttemptedRef.current = false;
+    }
+  }, [params.id, isEdit]);
 
   useEffect(() => {
     fetchCategories();
     fetchBrands();
-    if (isEdit && params.id) {
+    if (isEdit && params.id && !fetchAttemptedRef.current) {
+      fetchAttemptedRef.current = true;
       fetchProduct();
+    } else if (!isEdit) {
+      setDataLoaded(true); // For new products, mark as loaded immediately
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id, isEdit]);
@@ -70,42 +103,78 @@ export default function ProductFormPage() {
     }
   };
 
-  const fetchProduct = async () => {
+  const fetchProduct = async (retryCount = 0) => {
+    if (!params.id) {
+      setError('Product ID is missing');
+      return;
+    }
+
     try {
+      setLoadingProduct(true);
+      setError(null);
+      
       const response: any = await axios.get(buildApiUrl(`/api/products/${params.id}`), {
-        withCredentials: true
+        withCredentials: true,
+        timeout: 10000, // 10 second timeout
       });
-      const product = response.data;
+      
+      // Handle different response structures
+      const product = response.data?.data || response.data;
+      
+      if (!product || !product.id) {
+        throw new Error('Invalid product data received');
+      }
       
       console.log('Loaded product data:', product);
       
+      // Use a function to ensure state update happens correctly
       const productSlug = product.slug || '';
-      setFormData({
+      const newFormData = {
         name: product.name || '',
         slug: productSlug,
         description: product.description || '',
         sku: product.sku || '',
-        price: product.price?.toString() || '',
-        compare_price: product.compare_price?.toString() || '',
-        stock: product.stock?.toString() || '0',
+        price: product.price !== undefined && product.price !== null ? Math.round(Number(product.price)).toString() : '',
+        compare_price: product.compare_price !== undefined && product.compare_price !== null ? Math.round(Number(product.compare_price)).toString() : '',
+        stock: product.stock !== undefined && product.stock !== null ? product.stock.toString() : '0',
         status: product.status || 'draft',
         category_id: product.category_id || '',
         brand_id: product.brand_id || '',
         is_featured: Boolean(product.is_featured),
         is_best_seller: Boolean(product.is_best_seller)
+      };
+      
+      console.log('Setting form data:', newFormData);
+      
+      // Force state update by using functional setState and ensuring all fields are set
+      setFormData(prev => {
+        const updated = { ...newFormData };
+        console.log('Form data updated, new values:', updated);
+        return updated;
       });
+      
       originalSlugRef.current = productSlug;
       setSlugManuallyEdited(false);
       
+      // Mark data as loaded and force form re-render
+      setDataLoaded(true);
+      setTimeout(() => {
+        setFormKey(prev => prev + 1);
+        console.log('Form key updated to force re-render, dataLoaded:', true);
+      }, 50);
+      
       // Load selected categories from n-n relationship
       if (product.categories && Array.isArray(product.categories)) {
-        setSelectedCategories(product.categories.map((cat: any) => cat.id));
+        const categoryIds = product.categories.map((cat: any) => cat.id);
+        console.log('Setting categories:', categoryIds);
+        setSelectedCategories(categoryIds);
       } else {
         setSelectedCategories([]);
       }
       
       // Load thumbnail
       if (product.thumbnail_id) {
+        console.log('Setting thumbnail:', product.thumbnail_id);
         setThumbnailId(product.thumbnail_id);
       } else {
         setThumbnailId('');
@@ -113,12 +182,41 @@ export default function ProductFormPage() {
       
       // Load gallery images
       if (product.images && Array.isArray(product.images)) {
-        setGalleryImages(product.images.map((img: any) => img.asset_id));
+        // Backend returns images with asset_id field
+        const imageIds = product.images.map((img: any) => {
+          // Handle different possible structures
+          if (img.asset_id) return img.asset_id;
+          if (img.id) return img.id;
+          if (typeof img === 'string') return img;
+          return null;
+        }).filter((id: any) => id !== null);
+        console.log('Setting gallery images:', imageIds);
+        setGalleryImages(imageIds);
       } else {
         setGalleryImages([]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch product:', error);
+      
+      const errorMessage = error.response?.data?.error 
+        || error.response?.data?.message 
+        || error.message 
+        || 'Failed to load product data';
+      
+      setError(errorMessage);
+      
+      // Retry logic: retry up to 2 times with exponential backoff
+      if (retryCount < 2) {
+        const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s
+        console.log(`Retrying fetch product in ${delay}ms... (attempt ${retryCount + 1})`);
+        setTimeout(() => {
+          fetchProduct(retryCount + 1);
+        }, delay);
+      } else {
+        alert(`Failed to load product: ${errorMessage}\n\nPlease refresh the page or try again later.`);
+      }
+    } finally {
+      setLoadingProduct(false);
     }
   };
 
@@ -132,8 +230,8 @@ export default function ProductFormPage() {
         slug: formData.slug || null,
         description: formData.description || null,
         sku: formData.sku || null,
-        price: parseFloat(formData.price) || 0,
-        compare_price: formData.compare_price ? parseFloat(formData.compare_price) : null,
+        price: Math.round(parseFloat(formData.price.replace(/,/g, '')) || 0), // Round to integer for VNĐ
+        compare_price: formData.compare_price ? Math.round(parseFloat(formData.compare_price.replace(/,/g, ''))) : null,
         cost_price: null,
         stock: parseInt(formData.stock) || 0,
         status: formData.status,
@@ -195,8 +293,37 @@ export default function ProductFormPage() {
         </Link>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-3">
+      {/* Error Message */}
+      {error && (
+        <div className="rounded-lg border border-red-500 bg-red-50 dark:bg-red-900/20 p-4">
+          <p className="text-sm text-red-800 dark:text-red-400">
+            <strong>Error loading product:</strong> {error}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              fetchAttemptedRef.current = false;
+              fetchProduct();
+            }}
+            className="mt-2 text-sm text-red-600 dark:text-red-400 underline hover:no-underline"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loadingProduct && (
+        <div className="rounded-lg border border-border bg-card p-6 text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent mb-2" />
+          <p className="text-sm text-muted-foreground">Loading product data...</p>
+        </div>
+      )}
+
+      {/* Form - Only show when data is loaded (or it's a new product) */}
+      {!loadingProduct && (isEdit ? dataLoaded : true) && (
+      <form key={`form-${formKey}-${dataLoaded}`} onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-3">
         {/* Main Column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Info */}
@@ -210,7 +337,9 @@ export default function ProductFormPage() {
               <input
                 type="text"
                 required
-                value={formData.name}
+                key={`name-${params.id || 'new'}-${Date.now()}`}
+                defaultValue={formData.name}
+                value={formData.name || ''}
                 onChange={(e) => {
                   const newName = e.target.value;
                   setFormData((prev) => {
@@ -231,9 +360,10 @@ export default function ProductFormPage() {
               </label>
               <input
                 type="text"
-                value={formData.slug}
+                key={`slug-${params.id || 'new'}-${formKey}-${dataLoaded}`}
+                value={formData.slug || ''}
                 onChange={(e) => {
-                  setFormData({ ...formData, slug: e.target.value });
+                  setFormData((prev) => ({ ...prev, slug: e.target.value }));
                   setSlugManuallyEdited(true);
                 }}
                 onBlur={() => {
@@ -305,11 +435,27 @@ export default function ProductFormPage() {
                 </label>
                 <input
                   type="number"
-                  step="0.01"
+                  step="1"
+                  min="0"
                   required
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  key={`price-${params.id || 'new'}-${formKey}-${dataLoaded}`}
+                  value={formData.price ? formData.price.replace(/[.,]/g, '') : ''}
+                  onChange={(e) => {
+                    let value = e.target.value;
+                    // Remove commas (vi-VN locale uses comma as decimal separator)
+                    value = value.replace(/,/g, '');
+                    // Only allow integers (no decimals for VNĐ)
+                    if (value.includes('.')) {
+                      value = Math.floor(parseFloat(value)).toString();
+                    }
+                    // Remove any non-numeric characters except empty string
+                    if (value && !/^\d+$/.test(value)) {
+                      value = value.replace(/\D/g, '');
+                    }
+                    setFormData((prev) => ({ ...prev, price: value }));
+                  }}
                   className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Nhập giá (VNĐ, không có số thập phân)"
                 />
               </div>
               <div>
@@ -318,10 +464,26 @@ export default function ProductFormPage() {
                 </label>
                 <input
                   type="number"
-                  step="0.01"
-                  value={formData.compare_price}
-                  onChange={(e) => setFormData({ ...formData, compare_price: e.target.value })}
+                  step="1"
+                  min="0"
+                  key={`compare_price-${params.id || 'new'}-${formKey}-${dataLoaded}`}
+                  value={formData.compare_price ? formData.compare_price.replace(/[.,]/g, '') : ''}
+                  onChange={(e) => {
+                    let value = e.target.value;
+                    // Remove commas (vi-VN locale uses comma as decimal separator)
+                    value = value.replace(/,/g, '');
+                    // Only allow integers (no decimals for VNĐ)
+                    if (value.includes('.')) {
+                      value = Math.floor(parseFloat(value)).toString();
+                    }
+                    // Remove any non-numeric characters except empty string
+                    if (value && !/^\d+$/.test(value)) {
+                      value = value.replace(/\D/g, '');
+                    }
+                    setFormData((prev) => ({ ...prev, compare_price: value }));
+                  }}
                   className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Giá so sánh (VNĐ, không có số thập phân)"
                 />
               </div>
             </div>
@@ -333,8 +495,9 @@ export default function ProductFormPage() {
                 </label>
                 <input
                   type="text"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                  key={`sku-${params.id || 'new'}-${formKey}-${dataLoaded}`}
+                  value={formData.sku || ''}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, sku: e.target.value }))}
                   className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
@@ -344,8 +507,9 @@ export default function ProductFormPage() {
                 </label>
                 <input
                   type="number"
-                  value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  key={`stock-${params.id || 'new'}-${formKey}-${dataLoaded}`}
+                  value={formData.stock || '0'}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, stock: e.target.value }))}
                   className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
@@ -457,6 +621,7 @@ export default function ProductFormPage() {
           </div>
         </div>
       </form>
+      )}
     </div>
   );
 }

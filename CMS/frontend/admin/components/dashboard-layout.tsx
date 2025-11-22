@@ -2,6 +2,7 @@
 
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
+import { Toaster } from 'sonner';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -21,6 +22,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      
+      {/* Toast Notifications */}
+      <Toaster position="top-right" />
     </div>
   );
 }

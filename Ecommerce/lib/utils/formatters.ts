@@ -1,7 +1,9 @@
-// Format price to Vietnamese currency (VND)
+// Format price to Vietnamese currency (VND) - no decimals
 export function formatPrice(price: number): string {
+  // Round to integer (no decimals for VND)
+  const roundedPrice = Math.round(price);
   // Convert to VND format: xx.xxx.xxx đ
-  const formatted = new Intl.NumberFormat('vi-VN').format(Math.round(price));
+  const formatted = new Intl.NumberFormat('vi-VN').format(roundedPrice);
   return `${formatted} đ`;
 }
 

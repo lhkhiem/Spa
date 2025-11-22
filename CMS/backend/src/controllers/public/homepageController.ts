@@ -12,20 +12,52 @@ const assetBaseUrl =
 
 /**
  * Chuẩn hóa URL ảnh trả về:
- * - Nếu chuỗi đã bắt đầu bằng http(s) → giữ nguyên
- * - Nếu là đường dẫn tương đối (ví dụ /uploads/...) → ghép thêm assetBaseUrl
+ * - Nếu chuỗi đã bắt đầu bằng http(s) → convert HTTP thành HTTPS nếu cần
+ * - Nếu là đường dẫn tương đối (ví dụ /uploads/...) → ghép thêm assetBaseUrl và convert HTTP thành HTTPS
  */
 const normalizeMediaUrl = (value: unknown) => {
   if (!value || typeof value !== 'string') {
     return null;
   }
+  
+  let url: string;
+  
   if (/^https?:\/\//i.test(value)) {
-    return value;
+    url = value;
+  } else {
+    const base = assetBaseUrl.replace(/\/+$/, ''); // Loại bỏ dấu / dư ở cuối base
+    const path = value.startsWith('/') ? value : `/${value}`;
+    url = `${base}${path}`;
   }
-
-  const base = assetBaseUrl.replace(/\/+$/, ''); // Loại bỏ dấu / dư ở cuối base
-  const path = value.startsWith('/') ? value : `/${value}`;
-  return `${base}${path}`;
+  
+  // Always replace IP address with domain name (which has HTTPS via reverse proxy)
+  // This fixes Mixed Content issues when frontend is served over HTTPS
+  const ipPattern = /https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?/;
+  const ipMatch = url.match(ipPattern);
+  if (ipMatch) {
+    // Replace IP with api subdomain (which has HTTPS via reverse proxy)
+    // Don't include port because nginx reverse proxy handles it
+    url = url.replace(ipMatch[0], 'https://api.banyco-demo.pressup.vn');
+  }
+  
+  // Convert HTTP to HTTPS for production domains
+  // This fixes Mixed Content issues when site is served over HTTPS
+  if (url.startsWith('http://')) {
+    // In production, always convert to HTTPS
+    // In development (localhost), only convert if explicitly configured
+    const isProduction = process.env.NODE_ENV === 'production' || 
+                         url.includes('banyco-demo.pressup.vn') || 
+                         url.includes('pressup.vn') ||
+                         url.includes('api.banyco-demo.pressup.vn');
+    const isLocalhost = url.includes('localhost') || url.includes('127.0.0.1');
+    
+    // Convert to HTTPS for production, or if explicitly configured for localhost
+    if (isProduction || (isLocalhost && process.env.FORCE_HTTPS === 'true')) {
+      url = url.replace('http://', 'https://');
+    }
+  }
+  
+  return url;
 };
 
 const buildWhereClause = (conditions: string[]) =>

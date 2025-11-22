@@ -8,6 +8,7 @@ import {
   renameFolder,
   deleteFolder,
   uploadMedia,
+  uploadMediaFromUrl,
   listMedia,
   updateMedia,
   renameMedia,
@@ -30,7 +31,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB max
+    fileSize: 100 * 1024 * 1024, // 100MB max (will be compressed to webp)
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
@@ -45,9 +46,35 @@ const upload = multer({
   }
 });
 
+// Error handler for multer
+const handleMulterError = (err: any, req: any, res: any, next: any) => {
+  if (err) {
+    console.error('[handleMulterError] Multer error:', err);
+    console.error('[handleMulterError] Error code:', err.code);
+    console.error('[handleMulterError] Error message:', err.message);
+    
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      console.log('[handleMulterError] File size limit exceeded');
+      return res.status(413).json({ 
+        error: 'File quá lớn. Giới hạn tối đa là 100MB. File sẽ được nén sau khi upload.' 
+      });
+    }
+    if (err.message?.includes('Only image files')) {
+      console.log('[handleMulterError] Invalid file type');
+      return res.status(400).json({ 
+        error: 'Chỉ chấp nhận file ảnh (JPEG, PNG, GIF, WebP)' 
+      });
+    }
+    console.log('[handleMulterError] Generic multer error');
+    return res.status(400).json({ error: err.message || 'Upload failed' });
+  }
+  next();
+};
+
 // Media routes
 router.get('/', authMiddleware, listMedia);
-router.post('/upload', authMiddleware, upload.single('file'), uploadMedia);
+router.post('/upload', authMiddleware, upload.single('file'), handleMulterError, uploadMedia);
+router.post('/upload/by-url', authMiddleware, uploadMediaFromUrl);
 router.put('/:id', authMiddleware, updateMedia);
 router.post('/:id/rename', authMiddleware, renameMedia);
 router.delete('/:id', authMiddleware, deleteMedia);

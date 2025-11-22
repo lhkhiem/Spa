@@ -27,7 +27,7 @@ export default function ProductSort({ value, onChange, totalProducts }: ProductS
       </div>
 
       <div className="flex items-center gap-2">
-        <label htmlFor="sort" className="text-sm text-gray-700">
+        <label htmlFor="sort" className="text-sm text-gray-700 whitespace-nowrap">
           Sắp xếp:
         </label>
         <Select

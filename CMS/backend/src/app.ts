@@ -36,6 +36,7 @@ import contactRoutes from './routes/contacts';
 import consultationRoutes from './routes/consultations';
 import emailRoutes from './routes/email';
 import publicAuthRoutes from './routes/publicAuth'; // Customer authentication
+import inventoryRoutes from './routes/inventory'; // Inventory management
 // import publicUserRoutes from './routes/publicUser'; // Disabled: Customer user management not needed
 // import publicOrdersRoutes from './routes/publicOrders'; // Disabled: Customer orders not needed
 // import publicCartRoutes from './routes/publicCart'; // Disabled: Customer cart not needed
@@ -87,7 +88,8 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // Routes
@@ -109,6 +111,7 @@ app.use('/api/public/products', publicProductsRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/consultations', consultationRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/inventory', inventoryRoutes);
 app.use('/api/public/auth', publicAuthRoutes); // Customer authentication
 // app.use('/api/public/user', publicUserRoutes); // Disabled: Customer user management not needed
 // app.use('/api/public/orders', publicOrdersRoutes); // Disabled: Customer orders not needed

@@ -120,6 +120,7 @@ export default function TinyMCEEditor({
           autosave_ask_before_unload: true,
           branding: false,
           browser_spellcheck: true,
+          promotion: false,
           contextmenu: 'undo redo | copy paste | link image table',
           content_style: `
             body {

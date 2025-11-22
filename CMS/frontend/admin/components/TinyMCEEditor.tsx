@@ -12,9 +12,10 @@ export interface TinyMCEEditorProps {
 }
 
 const TINYMCE_API_KEY = process.env.NEXT_PUBLIC_TINYMCE_API_KEY?.trim();
+const LOCAL_TINYMCE_SCRIPT = '/tinymce/tinymce.min.js';
 const TINYMCE_SCRIPT_SRC =
   process.env.NEXT_PUBLIC_TINYMCE_SCRIPT_SRC?.trim() ||
-  `https://cdn.tiny.cloud/1/${TINYMCE_API_KEY || 'no-api-key'}/tinymce/7/tinymce.min.js`;
+  (TINYMCE_API_KEY ? `https://cdn.tiny.cloud/1/${TINYMCE_API_KEY}/tinymce/7/tinymce.min.js` : LOCAL_TINYMCE_SCRIPT);
 
 const WORD_LIKE_MENUBAR = 'file edit view insert format tools table help';
 

@@ -108,6 +108,7 @@ export default function TinyMCEEditor({
         init={{
           placeholder,
           height: 600,
+          license_key: 'gpl',
           menubar: WORD_LIKE_MENUBAR,
           toolbar: WORD_LIKE_TOOLBAR,
           plugins: WORD_LIKE_PLUGINS,

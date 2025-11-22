@@ -24,7 +24,6 @@ const WORD_LIKE_PLUGINS = [
   'autolink',
   'autosave',
   'charmap',
-  'checklist',
   'code',
   'codesample',
   'directionality',
@@ -57,7 +56,7 @@ const WORD_LIKE_PLUGINS = [
 const WORD_LIKE_TOOLBAR = [
   'undo redo | save print preview fullscreen',
   'formatselect fontselect fontsizeselect | bold italic underline strikethrough superscript subscript removeformat',
-  'forecolor backcolor | alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist checklist',
+  'forecolor backcolor | alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist',
   'link image media customMediaLibrary | blockquote code codesample | table tabledelete | hr pagebreak nonbreaking insertdatetime',
   'charmap emoticons | searchreplace visualblocks visualchars | ltr rtl | template',
 ].join('\n');

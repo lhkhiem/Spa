@@ -12,9 +12,24 @@ import {
   Users,
   Eye,
   ArrowUpRight,
+  Package,
+  Plus,
+  Trash2,
+  Clock,
 } from 'lucide-react';
 import { resolveApiBaseUrl } from '@/lib/api';
 import { cn } from '@/lib/utils';
+
+interface Activity {
+  id: string;
+  action: string;
+  entity_type: string;
+  entity_name?: string;
+  description?: string;
+  user_name?: string;
+  user_email?: string;
+  created_at: string;
+}
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -23,11 +38,14 @@ export default function DashboardPage() {
     draftPosts: 0,
     totalTopics: 0,
   });
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingActivities, setLoadingActivities] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     fetchStats();
+    fetchActivities();
   }, []);
 
   const getApiUrl = () => {
@@ -61,6 +79,63 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchActivities = async () => {
+    try {
+      const baseUrl = getApiUrl();
+      const url = `${baseUrl}/api/activity-logs?limit=10`;
+      console.log('[Dashboard] Fetching activities from:', url);
+      
+      const res = await fetch(url, {
+        credentials: 'include',
+      });
+      
+      if (!res.ok) {
+        console.error('[Dashboard] Activities API error:', res.status, res.statusText);
+        throw new Error(`Failed to fetch activities: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      console.log('[Dashboard] Activities response:', data);
+      
+      if (data.success && data.data) {
+        setActivities(data.data);
+      } else {
+        console.warn('[Dashboard] Unexpected activities response format:', data);
+      }
+    } catch (error) {
+      console.error('[Dashboard] Failed to fetch activities:', error);
+    } finally {
+      setLoadingActivities(false);
+    }
+  };
+
+  const getActivityIcon = (action: string, entityType: string) => {
+    if (action === 'create') return Plus;
+    if (action === 'delete') return Trash2;
+    if (entityType === 'product') return Package;
+    if (entityType === 'post') return FileText;
+    return Edit;
+  };
+
+  const getActivityColor = (action: string) => {
+    if (action === 'create') return 'text-green-600 bg-green-100 dark:bg-green-900/20';
+    if (action === 'delete') return 'text-red-600 bg-red-100 dark:bg-red-900/20';
+    if (action === 'update') return 'text-blue-600 bg-blue-100 dark:bg-blue-900/20';
+    return 'text-gray-600 bg-gray-100 dark:bg-gray-900/20';
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return date.toLocaleDateString();
   };
 
   const statCards = [
@@ -237,21 +312,69 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Recent Activity Placeholder */}
+        {/* Recent Activity */}
         <div>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
             Recent Activity
           </h2>
-          <div className="rounded-lg border border-border bg-card p-12 text-center">
-            <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-              <TrendingUp className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-medium text-card-foreground mb-2">
-              Activity Tracking Coming Soon
-            </h3>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Track content changes, user actions, and system events in real-time.
-            </p>
+          <div className="rounded-lg border border-border bg-card">
+            {loadingActivities ? (
+              <div className="p-12 text-center">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+              </div>
+            ) : activities.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <TrendingUp className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium text-card-foreground mb-2">
+                  No activity yet
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  Activity will appear here as you make changes to your content.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {activities.map((activity) => {
+                  const Icon = getActivityIcon(activity.action, activity.entity_type);
+                  const colorClass = getActivityColor(activity.action);
+                  return (
+                    <div key={activity.id} className="p-4 hover:bg-accent/40 transition-colors">
+                      <div className="flex items-start gap-3">
+                        <div className={`rounded-lg p-2 ${colorClass}`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-medium text-foreground">
+                              {activity.user_name || 'System'}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {activity.action} {activity.entity_type}
+                            </span>
+                          </div>
+                          {activity.entity_name && (
+                            <p className="text-sm text-foreground font-medium mb-1">
+                              {activity.entity_name}
+                            </p>
+                          )}
+                          {activity.description && (
+                            <p className="text-xs text-muted-foreground mb-1">
+                              {activity.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {formatTimeAgo(activity.created_at)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToasterProvider } from '@/components/providers/ToasterProvider';
+import Script from 'next/script';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -43,7 +45,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={inter.variable}>
+      <head>
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-XJGRHQTJEF"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-XJGRHQTJEF');
+          `}
+        </Script>
+      </head>
       <body className={inter.className}>
+        <AnalyticsTracker />
         <ToasterProvider />
         {children}
       </body>

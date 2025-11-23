@@ -8,6 +8,7 @@ import {
   updateProduct,
   deleteProduct,
   publishProduct,
+  duplicateProduct,
   getFeaturedProducts,
   getBestSellers,
   importProducts
@@ -32,5 +33,6 @@ router.put('/:id', authMiddleware, updateProduct);
 router.patch('/:id', authMiddleware, updateProduct);
 router.delete('/:id', authMiddleware, deleteProduct);
 router.post('/:id/publish', authMiddleware, publishProduct);
+router.post('/:id/duplicate', authMiddleware, duplicateProduct);
 
 export default router;

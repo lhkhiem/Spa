@@ -5,6 +5,7 @@ import User from '../models/User';
 import { QueryTypes } from 'sequelize';
 import sequelize from '../config/database';
 import { emailService } from '../services/email';
+import { logActivity } from './activityLogController';
 import {
   getContactNotificationTemplate,
   getContactConfirmationTemplate,
@@ -289,6 +290,14 @@ export const updateContact = async (req: AuthRequest, res: Response) => {
 
     await message.save();
 
+    // Log activity
+    const contactName = `${message.first_name} ${message.last_name}`;
+    const action = reply_message ? 'reply' : 'update';
+    const description = reply_message 
+      ? `Replied to contact message from "${contactName}"` 
+      : `Updated contact message from "${contactName}"`;
+    await logActivity(req, action, 'contact', id, contactName, description);
+
     // Send reply email to customer (non-blocking)
     if (reply_message && emailService.isEnabled()) {
       try {
@@ -359,7 +368,11 @@ export const deleteContact = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Contact message not found' });
     }
 
+    const contactName = `${message.first_name} ${message.last_name}`;
     await message.destroy();
+
+    // Log activity
+    await logActivity(req, 'delete', 'contact', id, contactName, `Deleted contact message from "${contactName}"`);
 
     res.json({
       success: true,

@@ -8,6 +8,7 @@ import { QueryTypes } from 'sequelize';
 import * as XLSX from 'xlsx';
 import sequelize from '../config/database';
 import { generateSlug } from '../utils/slug';
+import { logActivity } from './activityLogController';
 
 // Get all products with filters and pagination
 export const getProducts = async (req: Request, res: Response) => {
@@ -328,6 +329,9 @@ export const createProduct = async (req: Request, res: Response) => {
       }
     }
 
+    // Log activity
+    await logActivity(req, 'create', 'product', id, name, `Created product "${name}"`);
+
     res.status(201).json(product);
   } catch (error: any) {
     console.error('[createProduct] Error:', error.message, error.stack);
@@ -539,7 +543,12 @@ export const updateProduct = async (req: Request, res: Response) => {
       }
     }
 
-    res.json(result[0][0]);
+    const updatedProduct = result[0][0];
+    
+    // Log activity
+    await logActivity(req, 'update', 'product', id, updatedProduct.name, `Updated product "${updatedProduct.name}"`);
+
+    res.json(updatedProduct);
   } catch (error: any) {
     console.error('[updateProduct] Error:', error.message, error.stack);
     res.status(500).json({ error: 'Failed to update product', message: error.message });
@@ -561,6 +570,16 @@ export const deleteProduct = async (req: Request, res: Response) => {
 
     if (!result[0] || result[0].length === 0) {
       return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const deletedProduct = result[0][0];
+    
+    // Log activity (don't fail if logging fails)
+    try {
+      await logActivity(req, 'delete', 'product', id, deletedProduct.name, `Deleted product "${deletedProduct.name}"`);
+    } catch (logError) {
+      console.error('Failed to log activity for product deletion:', logError);
+      // Continue anyway - product is already deleted
     }
 
     res.json({ message: 'Product deleted successfully' });
@@ -595,6 +614,249 @@ export const publishProduct = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Failed to publish product:', error);
     res.status(500).json({ error: 'Failed to publish product' });
+  }
+};
+
+// Duplicate product
+export const duplicateProduct = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Get original product with all related data
+    const productQuery = `
+      SELECT * FROM products WHERE id = :id
+    `;
+    const productResult: any = await sequelize.query(productQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+
+    if (productResult.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const originalProduct = productResult[0];
+
+    // Generate new name and slug
+    const baseName = originalProduct.name;
+    let newName = `${baseName} (Copy)`;
+    let baseSlug = generateSlug(baseName) || `product-${Date.now()}`;
+    let newSlug = `${baseSlug}-copy`;
+
+    // Ensure unique slug
+    let counter = 1;
+    while (true) {
+      const existing = await sequelize.query(
+        'SELECT id FROM products WHERE slug = :slug LIMIT 1',
+        { replacements: { slug: newSlug }, type: QueryTypes.SELECT }
+      );
+      if ((existing as any[]).length === 0) break;
+      newSlug = `${baseSlug}-copy-${counter++}`;
+      newName = `${baseName} (Copy ${counter > 1 ? counter : ''})`.trim();
+    }
+
+    // Generate new SKU (if original has SKU)
+    let newSku: string | null = null;
+    if (originalProduct.sku) {
+      const skuBase = originalProduct.sku;
+      let skuCounter = 1;
+      newSku = `${skuBase}-COPY`;
+      while (true) {
+        const existing = await sequelize.query(
+          'SELECT id FROM products WHERE sku = :sku LIMIT 1',
+          { replacements: { sku: newSku }, type: QueryTypes.SELECT }
+        );
+        if ((existing as any[]).length === 0) break;
+        newSku = `${skuBase}-COPY${skuCounter++}`;
+      }
+    }
+
+    // Create new product
+    const newId = uuidv4();
+    const insertQuery = `
+      INSERT INTO products (
+        id, name, slug, description, content, brand_id,
+        sku, price, compare_price, cost_price, stock, status,
+        is_featured, is_best_seller, thumbnail_id, seo
+      )
+      VALUES (
+        :id, :name, :slug, :description, :content, :brand_id,
+        :sku, :price, :compare_price, :cost_price, :stock, :status,
+        :is_featured, :is_best_seller, :thumbnail_id, :seo
+      )
+      RETURNING *
+    `;
+
+    const insertResult: any = await sequelize.query(insertQuery, {
+      replacements: {
+        id: newId,
+        name: newName,
+        slug: newSlug,
+        description: originalProduct.description,
+        content: originalProduct.content,
+        brand_id: originalProduct.brand_id,
+        sku: newSku,
+        price: originalProduct.price,
+        compare_price: originalProduct.compare_price,
+        cost_price: originalProduct.cost_price,
+        stock: originalProduct.stock || 0,
+        status: 'draft', // Always set to draft for copied products
+        is_featured: false, // Reset flags
+        is_best_seller: false,
+        thumbnail_id: originalProduct.thumbnail_id,
+        seo: originalProduct.seo
+      },
+      type: QueryTypes.INSERT
+    });
+
+    const newProduct = insertResult[0][0];
+
+    // Copy categories (n-n relationship)
+    const categoriesQuery = `
+      SELECT category_id FROM product_product_categories WHERE product_id = :id
+    `;
+    const categoriesResult: any = await sequelize.query(categoriesQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+
+    if (categoriesResult.length > 0) {
+      for (const cat of categoriesResult) {
+        await sequelize.query(
+          'INSERT INTO product_product_categories (product_id, category_id) VALUES (:product_id, :category_id) ON CONFLICT DO NOTHING',
+          {
+            replacements: {
+              product_id: newId,
+              category_id: cat.category_id
+            },
+            type: QueryTypes.INSERT
+          }
+        );
+      }
+    }
+
+    // Copy images
+    const imagesQuery = `
+      SELECT asset_id, sort_order FROM product_images WHERE product_id = :id ORDER BY sort_order ASC
+    `;
+    const imagesResult: any = await sequelize.query(imagesQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+
+    if (imagesResult.length > 0) {
+      for (let i = 0; i < imagesResult.length; i++) {
+        const img = imagesResult[i];
+        await sequelize.query(
+          'INSERT INTO product_images (id, product_id, asset_id, sort_order) VALUES (:img_id, :product_id, :asset_id, :sort_order)',
+          {
+            replacements: {
+              img_id: uuidv4(),
+              product_id: newId,
+              asset_id: img.asset_id,
+              sort_order: img.sort_order || i
+            },
+            type: QueryTypes.INSERT
+          }
+        );
+      }
+    }
+
+    // Copy attributes
+    const attributesQuery = `
+      SELECT name, value FROM product_attributes WHERE product_id = :id
+    `;
+    const attributesResult: any = await sequelize.query(attributesQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+
+    if (attributesResult.length > 0) {
+      for (const attr of attributesResult) {
+        await sequelize.query(
+          'INSERT INTO product_attributes (id, product_id, name, value) VALUES (:attr_id, :product_id, :name, :value)',
+          {
+            replacements: {
+              attr_id: uuidv4(),
+              product_id: newId,
+              name: attr.name,
+              value: attr.value
+            },
+            type: QueryTypes.INSERT
+          }
+        );
+      }
+    }
+
+    // Return the new product with related data (similar to getProductById)
+    const fullProductQuery = `
+      SELECT 
+        p.*,
+        c.name as category_name,
+        c.slug as category_slug,
+        b.name as brand_name,
+        b.slug as brand_slug,
+        a.url as thumbnail_url
+      FROM products p
+      LEFT JOIN product_categories c ON p.category_id = c.id
+      LEFT JOIN brands b ON p.brand_id = b.id
+      LEFT JOIN assets a ON p.thumbnail_id = a.id
+      WHERE p.id = :id
+    `;
+    const fullProductResult: any = await sequelize.query(fullProductQuery, {
+      replacements: { id: newId },
+      type: QueryTypes.SELECT
+    });
+
+    const fullProduct = fullProductResult[0];
+
+    // Log activity
+    await logActivity(req, 'duplicate', 'product', newId, newName, `Duplicated product from "${originalProduct.name}"`);
+
+    // Load categories
+    const newCategoriesQuery = `
+      SELECT c.id, c.name, c.slug
+      FROM product_categories c
+      JOIN product_product_categories ppc ON c.id = ppc.category_id
+      WHERE ppc.product_id = :id
+      ORDER BY c.name ASC
+    `;
+    const newCategoriesResult: any = await sequelize.query(newCategoriesQuery, {
+      replacements: { id: newId },
+      type: QueryTypes.SELECT
+    });
+    fullProduct.categories = newCategoriesResult;
+
+    // Load images
+    const newImagesQuery = `
+      SELECT pi.*, a.url, a.width, a.height, a.format
+      FROM product_images pi
+      JOIN assets a ON pi.asset_id = a.id
+      WHERE pi.product_id = :id
+      ORDER BY pi.sort_order ASC
+    `;
+    const newImagesResult: any = await sequelize.query(newImagesQuery, {
+      replacements: { id: newId },
+      type: QueryTypes.SELECT
+    });
+    fullProduct.images = newImagesResult;
+
+    // Load attributes
+    const newAttributesQuery = `
+      SELECT * FROM product_attributes
+      WHERE product_id = :id
+      ORDER BY name ASC
+    `;
+    const newAttributesResult: any = await sequelize.query(newAttributesQuery, {
+      replacements: { id: newId },
+      type: QueryTypes.SELECT
+    });
+    fullProduct.attributes = newAttributesResult;
+
+    res.status(201).json(fullProduct);
+  } catch (error: any) {
+    console.error('Failed to duplicate product:', error);
+    res.status(500).json({ error: 'Failed to duplicate product', message: error.message });
   }
 };
 

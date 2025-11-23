@@ -19,6 +19,7 @@ import { ProductOption } from './ProductOption';
 import Address from './Address';
 import ContactMessage from './ContactMessage';
 import ConsultationSubmission from './ConsultationSubmission';
+import AboutSection from './AboutSection';
 
 // Define all associations here
 // Define explicit through models (no timestamps) for many-to-many junctions
@@ -169,5 +170,6 @@ export {
   Address,
   ContactMessage,
   ConsultationSubmission,
+  AboutSection,
 };
 

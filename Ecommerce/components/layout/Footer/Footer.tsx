@@ -26,7 +26,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/rewards" className="hover:text-white">
+                <Link href="#" className="hover:text-white">
                   Chương Trình Thưởng
                 </Link>
               </li>
@@ -38,17 +38,17 @@ export default function Footer() {
             <h3 className="mb-4 text-lg font-semibold text-white">Tài Nguyên Kinh Doanh Spa</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/learning" className="hover:text-white">
+                <Link href="#" className="hover:text-white">
                   Học Tập
                 </Link>
               </li>
               <li>
-                <Link href="/spa-development" className="hover:text-white">
+                <Link href="#" className="hover:text-white">
                   Phát Triển Spa
                 </Link>
               </li>
               <li>
-                <Link href="/partnerships" className="hover:text-white">
+                <Link href="#" className="hover:text-white">
                   Đối Tác Trường Học
                 </Link>
               </li>
@@ -65,7 +65,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="hover:text-white">
+                <Link href="#" className="hover:text-white">
                   Tuyển Dụng
                 </Link>
               </li>
@@ -77,17 +77,17 @@ export default function Footer() {
             <h3 className="mb-4 text-lg font-semibold text-white">Mua Sắm & Ưu Đãi</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/catalogs" className="hover:text-white">
+                <Link href="/categories" className="hover:text-white">
                   Xem Catalog
                 </Link>
               </li>
               <li>
-                <Link href="/outlet" className="hover:text-white">
+                <Link href="#" className="hover:text-white">
                   Cửa Hàng Giảm Giá
                 </Link>
               </li>
               <li>
-                <Link href="/financing" className="hover:text-white">
+                <Link href="#" className="hover:text-white">
                   Tài Chính
                 </Link>
               </li>

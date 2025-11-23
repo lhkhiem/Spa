@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import sequelize from '../config/database';
+import { logActivity } from './activityLogController';
 
 const DEFAULTS: Record<string, any> = {
   general: {
@@ -81,6 +82,10 @@ export const putNamespace = async (req: AuthRequest, res: Response) => {
        ON CONFLICT (namespace) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
       { type: 'INSERT' as any, replacements: { ns: namespace, val: JSON.stringify(value) } }
     );
+    
+    // Log activity
+    await logActivity(req, 'update', 'settings', namespace, namespace, `Updated settings: ${namespace}`);
+    
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to save settings' });

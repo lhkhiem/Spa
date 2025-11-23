@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import bcrypt from 'bcryptjs';
 import User from '../models/User';
+import { logActivity } from './activityLogController';
 
 // List users (basic fields only)
 export const listUsers = async (req: AuthRequest, res: Response) => {
@@ -56,6 +57,9 @@ export const createUser = async (req: AuthRequest, res: Response) => {
 
     const password_hash = await bcrypt.hash(password, 10);
     const user = await User.create({ email, name, password_hash, role: newRole, status: 'active' });
+
+    // Log activity
+    await logActivity(req, 'create', 'user', user.id, name, `Created user "${name}" (${email})`);
 
     res.status(201).json({
       id: user.id,
@@ -122,6 +126,11 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
 
     await user.save();
 
+    // Log activity
+    const userName = user.name;
+    const userEmail = user.email;
+    await logActivity(req, 'update', 'user', id, userName, `Updated user "${userName}" (${userEmail})`);
+
     res.json({
       id: user.id,
       email: user.email,
@@ -159,7 +168,13 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
 
+    const userName = user.name;
+    const userEmail = user.email;
+    
     await user.destroy();
+
+    // Log activity
+    await logActivity(req, 'delete', 'user', id, userName, `Deleted user "${userName}" (${userEmail})`);
 
     res.json({ success: true });
   } catch (err) {

@@ -9,6 +9,7 @@ export interface TinyMCEEditorProps {
   value?: string;
   onChange?: (data: string) => void;
   placeholder?: string;
+  id?: string;
 }
 
 const TINYMCE_API_KEY = process.env.NEXT_PUBLIC_TINYMCE_API_KEY?.trim();
@@ -29,8 +30,6 @@ const WORD_LIKE_PLUGINS = [
   'codesample',
   'directionality',
   'emoticons',
-  'fontfamily',
-  'fontsize',
   'fullscreen',
   'help',
   'image',
@@ -42,33 +41,34 @@ const WORD_LIKE_PLUGINS = [
   'nonbreaking',
   'pagebreak',
   'preview',
-  'print',
   'quickbars',
   'save',
   'searchreplace',
   'table',
-  'template',
-  'textpattern',
   'visualblocks',
   'visualchars',
   'wordcount',
 ];
 
 const WORD_LIKE_TOOLBAR = [
-  'undo redo | save print preview fullscreen | code | visualblocks',
-  'styleselect formatselect fontselect fontsizeselect | bold italic underline strikethrough | superscript subscript | forecolor backcolor | removeformat',
+  'undo redo | save preview fullscreen | code | visualblocks',
+  'blocks formatselect | bold italic underline strikethrough | forecolor backcolor | superscript subscript  | removeformat',
   'alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist',
   'link image media customMediaLibrary | table tabledelete | blockquote | hr pagebreak insertdatetime',
-  'charmap emoticons | searchreplace | ltr rtl | template',
+  'charmap emoticons | searchreplace | ltr rtl',
 ].join('\n');
 
 export default function TinyMCEEditor({
   value = '',
   onChange,
   placeholder = 'Start writing your post content here...',
+  id,
 }: TinyMCEEditorProps) {
   const editorRef = useRef<TinyMCEInstance | null>(null);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const editorIdRef = useRef(id || `tinymce-editor-${Math.random().toString(36).substring(2, 9)}`);
+  const editorId = editorIdRef.current;
 
   const handleEditorChange = useCallback(
     (next: string) => {
@@ -90,31 +90,103 @@ export default function TinyMCEEditor({
   );
 
   useEffect(() => {
+    // Delay initialization slightly to avoid conflicts with multiple editors
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100);
+    
     return () => {
-      editorRef.current = null;
+      clearTimeout(timer);
+      if (editorRef.current) {
+        editorRef.current.remove();
+        editorRef.current = null;
+      }
     };
   }, []);
 
+  if (!isReady) {
+    return (
+      <div className="w-full min-h-[300px] rounded-lg border border-input bg-background p-4 flex items-center justify-center text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          Loading editor...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
+      <div 
+        id={editorId} 
+        style={{ 
+          width: '100%', 
+          minWidth: 0,
+          overflow: 'visible',
+          position: 'relative'
+        }} 
+      />
+      <style jsx global>{`
+        #${editorId} .tox-tinymce {
+          width: 100% !important;
+          min-width: 0 !important;
+          overflow: visible !important;
+        }
+        #${editorId} .tox-editor-header {
+          width: 100% !important;
+          min-width: 0 !important;
+          overflow-x: auto !important;
+          overflow-y: visible !important;
+        }
+        #${editorId} .tox-toolbar {
+          width: 100% !important;
+          min-width: 0 !important;
+          flex-wrap: wrap !important;
+        }
+      `}</style>
       <Editor
+        id={editorId}
+        key={editorId}
         apiKey={TINYMCE_API_KEY || undefined}
         tinymceScriptSrc={TINYMCE_SCRIPT_SRC}
         onInit={(_, editor) => {
           editorRef.current = editor;
+          console.log(`[TinyMCE] Editor initialized: ${editorId}`, editor);
+          // Force toolbar to render and fix width
+          setTimeout(() => {
+            if (editor && editor.ui) {
+              const container = document.getElementById(editorId);
+              if (container) {
+                const editorElement = container.querySelector('.tox-tinymce') as HTMLElement;
+                if (editorElement) {
+                  editorElement.style.width = '100%';
+                  editorElement.style.minWidth = '0';
+                  editorElement.style.overflow = 'visible';
+                }
+                const toolbar = container.querySelector('.tox-toolbar') as HTMLElement;
+                if (toolbar) {
+                  toolbar.style.width = '100%';
+                  toolbar.style.minWidth = '0';
+                  toolbar.style.flexWrap = 'wrap';
+                }
+              }
+            }
+          }, 300);
         }}
         value={value}
         onEditorChange={handleEditorChange}
         init={{
+          selector: `#${editorId}`,
+          target: document.getElementById(editorId) || undefined,
           placeholder,
           height: 600,
           license_key: 'gpl',
           menubar: WORD_LIKE_MENUBAR,
           toolbar: WORD_LIKE_TOOLBAR,
           plugins: WORD_LIKE_PLUGINS,
-          toolbar_mode: 'sliding',
-          toolbar_sticky: true,
-          toolbar_sticky_offset: 64,
+          toolbar_mode: 'wrap',
+          toolbar_sticky: false,
+          toolbar_sticky_offset: 0,
           autosave_interval: '30s',
           autosave_restore_when_empty: true,
           autosave_ask_before_unload: true,
@@ -173,36 +245,22 @@ export default function TinyMCEEditor({
             }
           `,
           font_family_formats:
-            'Inter=Inter,sans-serif;Arial=arial,helvetica,sans-serif;Georgia=georgia,palatino;Times New Roman=times new roman,times;Courier New=courier new,courier;Roboto=Roboto,sans-serif;Lora=Lora,serif',
-          font_size_formats: '12px 14px 16px 18px 20px 24px 30px 36px 48px',
+            'Inter=Inter,sans-serif;Arial=arial,helvetica,sans-serif;Georgia=georgia,palatino;Times New Roman=times new roman,times;Courier New=courier new,courier;Roboto=Roboto,sans-serif;Lora=Lora,serif;Open Sans=Open Sans,sans-serif;Montserrat=Montserrat,sans-serif',
+          font_size_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 24pt 28pt 32pt 36pt 48pt',
           line_height_formats: '1 1.2 1.4 1.5 1.7 2',
+          block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6; Preformatted=pre',
           image_advtab: true,
           image_caption: true,
           image_title: true,
           convert_urls: false,
-          quickbars_insert_toolbar: 'quickimage quicktable customMediaLibrary',
-          quickbars_selection_toolbar:
-            'bold italic underline | forecolor backcolor | link blockquote quicklink',
+          quickbars_insert_toolbar: false,
+          quickbars_selection_toolbar: false,
           save_enablewhendirty: true,
           save_onsavecallback: () => {
             if (editorRef.current) {
               onChange?.(editorRef.current.getContent());
             }
           },
-          templates: [
-            {
-              title: 'Hero with image',
-              description: 'Headline, paragraph and image hero section',
-              content:
-                '<section class="hero"><h2>Hero title</h2><p>Describe the highlight of your article.</p><figure class="image"><img src="" alt=""></figure></section>',
-            },
-            {
-              title: 'Two column text',
-              description: 'Split content into two balanced columns',
-              content:
-                '<div class="columns" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;"><div><h3>Left column</h3><p>Start writing...</p></div><div><h3>Right column</h3><p>Continue writing...</p></div></div>',
-            },
-          ],
           setup: (editor) => {
             editor.ui.registry.addButton('customMediaLibrary', {
               icon: 'gallery',

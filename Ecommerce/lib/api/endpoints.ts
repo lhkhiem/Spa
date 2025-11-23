@@ -87,4 +87,15 @@ export const API_ENDPOINTS = {
     DETAIL: (slug: string) => `/public/posts/${slug}`,
     RELATED: (postId: string) => `/public/posts/${postId}/related`,
   },
+
+  // About Sections
+  ABOUT: {
+    SECTIONS: '/about-sections',
+    SECTION_BY_KEY: (key: string) => `/about-sections/key/${key}`,
+  },
+
+  // Tracking Scripts
+  TRACKING: {
+    ACTIVE_SCRIPTS: '/tracking-scripts/active',
+  },
 } as const;

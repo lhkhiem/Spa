@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import sequelize from '../config/database';
 import { QueryTypes } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
+import { logActivity } from './activityLogController';
 
 export const getAllSliders = async (req: Request, res: Response) => {
   try {
@@ -163,6 +164,10 @@ export const createSlider = async (req: Request, res: Response) => {
     });
     
     console.log('[createSlider] Slider created successfully:', id);
+    
+    // Log activity
+    await logActivity(req, 'create', 'slider', id, title, `Created slider "${title}"`);
+    
     res.status(201).json({ id, message: 'Slider created successfully' });
   } catch (error: any) {
     console.error('[createSlider] Error:', error.message, error.stack);
@@ -242,6 +247,17 @@ export const updateSlider = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Slider not found' });
     }
     
+    // Get slider title for logging
+    const getSliderQuery = 'SELECT title FROM sliders WHERE id = $1';
+    const sliderResult: any = await sequelize.query(getSliderQuery, {
+      type: QueryTypes.SELECT,
+      bind: [id],
+    });
+    const sliderTitle = sliderResult[0]?.title || title || 'Unknown';
+    
+    // Log activity
+    await logActivity(req, 'update', 'slider', id, sliderTitle, `Updated slider "${sliderTitle}"`);
+    
     res.json({ message: 'Slider updated successfully' });
   } catch (error: any) {
     console.error('[updateSlider] Error:', error.message, error.stack);
@@ -256,12 +272,23 @@ export const deleteSlider = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
+    // Get slider title before deleting
+    const getSliderQuery = 'SELECT title FROM sliders WHERE id = $1';
+    const sliderResult: any = await sequelize.query(getSliderQuery, {
+      type: QueryTypes.SELECT,
+      bind: [id],
+    });
+    const sliderTitle = sliderResult[0]?.title || 'Unknown';
+    
     const query = 'DELETE FROM sliders WHERE id = $1';
     
     const result: any = await sequelize.query(query, {
       type: QueryTypes.DELETE,
       bind: [id],
     });
+    
+    // Log activity
+    await logActivity(req, 'delete', 'slider', id, sliderTitle, `Deleted slider "${sliderTitle}"`);
     
     res.json({ message: 'Slider deleted successfully' });
   } catch (error: any) {

@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import sequelize from '../config/database';
 import { QueryTypes } from 'sequelize';
+import { logActivity } from './activityLogController';
 
 const numericOrderFields = [
   'subtotal',
@@ -844,6 +845,14 @@ export const updateOrder = async (req: Request, res: Response) => {
 
     const normalized = Array.isArray(updated) ? updated[0] : updated;
     normalizeOrderRow(normalized);
+    
+    // Log activity
+    const orderNumber = normalized.order_number || id;
+    const statusChange = status ? `Status changed to "${status}"` : '';
+    const paymentChange = payment_status ? `Payment status changed to "${payment_status}"` : '';
+    const changes = [statusChange, paymentChange].filter(Boolean).join(', ') || 'Updated order';
+    await logActivity(req, 'update', 'order', id, orderNumber, `${changes} - Order #${orderNumber}`);
+    
     res.json(normalized);
   } catch (error) {
     console.error('Failed to update order:', error);
@@ -856,6 +865,15 @@ export const deleteOrder = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
+    // Get order number before deleting
+    const getOrderQuery = 'SELECT order_number FROM orders WHERE id = :id';
+    const orderResult: any = await sequelize.query(getOrderQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+    
+    const orderNumber = orderResult[0]?.order_number || id;
+    
     const query = `
       DELETE FROM orders WHERE id = :id RETURNING id
     `;
@@ -867,6 +885,9 @@ export const deleteOrder = async (req: Request, res: Response) => {
     if (!deleted || deleted.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
+
+    // Log activity
+    await logActivity(req, 'delete', 'order', id, orderNumber, `Deleted order #${orderNumber}`);
 
     res.json({ success: true, message: 'Order deleted' });
   } catch (error) {

@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import sequelize from '../config/database';
 import { QueryTypes } from 'sequelize';
+import { logActivity } from './activityLogController';
 
 export const getCategories = async (req: Request, res: Response) => {
   try {
@@ -174,7 +175,12 @@ export const createCategory = async (req: Request, res: Response) => {
       type: QueryTypes.INSERT
     });
 
-    res.status(201).json(result[0][0]);
+    const category = result[0][0];
+    
+    // Log activity
+    await logActivity(req, 'create', 'category', id, name, `Created category "${name}"`);
+
+    res.status(201).json(category);
   } catch (error) {
     console.error('Failed to create category:', error);
     res.status(500).json({ error: 'Failed to create category' });
@@ -234,7 +240,12 @@ export const updateCategory = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    res.json(result[0][0]);
+    const updatedCategory = result[0][0];
+    
+    // Log activity
+    await logActivity(req, 'update', 'category', id, updatedCategory.name, `Updated category "${updatedCategory.name}"`);
+
+    res.json(updatedCategory);
   } catch (error) {
     console.error('Failed to update category:', error);
     res.status(500).json({ error: 'Failed to update category' });
@@ -327,6 +338,15 @@ export const deleteCategory = async (req: Request, res: Response) => {
       });
     }
 
+    // Get category name before deleting
+    const getCategoryQuery = 'SELECT name FROM product_categories WHERE id = :id';
+    const categoryResult: any = await sequelize.query(getCategoryQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+    
+    const categoryName = categoryResult[0]?.name || 'Unknown';
+    
     const result: any = await sequelize.query(
       'DELETE FROM product_categories WHERE id = :id RETURNING *',
       {
@@ -338,6 +358,9 @@ export const deleteCategory = async (req: Request, res: Response) => {
     if (!result[0] || result[0].length === 0) {
       return res.status(404).json({ error: 'Category not found' });
     }
+
+    // Log activity
+    await logActivity(req, 'delete', 'category', id, categoryName, `Deleted category "${categoryName}"`);
 
     res.json({ message: 'Category deleted successfully' });
   } catch (error) {

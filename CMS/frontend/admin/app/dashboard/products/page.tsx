@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Download, Upload, Edit, Trash2, Package } from 'lucide-react';
+import { Plus, Search, Download, Upload, Edit, Trash2, Package, Copy } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
@@ -180,6 +180,23 @@ export default function ProductsPage() {
     } catch (error) {
       console.error('Failed to delete product:', error);
       alert('Failed to delete product');
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    try {
+      const response = await axios.post(buildApiUrl(`/api/products/${id}/duplicate`), {}, {
+        withCredentials: true,
+      });
+      await fetchProducts();
+      // Redirect to edit page of the new product
+      if (response.data?.id) {
+        window.location.href = `/dashboard/products/${response.data.id}`;
+      }
+    } catch (error: any) {
+      console.error('Failed to duplicate product:', error);
+      const message = error.response?.data?.error || error.response?.data?.message || 'Failed to duplicate product';
+      alert(message);
     }
   };
 
@@ -524,12 +541,21 @@ export default function ProductsPage() {
                       <Link
                         href={`/dashboard/products/${product.id}`}
                         className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                        title="Edit"
                       >
                         <Edit className="h-4 w-4" />
                       </Link>
                       <button
+                        onClick={() => handleDuplicate(product.id)}
+                        className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-blue-500/10 text-blue-600 hover:bg-blue-500 hover:text-white transition-colors dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white"
+                        title="Duplicate"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => handleDelete(product.id)}
                         className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        title="Delete"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

@@ -27,8 +27,10 @@ import paymentRoutes from './routes/payments'; // Payment gateway (ZaloPay)
 // import wishlistRoutes from './routes/wishlist'; // Disabled: Customer wishlist management not needed
 // import reviewRoutes from './routes/reviews'; // Disabled: Customer review management not needed
 import trackingScriptRoutes from './routes/trackingScripts';
+import analyticsRoutes from './routes/analytics';
 import homepageRoutes from './routes/homepage';
 import sliderRoutes from './routes/sliders';
+import aboutSectionRoutes from './routes/aboutSections';
 import publicPostsRoutes from './routes/publicPosts';
 import publicHomepageRoutes from './routes/publicHomepage';
 import publicProductsRoutes from './routes/publicProducts';
@@ -37,6 +39,7 @@ import consultationRoutes from './routes/consultations';
 import emailRoutes from './routes/email';
 import publicAuthRoutes from './routes/publicAuth'; // Customer authentication
 import inventoryRoutes from './routes/inventory'; // Inventory management
+import activityLogRoutes from './routes/activityLogs'; // Activity tracking
 // import publicUserRoutes from './routes/publicUser'; // Disabled: Customer user management not needed
 // import publicOrdersRoutes from './routes/publicOrders'; // Disabled: Customer orders not needed
 // import publicCartRoutes from './routes/publicCart'; // Disabled: Customer cart not needed
@@ -65,6 +68,8 @@ const allowedOrigins = [
   // Production domains
   'http://banyco-demo.pressup.vn', // Production website
   'https://banyco-demo.pressup.vn', // Production website (HTTPS)
+  'http://admin.banyco-demo.pressup.vn', // CMS Admin
+  'https://admin.banyco-demo.pressup.vn', // CMS Admin (HTTPS)
   'http://admin.banyco-demo.pressup.vn', // CMS Admin subdomain
   'https://admin.banyco-demo.pressup.vn', // CMS Admin subdomain (HTTPS)
   'http://api.banyco-demo.pressup.vn', // API subdomain
@@ -124,8 +129,11 @@ app.use('/api/payments', paymentRoutes); // Payment gateway (ZaloPay)
 // app.use('/api/wishlist', wishlistRoutes); // Disabled: Customer wishlist management not needed
 // app.use('/api/reviews', reviewRoutes); // Disabled: Customer review management not needed
 app.use('/api/tracking-scripts', trackingScriptRoutes);
+app.use('/api/analytics', analyticsRoutes);
 app.use('/api/homepage', homepageRoutes);
 app.use('/api/sliders', sliderRoutes);
+app.use('/api/about-sections', aboutSectionRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
 
 // Ensure upload and temp dirs on boot and serve uploads
 (async () => {

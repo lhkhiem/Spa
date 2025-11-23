@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 import RichTextEditor from '@/components/RichTextEditor';
 import MediaPicker from '@/components/MediaPicker';
 import { generateSlug } from '@/lib/slug';
-import { Image as ImageIcon, X } from 'lucide-react';
+import { Image as ImageIcon, X, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { buildApiUrl, getAssetUrl } from '@/lib/api';
 
 interface User {
@@ -193,8 +194,17 @@ export default function NewPostPage(){
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Create Post</h1>
-        <div className="text-sm text-muted-foreground">{saving? 'Saving...' : 'Saved ✓'}</div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Create Post</h1>
+          <p className="text-sm text-muted-foreground">Add a new post to your blog</p>
+        </div>
+        <Link
+          href="/dashboard/posts"
+          className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Link>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">

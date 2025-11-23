@@ -13,6 +13,7 @@ import Tag from '../models/Tag';
 import Asset from '../models/Asset';
 import sequelize from '../config/database';
 import { generateSlug, generateUniqueSlug } from '../utils/slug';
+import { logActivity } from './activityLogController';
 
 // Lấy danh sách bài viết có phân trang
 // Query params:
@@ -278,6 +279,10 @@ export const createPost = async (req: Request, res: Response) => {
     }
 
     console.log('[createPost] Post created successfully:', post.id);
+    
+    // Log activity
+    await logActivity(req, 'create', 'post', (post as any).id, title, `Created post "${title}"`);
+    
     res.status(201).json(post);
   } catch (error: any) {
     console.error('[createPost] Error:', error.message, error.stack);
@@ -389,6 +394,11 @@ export const updatePost = async (req: Request, res: Response) => {
     }
 
     console.log('[updatePost] Post updated successfully');
+    
+    // Log activity
+    const postTitle = title || (post as any).title;
+    await logActivity(req, 'update', 'post', id, postTitle, `Updated post "${postTitle}"`);
+    
     res.json(post);
   } catch (error: any) {
     console.error('[updatePost] Error:', error.message);
@@ -408,7 +418,12 @@ export const deletePost = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
+    const postTitle = (post as any).title;
     await post.destroy();
+    
+    // Log activity
+    await logActivity(req, 'delete', 'post', id, postTitle, `Deleted post "${postTitle}"`);
+    
     res.json({ message: 'Post deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete post' });
@@ -429,6 +444,10 @@ export const publishPost = async (req: Request, res: Response) => {
       published_at: new Date(),
       updated_at: new Date(),
     });
+
+    // Log activity
+    const postTitle = (post as any).title;
+    await logActivity(req, 'publish', 'post', id, postTitle, `Published post "${postTitle}"`);
 
     res.json(post);
   } catch (error) {

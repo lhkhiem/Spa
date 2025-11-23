@@ -3,13 +3,55 @@ import Link from 'next/link';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
 import Button from '@/components/ui/Button/Button';
 import ParallaxSection from '@/components/ui/ParallaxSection/ParallaxSection';
+import { getApiUrl } from '@/config/site';
+import { API_ENDPOINTS } from '@/lib/api/endpoints';
 
 export const metadata = {
   title: 'Về Chúng Tôi - Banyco Spa Solutions',
   description: 'Giới thiệu Banyco – đối tác cung cấp giải pháp & thiết bị spa chuyên nghiệp, đồng hành phát triển vận hành và tối ưu hoá lợi nhuận.',
 };
 
-export default function AboutPage() {
+// Use short revalidation for faster updates
+export const revalidate = 10; // Revalidate every 10 seconds
+
+interface AboutSection {
+  id: string;
+  section_key: string;
+  title?: string | null;
+  content?: string | null;
+  image_url?: string | null;
+  button_text?: string | null;
+  button_link?: string | null;
+  list_items?: Array<{ title: string; description: string }> | null;
+  is_active: boolean;
+}
+
+async function getAboutSections(): Promise<{ welcome: AboutSection | null; givingBack: AboutSection | null }> {
+  try {
+    const apiUrl = getApiUrl(); // getApiUrl() already includes '/api'
+    const response = await fetch(`${apiUrl}/about-sections?active_only=true`, {
+      next: { revalidate: 10 }, // Revalidate every 10 seconds
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch about sections');
+    }
+    
+    const data = await response.json();
+    const sections = data.data || [];
+    
+    return {
+      welcome: sections.find((s: AboutSection) => s.section_key === 'welcome') || null,
+      givingBack: sections.find((s: AboutSection) => s.section_key === 'giving_back') || null,
+    };
+  } catch (error) {
+    console.error('Error fetching about sections:', error);
+    return { welcome: null, givingBack: null };
+  }
+}
+
+export default async function AboutPage() {
+  const { welcome, givingBack } = await getAboutSections();
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section with TRUE Parallax Effect */}
@@ -29,54 +71,46 @@ export default function AboutPage() {
       </ParallaxSection>
 
       {/* Welcome Section */}
-      <FadeInSection delay={200}>
-        <section className="bg-gradient-to-br from-gray-50 to-purple-50 py-16">
-          <div className="container-custom">
-            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-              <div>
-                <h2 className="mb-6 text-3xl font-bold text-gray-900">Chào mừng các chuyên gia Spa!</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>
-                    Bạn đang tìm hướng đi mới để nâng cấp dịch vụ hoặc mở rộng mô hình? Chúng tôi ở đây để đồng hành. Nếu bạn đã là khách hàng, mục tiêu của chúng tôi là giúp vận hành của bạn mượt mà hơn, chi phí tối ưu hơn và biên lợi nhuận mỗi liệu trình rõ ràng hơn – tất cả tập trung tại một nền tảng duy nhất.
-                  </p>
-                  <p>
-                    Website Banyco được thiết kế như một “bảng điều khiển” dành cho chủ spa: mua sắm thiết bị nhanh gọn, truy cập tài nguyên marketing – vận hành, cập nhật tiêu chuẩn an toàn vệ sinh, và tham gia khoá học thực hành. Mỗi chuyên mục đều được biên tập từ kinh nghiệm triển khai thực tế tại các spa quy mô khác nhau.
-                  </p>
-                  <p>
-                    Đừng quên lưu lại{' '}
-                    <Link href="/" className="text-brand-purple-600 hover:underline">
-                      Banyco.vn
-                    </Link>{' '}và ghé thăm thường xuyên. Để nắm bắt xu hướng liệu trình mới, công nghệ điều trị và chiến lược gia tăng doanh thu, hãy{' '}
-                    <Link href="/learning" className="text-brand-purple-600 hover:underline">
-                      đăng ký nhận bản tin chuyên ngành
-                    </Link>{' '}– chúng tôi chỉ gửi nội dung có chiều sâu, không spam.
-                  </p>
-                  <p>
-                    Mục tiêu dài hạn: trở thành trung tâm tri thức & chuỗi cung ứng đáng tin cậy cho hệ sinh thái spa chuyên nghiệp tại Việt Nam và khu vực. Bạn vận hành tốt – chúng tôi thành công.
-                  </p>
+      {welcome && (
+        <FadeInSection delay={200}>
+          <section className="bg-gradient-to-br from-gray-50 to-purple-50 py-16">
+            <div className="container-custom">
+              <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+                <div>
+                  {welcome.title && (
+                    <h2 className="mb-6 text-3xl font-bold text-gray-900">{welcome.title}</h2>
+                  )}
+                  {welcome.content && (
+                    <div 
+                      className="space-y-4 text-gray-700 prose prose-lg max-w-none"
+                      dangerouslySetInnerHTML={{ __html: welcome.content }}
+                    />
+                  )}
+                  {welcome.button_text && (
+                    <div className="mt-8">
+                      <Button size="lg" href={welcome.button_link || '#'}>
+                        {welcome.button_text}
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                <div className="mt-8">
-                  <Button size="lg">Tìm hiểu thêm</Button>
-                </div>
-              </div>
 
-              <div className="relative rounded-lg bg-white p-8 shadow-xl">
-                <Image
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=400"
-                  alt="Marti Harrington, President & Chairman"
-                  width={600}
-                  height={400}
-                  className="mb-4 rounded-lg"
-                />
-                <div className="text-center">
-                  <h3 className="mb-1 text-xl font-semibold text-gray-900">Marti Harrington</h3>
-                  <p className="text-gray-600">Chủ tịch & Đồng sáng lập (Cố vấn quốc tế)</p>
-                </div>
+                {welcome.image_url && (
+                  <div className="relative rounded-lg bg-white p-8 shadow-xl">
+                    <Image
+                      src={welcome.image_url}
+                      alt={welcome.title || 'Welcome'}
+                      width={600}
+                      height={400}
+                      className="mb-4 rounded-lg"
+                    />
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        </section>
-      </FadeInSection>
+          </section>
+        </FadeInSection>
+      )}
 
       {/* The UCo Difference */}
       <FadeInSection delay={300}>
@@ -159,46 +193,50 @@ export default function AboutPage() {
       </FadeInSection>
 
       {/* Giving Back */}
-      <FadeInSection delay={100}>
-        <section className="bg-gradient-to-br from-purple-50 to-pink-50 py-16">
-          <div className="container-custom">
-            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-              <div>
-                <Image
-                  src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400"
-                  alt="Giving Back"
-                  width={600}
-                  height={400}
-                  className="rounded-lg shadow-xl"
-                />
-              </div>
-              <div>
-                <h2 className="mb-6 text-3xl font-bold text-gray-900">Giá trị cộng đồng</h2>
-                <p className="mb-4 text-gray-700">
-                  Thành công không chỉ là doanh thu – mà còn là tác động tích cực. Chúng tôi dành một phần nguồn lực hỗ trợ dự án chăm sóc sức khoẻ cộng đồng, đào tạo nghề cho lao động trẻ muốn bước vào ngành spa, và nâng cao tiêu chuẩn an toàn – vệ sinh tại các cơ sở nhỏ.
-                </p>
-                <p className="mb-4 text-gray-700">
-                  Mỗi năm đội ngũ chuyên viên tổ chức chuyến đi thực địa hỗ trợ tư vấn bố trí, bảo trì thiết bị tại các khu vực thiếu điều kiện. Chúng tôi cam kết tiếp tục mở rộng các chương trình chia sẻ kiến thức miễn phí – giúp ngành phát triển bền vững hơn.
-                </p>
-                <ul className="space-y-2 text-gray-700">
-                  <li className="flex items-start">
-                    <span className="mr-2 text-brand-purple-600">•</span>
-                    <span>
-                      <strong>Chăm sóc cộng đồng:</strong> Quyên góp vật tư vệ sinh – chăm sóc cơ bản cho các trung tâm hỗ trợ phụ nữ và dự án chăm lo người vô gia cư địa phương.
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2 text-brand-purple-600">•</span>
-                    <span>
-                      <strong>Giáo dục & Đào tạo:</strong> Phối hợp trường nghề và tổ chức phi lợi nhuận để cấp học bổng kỹ năng vận hành thiết bị spa, hỗ trợ khởi nghiệp mô hình nhỏ.
-                    </span>
-                  </li>
-                </ul>
+      {givingBack && (
+        <FadeInSection delay={100}>
+          <section className="bg-gradient-to-br from-purple-50 to-pink-50 py-16">
+            <div className="container-custom">
+              <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+                {givingBack.image_url && (
+                  <div>
+                    <Image
+                      src={givingBack.image_url}
+                      alt={givingBack.title || 'Giving Back'}
+                      width={600}
+                      height={400}
+                      className="rounded-lg shadow-xl"
+                    />
+                  </div>
+                )}
+                <div>
+                  {givingBack.title && (
+                    <h2 className="mb-6 text-3xl font-bold text-gray-900">{givingBack.title}</h2>
+                  )}
+                  {givingBack.content && (
+                    <div 
+                      className="mb-4 text-gray-700 prose prose-lg max-w-none"
+                      dangerouslySetInnerHTML={{ __html: givingBack.content }}
+                    />
+                  )}
+                  {givingBack.list_items && givingBack.list_items.length > 0 && (
+                    <ul className="space-y-2 text-gray-700">
+                      {givingBack.list_items.map((item, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="mr-2 text-brand-purple-600">•</span>
+                          <span>
+                            {item.title && <strong>{item.title}:</strong>} {item.description}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      </FadeInSection>
+          </section>
+        </FadeInSection>
+      )}
 
       {/* Timeline */}
       <FadeInSection delay={200}>

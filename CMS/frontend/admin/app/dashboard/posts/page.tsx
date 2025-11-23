@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, ArrowLeft, Search, ArrowUpDown, ArrowUp, ArrowDown, Pencil, Trash2, Grid, List, Eye, Calendar } from 'lucide-react';
+import { Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, Pencil, Trash2, Grid, List, Eye, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { buildApiUrl, buildBackendUrl } from '@/lib/api';
 
@@ -203,10 +203,6 @@ export default function PostsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/dashboard" className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Link>
             <Link href="/dashboard/posts/new" className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
               <Plus className="h-4 w-4" />
               New Post

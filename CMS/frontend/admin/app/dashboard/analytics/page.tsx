@@ -1,84 +1,428 @@
 'use client';
 
-import { ArrowLeft, BarChart3, TrendingUp, Users, Eye, MousePointer } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { 
+  ArrowLeft, 
+  BarChart3, 
+  TrendingUp, 
+  TrendingDown,
+  Users, 
+  Eye, 
+  MousePointer,
+  Clock,
+  Globe,
+  Monitor,
+  Smartphone,
+  Activity
+} from 'lucide-react';
 import Link from 'next/link';
-import { EmptyState } from '@/components/empty-state';
+import axios from 'axios';
+import { useAuthStore } from '@/store/authStore';
+import { toast } from 'sonner';
+import { buildApiUrl } from '@/lib/api';
+
+interface AnalyticsStats {
+  overview: {
+    total_pageviews: number;
+    unique_visitors: number;
+    total_sessions: number;
+    avg_session_duration: number;
+    avg_pages_per_session: number;
+    bounce_rate: number;
+    active_users: number;
+  };
+  trend: {
+    pageviews_change: number;
+    visitors_change: number;
+    sessions_change: number;
+  };
+  top_pages: Array<{
+    page_path: string;
+    page_title: string;
+    pageviews: number;
+    unique_visitors: number;
+  }>;
+  traffic_sources: Array<{
+    source: string;
+    visitors: number;
+    percentage: number;
+  }>;
+  devices: Array<{
+    device_type: string;
+    count: number;
+    percentage: number;
+  }>;
+  browsers: Array<{
+    browser: string;
+    count: number;
+  }>;
+  realtime: {
+    active_users: number;
+    active_pages: Array<{
+      page_path: string;
+      users: number;
+    }>;
+  };
+}
 
 export default function AnalyticsPage() {
+  const { user, hydrate } = useAuthStore();
+  const [stats, setStats] = useState<AnalyticsStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState('7d');
+  const [autoRefresh, setAutoRefresh] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      hydrate().then(() => {
+        if (!useAuthStore.getState().user) return (window.location.href = '/login');
+        fetchStats();
+      });
+    } else {
+      fetchStats();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period]);
+
+  // Auto-refresh realtime stats every 30 seconds
+  useEffect(() => {
+    if (!autoRefresh) return;
+    
+    const interval = setInterval(() => {
+      fetchStats();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh, period]);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get<{ success: boolean; data: AnalyticsStats }>(
+        buildApiUrl(`/api/analytics/stats?period=${period}`),
+        { withCredentials: true }
+      );
+      
+      if (response.data?.success && response.data.data) {
+        setStats(response.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error);
+      toast.error('Failed to load analytics data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDuration = (seconds: number): string => {
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}m ${secs}s`;
+  };
+
+  const getTrendIcon = (change: number) => {
+    if (change > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
+    if (change < 0) return <TrendingDown className="h-4 w-4 text-red-600" />;
+    return null;
+  };
+
+  const getTrendColor = (change: number) => {
+    if (change > 0) return 'text-green-600';
+    if (change < 0) return 'text-red-600';
+    return 'text-muted-foreground';
+  };
+
+  if (loading && !stats) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="mt-4 text-muted-foreground">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
-          <p className="text-sm text-muted-foreground">Track your content performance and insights</p>
+          <h1 className="text-2xl font-bold text-foreground">Analytics Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Real-time website traffic and visitor insights
+          </p>
         </div>
-        <Link href="/dashboard" className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors">
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Link>
+        <div className="flex items-center gap-2">
+          {/* Period Selector */}
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="px-3 py-2 border border-border rounded-lg bg-background text-sm"
+          >
+            <option value="1d">Today</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="90d">Last 90 Days</option>
+          </select>
+          
+          {/* Auto-refresh Toggle */}
+          <button
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={`px-3 py-2 border rounded-lg text-sm transition-colors ${
+              autoRefresh 
+                ? 'bg-primary text-primary-foreground border-primary' 
+                : 'bg-background border-border hover:bg-accent'
+            }`}
+          >
+            <Activity className="h-4 w-4 inline mr-1" />
+            {autoRefresh ? 'Auto-refresh ON' : 'Auto-refresh OFF'}
+          </button>
+        </div>
       </div>
 
-      {/* Stats Preview */}
+      {/* Overview Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Pageviews */}
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Page Views</p>
-              <p className="text-2xl font-bold text-card-foreground">12,543</p>
+              <p className="text-2xl font-bold text-card-foreground">
+                {stats?.overview.total_pageviews.toLocaleString() || 0}
+              </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
               <Eye className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">+12% from last month</p>
+          <div className="flex items-center gap-1 mt-2">
+            {getTrendIcon(stats?.trend.pageviews_change || 0)}
+            <p className={`text-xs font-medium ${getTrendColor(stats?.trend.pageviews_change || 0)}`}>
+              {stats?.trend.pageviews_change > 0 ? '+' : ''}
+              {stats?.trend.pageviews_change.toFixed(1)}%
+            </p>
+            <p className="text-xs text-muted-foreground ml-1">vs previous period</p>
+          </div>
         </div>
 
+        {/* Unique Visitors */}
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Visitors</p>
-              <p className="text-2xl font-bold text-card-foreground">3,892</p>
+              <p className="text-sm font-medium text-muted-foreground">Unique Visitors</p>
+              <p className="text-2xl font-bold text-card-foreground">
+                {stats?.overview.unique_visitors.toLocaleString() || 0}
+              </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
               <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">+8% from last month</p>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Engagement Rate</p>
-              <p className="text-2xl font-bold text-card-foreground">68%</p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-              <MousePointer className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
+          <div className="flex items-center gap-1 mt-2">
+            {getTrendIcon(stats?.trend.visitors_change || 0)}
+            <p className={`text-xs font-medium ${getTrendColor(stats?.trend.visitors_change || 0)}`}>
+              {stats?.trend.visitors_change > 0 ? '+' : ''}
+              {stats?.trend.visitors_change.toFixed(1)}%
+            </p>
+            <p className="text-xs text-muted-foreground ml-1">vs previous period</p>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">+5% from last month</p>
         </div>
 
+        {/* Avg Session Duration */}
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Avg. Session</p>
-              <p className="text-2xl font-bold text-card-foreground">4m 32s</p>
+              <p className="text-2xl font-bold text-card-foreground">
+                {formatDuration(stats?.overview.avg_session_duration || 0)}
+              </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+              <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">+18% from last month</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            {stats?.overview.avg_pages_per_session.toFixed(1) || 0} pages/session
+          </p>
+        </div>
+
+        {/* Active Users (Realtime) */}
+        <div className="rounded-lg border border-border bg-card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Active Now</p>
+              <p className="text-2xl font-bold text-card-foreground">
+                {stats?.overview.active_users || 0}
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center relative">
+              <Activity className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              {(stats?.overview.active_users || 0) > 0 && (
+                <span className="absolute top-0 right-0 h-3 w-3 bg-green-500 rounded-full animate-pulse"></span>
+              )}
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            users in last 5 minutes
+          </p>
         </div>
       </div>
 
-      {/* Coming Soon */}
-      <EmptyState
-        icon={BarChart3}
-        title="Advanced Analytics Coming Soon"
-        description="We're building comprehensive analytics dashboards with charts, reports, and real-time insights. This feature will include visitor tracking, content performance metrics, and custom reports."
-      />
+      {/* Secondary Stats */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-lg border border-border bg-card p-4">
+          <p className="text-sm font-medium text-muted-foreground mb-1">Total Sessions</p>
+          <p className="text-xl font-bold">{stats?.overview.total_sessions.toLocaleString() || 0}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <p className="text-sm font-medium text-muted-foreground mb-1">Bounce Rate</p>
+          <p className="text-xl font-bold">{stats?.overview.bounce_rate.toFixed(1)}%</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <p className="text-sm font-medium text-muted-foreground mb-1">Pages/Session</p>
+          <p className="text-xl font-bold">{stats?.overview.avg_pages_per_session.toFixed(2)}</p>
+        </div>
+      </div>
+
+      {/* Top Pages */}
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold mb-4">Top Pages</h2>
+        {stats && stats.top_pages.length > 0 ? (
+          <div className="space-y-2">
+            {stats.top_pages.map((page, idx) => (
+              <div key={idx} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{page.page_title || page.page_path}</p>
+                  <p className="text-xs text-muted-foreground">{page.page_path}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold">{page.pageviews.toLocaleString()} views</p>
+                  <p className="text-xs text-muted-foreground">{page.unique_visitors} visitors</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No data available</p>
+        )}
+      </div>
+
+      {/* Traffic Sources & Devices */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Traffic Sources */}
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Traffic Sources
+          </h2>
+          {stats && stats.traffic_sources.length > 0 ? (
+            <div className="space-y-3">
+              {stats.traffic_sources.map((source, idx) => (
+                <div key={idx}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium capitalize">{source.source}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {source.visitors} ({source.percentage.toFixed(1)}%)
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${source.percentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No data available</p>
+          )}
+        </div>
+
+        {/* Devices */}
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Monitor className="h-5 w-5" />
+            Devices
+          </h2>
+          {stats && stats.devices.length > 0 ? (
+            <div className="space-y-3">
+              {stats.devices.map((device, idx) => {
+                const Icon = device.device_type === 'mobile' ? Smartphone : Monitor;
+                return (
+                  <div key={idx}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4" />
+                        <span className="text-sm font-medium capitalize">{device.device_type}</span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {device.count} ({device.percentage.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all"
+                        style={{ width: `${device.percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No data available</p>
+          )}
+        </div>
+      </div>
+
+      {/* Realtime Active Pages */}
+      {stats && stats.realtime.active_users > 0 && (
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Activity className="h-5 w-5 text-green-500" />
+            Active Users Right Now
+            <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">
+              {stats.realtime.active_users} LIVE
+            </span>
+          </h2>
+          {stats.realtime.active_pages.length > 0 ? (
+            <div className="space-y-2">
+              {stats.realtime.active_pages.map((page, idx) => (
+                <div key={idx} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                  <p className="text-sm font-medium">{page.page_path}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-semibold">{page.users} active</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No active users</p>
+          )}
+        </div>
+      )}
+
+      {/* Browsers */}
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold mb-4">Top Browsers</h2>
+        {stats && stats.browsers.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.browsers.slice(0, 4).map((browser, idx) => (
+              <div key={idx} className="text-center p-3 rounded-lg bg-muted">
+                <p className="text-sm font-medium">{browser.browser}</p>
+                <p className="text-xl font-bold mt-1">{browser.count}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No data available</p>
+        )}
+      </div>
     </div>
   );
 }

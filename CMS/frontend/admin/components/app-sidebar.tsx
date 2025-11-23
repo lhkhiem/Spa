@@ -28,6 +28,7 @@ import {
   MessageSquareQuote,
   Mail,
   PhoneCall,
+  Info,
 } from 'lucide-react';
 
 const navigation = [
@@ -160,6 +161,11 @@ const navigation = [
         title: 'Menus',
         href: '/dashboard/menus',
         icon: Menu,
+      },
+      {
+        title: 'About Page',
+        href: '/dashboard/about',
+        icon: Info,
       },
     ],
   },

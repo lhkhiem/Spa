@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import sequelize from '../config/database';
 import { QueryTypes } from 'sequelize';
+import { logActivity } from './activityLogController';
 
 // Get all topics
 export const getTopics = async (req: Request, res: Response) => {
@@ -79,7 +80,12 @@ export const createTopic = async (req: Request, res: Response) => {
       type: QueryTypes.INSERT
     });
     
-    res.status(201).json(result[0][0]);
+    const topic = result[0][0];
+    
+    // Log activity
+    await logActivity(req, 'create', 'topic', topic.id, name, `Created topic "${name}"`);
+    
+    res.status(201).json(topic);
   } catch (error: any) {
     console.error('Failed to create topic:', error);
     if (error.original?.constraint === 'topics_slug_key') {
@@ -128,7 +134,12 @@ export const updateTopic = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Topic not found' });
     }
     
-    res.json(result[0][0]);
+    const updatedTopic = result[0][0];
+    
+    // Log activity
+    await logActivity(req, 'update', 'topic', id, updatedTopic.name, `Updated topic "${updatedTopic.name}"`);
+    
+    res.json(updatedTopic);
   } catch (error: any) {
     console.error('Failed to update topic:', error);
     if (error.original?.constraint === 'topics_slug_key') {
@@ -143,6 +154,15 @@ export const deleteTopic = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
+    // Get topic name before deleting
+    const getTopicQuery = 'SELECT name FROM topics WHERE id = :id';
+    const topicResult: any = await sequelize.query(getTopicQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+    
+    const topicName = topicResult[0]?.name || 'Unknown';
+    
     const query = 'DELETE FROM topics WHERE id = :id RETURNING *';
     const result: any = await sequelize.query(query, {
       replacements: { id },
@@ -152,6 +172,9 @@ export const deleteTopic = async (req: Request, res: Response) => {
     if (!result[0] || result[0].length === 0) {
       return res.status(404).json({ error: 'Topic not found' });
     }
+    
+    // Log activity
+    await logActivity(req, 'delete', 'topic', id, topicName, `Deleted topic "${topicName}"`);
     
     res.json({ message: 'Topic deleted successfully' });
   } catch (error) {

@@ -33,6 +33,7 @@ export default function ProductFormPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [thumbnailId, setThumbnailId] = useState<string>('');
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [attributes, setAttributes] = useState<Array<{id?: string; name: string; value: string}>>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,6 +66,7 @@ export default function ProductFormPage() {
       setSelectedCategories([]);
       setThumbnailId('');
       setGalleryImages([]);
+      setAttributes([]);
       fetchAttemptedRef.current = false;
     }
   }, [params.id, isEdit]);
@@ -195,6 +197,19 @@ export default function ProductFormPage() {
       } else {
         setGalleryImages([]);
       }
+
+      // Load attributes (thông số sản phẩm)
+      if (product.attributes && Array.isArray(product.attributes)) {
+        const attrs = product.attributes.map((attr: any) => ({
+          id: attr.id,
+          name: attr.name || '',
+          value: attr.value || ''
+        }));
+        console.log('Setting attributes:', attrs);
+        setAttributes(attrs);
+      } else {
+        setAttributes([]);
+      }
     } catch (error: any) {
       console.error('Failed to fetch product:', error);
       
@@ -241,7 +256,8 @@ export default function ProductFormPage() {
         is_featured: formData.is_featured,
         is_best_seller: formData.is_best_seller,
         categories: selectedCategories, // Add selected categories for n-n relationship
-        images: galleryImages // Add gallery images
+        images: galleryImages, // Add gallery images
+        attributes: attributes.filter(attr => attr.name.trim() && attr.value.trim()) // Add attributes (thông số sản phẩm)
       };
 
       if (isEdit) {
@@ -270,6 +286,22 @@ export default function ProductFormPage() {
         ? prev.filter(id => id !== categoryId)
         : [...prev, categoryId]
     );
+  };
+
+  const handleAddAttribute = () => {
+    setAttributes(prev => [...prev, { name: '', value: '' }]);
+  };
+
+  const handleRemoveAttribute = (index: number) => {
+    setAttributes(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAttributeChange = (index: number, field: 'name' | 'value', value: string) => {
+    setAttributes(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
   };
 
   return (
@@ -557,6 +589,57 @@ export default function ProductFormPage() {
                 Best seller
               </label>
             </div>
+          </div>
+
+          {/* Product Attributes (Thông số sản phẩm) */}
+          <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-card-foreground">Thông số sản phẩm</h3>
+              <button
+                type="button"
+                onClick={handleAddAttribute}
+                className="text-sm text-primary hover:underline"
+              >
+                + Thêm thông số
+              </button>
+            </div>
+            
+            {attributes.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Chưa có thông số nào. Click "+ Thêm thông số" để thêm.</p>
+            ) : (
+              <div className="space-y-3">
+                {attributes.map((attr, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <div className="flex-1 grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        placeholder="Tên (VD: Tấm nền)"
+                        value={attr.name}
+                        onChange={(e) => handleAttributeChange(index, 'name', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Giá trị (VD: IPS)"
+                        value={attr.value}
+                        onChange={(e) => handleAttributeChange(index, 'value', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAttribute(index)}
+                      className="px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors whitespace-nowrap"
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Thông số này sẽ hiển thị trên trang chi tiết sản phẩm trong phần "Thông số sản phẩm"
+            </p>
           </div>
 
           {/* Organization */}

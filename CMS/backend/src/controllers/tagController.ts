@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import sequelize from '../config/database';
 import { QueryTypes } from 'sequelize';
+import { logActivity } from './activityLogController';
 
 // Get all tags
 export const getTags = async (req: Request, res: Response) => {
@@ -82,7 +83,12 @@ export const createTag = async (req: Request, res: Response) => {
       type: QueryTypes.INSERT
     });
     
-    res.status(201).json(result[0][0]);
+    const tag = result[0][0];
+    
+    // Log activity
+    await logActivity(req, 'create', 'tag', tag.id, name, `Created tag "${name}"`);
+    
+    res.status(201).json(tag);
   } catch (error: any) {
     console.error('Failed to create tag:', error);
     if (error.original?.constraint === 'tags_slug_key') {
@@ -129,7 +135,12 @@ export const updateTag = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Tag not found' });
     }
     
-    res.json(result[0][0]);
+    const updatedTag = result[0][0];
+    
+    // Log activity
+    await logActivity(req, 'update', 'tag', id, updatedTag.name, `Updated tag "${updatedTag.name}"`);
+    
+    res.json(updatedTag);
   } catch (error: any) {
     console.error('Failed to update tag:', error);
     if (error.original?.constraint === 'tags_slug_key') {
@@ -144,6 +155,15 @@ export const deleteTag = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
+    // Get tag name before deleting
+    const getTagQuery = 'SELECT name FROM tags WHERE id = :id';
+    const tagResult: any = await sequelize.query(getTagQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+    
+    const tagName = tagResult[0]?.name || 'Unknown';
+    
     const query = 'DELETE FROM tags WHERE id = :id RETURNING *';
     const result: any = await sequelize.query(query, {
       replacements: { id },
@@ -153,6 +173,9 @@ export const deleteTag = async (req: Request, res: Response) => {
     if (!result[0] || result[0].length === 0) {
       return res.status(404).json({ error: 'Tag not found' });
     }
+    
+    // Log activity
+    await logActivity(req, 'delete', 'tag', id, tagName, `Deleted tag "${tagName}"`);
     
     res.json({ message: 'Tag deleted successfully' });
   } catch (error) {

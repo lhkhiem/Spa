@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import sequelize from '../config/database';
 import { QueryTypes } from 'sequelize';
+import { logActivity } from './activityLogController';
 
 export const getBrands = async (req: Request, res: Response) => {
   try {
@@ -212,7 +213,12 @@ export const createBrand = async (req: Request, res: Response) => {
       type: QueryTypes.INSERT
     });
 
-    res.status(201).json(result[0][0]);
+    const brand = result[0][0];
+    
+    // Log activity
+    await logActivity(req, 'create', 'brand', id, name, `Created brand "${name}"`);
+
+    res.status(201).json(brand);
   } catch (error) {
     console.error('Failed to create brand:', error);
     res.status(500).json({ error: 'Failed to create brand' });
@@ -255,7 +261,12 @@ export const updateBrand = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Brand not found' });
     }
 
-    res.json(result[0][0]);
+    const updatedBrand = result[0][0];
+    
+    // Log activity
+    await logActivity(req, 'update', 'brand', id, updatedBrand.name, `Updated brand "${updatedBrand.name}"`);
+
+    res.json(updatedBrand);
   } catch (error) {
     console.error('Failed to update brand:', error);
     res.status(500).json({ error: 'Failed to update brand' });
@@ -266,6 +277,15 @@ export const deleteBrand = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
+    // Get brand name before deleting
+    const getBrandQuery = 'SELECT name FROM brands WHERE id = :id';
+    const brandResult: any = await sequelize.query(getBrandQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+    
+    const brandName = brandResult[0]?.name || 'Unknown';
+    
     const result: any = await sequelize.query(
       'DELETE FROM brands WHERE id = :id RETURNING *',
       {
@@ -277,6 +297,9 @@ export const deleteBrand = async (req: Request, res: Response) => {
     if (!result[0] || result[0].length === 0) {
       return res.status(404).json({ error: 'Brand not found' });
     }
+
+    // Log activity
+    await logActivity(req, 'delete', 'brand', id, brandName, `Deleted brand "${brandName}"`);
 
     res.json({ message: 'Brand deleted successfully' });
   } catch (error) {

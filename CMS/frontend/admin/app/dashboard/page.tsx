@@ -56,13 +56,16 @@ export default function DashboardPage() {
   const fetchStats = async () => {
     try {
       const baseUrl = getApiUrl();
-      const postsRes = await fetch(`${baseUrl}/api/posts`, {
+      // baseUrl already includes /api, so don't add it again
+      const postsPath = baseUrl.endsWith('/api') ? '/posts' : '/api/posts';
+      const postsRes = await fetch(`${baseUrl}${postsPath}`, {
         credentials: 'include',
       });
       const posts = await postsRes.json();
       const postsData = Array.isArray(posts) ? posts : (posts?.data ?? []);
       
-      const topicsRes = await fetch(`${baseUrl}/api/topics`, {
+      const topicsPath = baseUrl.endsWith('/api') ? '/topics' : '/api/topics';
+      const topicsRes = await fetch(`${baseUrl}${topicsPath}`, {
         credentials: 'include',
       });
       const topics = await topicsRes.json();
@@ -84,7 +87,9 @@ export default function DashboardPage() {
   const fetchActivities = async () => {
     try {
       const baseUrl = getApiUrl();
-      const url = `${baseUrl}/api/activity-logs?limit=10`;
+      // baseUrl already includes /api, so don't add it again
+      const activityPath = baseUrl.endsWith('/api') ? '/activity-logs?limit=10' : '/api/activity-logs?limit=10';
+      const url = `${baseUrl}${activityPath}`;
       console.log('[Dashboard] Fetching activities from:', url);
       
       const res = await fetch(url, {

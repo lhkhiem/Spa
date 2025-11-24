@@ -209,23 +209,23 @@ export default function NewPostPage(){
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input className="w-full rounded border px-3 py-2" value={title} onChange={(e)=>setTitle(e.target.value)} required />
+            <label className="block text-sm font-medium mb-1 text-foreground">Title</label>
+            <input className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={title} onChange={(e)=>setTitle(e.target.value)} required />
             <div className="text-xs text-muted-foreground mt-1">Preview: {slugPreview}</div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Slug</label>
-            <input className="w-full rounded border px-3 py-2" value={slug} onChange={(e)=>setSlug(generateSlug(e.target.value))} />
+            <label className="block text-sm font-medium mb-1 text-foreground">Slug</label>
+            <input className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={slug} onChange={(e)=>setSlug(generateSlug(e.target.value))} />
             <p className="text-xs text-muted-foreground mt-1">Auto-generated from title; you can edit.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Excerpt</label>
-            <textarea className="w-full rounded border px-3 py-2" value={excerpt} onChange={(e)=>setExcerpt(e.target.value)} rows={3} />
+            <label className="block text-sm font-medium mb-1 text-foreground">Excerpt</label>
+            <textarea className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={excerpt} onChange={(e)=>setExcerpt(e.target.value)} rows={3} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Estimated Read Time</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Estimated Read Time</label>
             <input
-              className="w-full rounded border px-3 py-2"
+              className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
               value={readTime}
               onChange={(e) => {
                 setReadTime(e.target.value);
@@ -238,7 +238,7 @@ export default function NewPostPage(){
             </p>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Content</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Content</label>
             <RichTextEditor 
               value={content} 
               onChange={(html) => { 
@@ -252,7 +252,7 @@ export default function NewPostPage(){
         <div className="space-y-4">
           <div className="rounded border p-4 space-y-3">
             <div>
-              <label className="block text-sm font-medium mb-1">Featured Image</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Featured Image</label>
               {featuredImage ? (
                 <div className="relative">
                   <img
@@ -293,9 +293,9 @@ export default function NewPostPage(){
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Author (optional)</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Author (optional)</label>
               <select
-                className="w-full rounded border px-3 py-2"
+                className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                 value={authorId}
                 onChange={(e)=>setAuthorId(e.target.value)}
               >
@@ -309,19 +309,19 @@ export default function NewPostPage(){
               <p className="text-xs text-muted-foreground mt-1">Select an author or leave blank.</p>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Published Date</label>
-              <input type="date" className="w-full rounded border px-3 py-2" value={pubDate} onChange={(e)=>setPubDate(e.target.value)} />
+              <label className="block text-sm font-medium mb-1 text-foreground">Published Date</label>
+              <input type="date" className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={pubDate} onChange={(e)=>setPubDate(e.target.value)} />
               <p className="text-xs text-muted-foreground mt-1">Used when status is Published (can schedule future).</p>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Status</label>
-              <select className="w-full rounded border px-3 py-2" value={status} onChange={(e)=>setStatus(e.target.value as any)}>
+              <label className="block text-sm font-medium mb-1 text-foreground">Status</label>
+              <select className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={status} onChange={(e)=>setStatus(e.target.value as any)}>
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
               </select>
             </div>
             <div>
-              <label className="flex items-center gap-2">
+              <label className="flex items-center gap-2 text-foreground">
                 <input type="checkbox" checked={isFeatured} onChange={(e)=>setIsFeatured(e.target.checked)} />
                 <span className="text-sm font-medium">Featured Post</span>
               </label>
@@ -329,10 +329,10 @@ export default function NewPostPage(){
             </div>
             {/* Topics */}
             <div>
-              <label className="block text-sm font-medium mb-1">Topics</label>
-              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
+              <label className="block text-sm font-medium mb-1 text-foreground">Topics</label>
+              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border border-input bg-background p-2">
                 {allTopics.map(t => (
-                  <label key={t.id} className="flex items-center gap-2 text-sm">
+                  <label key={t.id} className="flex items-center gap-2 text-sm text-foreground">
                     <input
                       type="checkbox"
                       className="rounded"
@@ -350,10 +350,10 @@ export default function NewPostPage(){
             </div>
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium mb-1">Tags</label>
-              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border p-2">
+              <label className="block text-sm font-medium mb-1 text-foreground">Tags</label>
+              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border border-input bg-background p-2">
                 {allTags.map(t => (
-                  <label key={t.id} className="flex items-center gap-2 text-sm">
+                  <label key={t.id} className="flex items-center gap-2 text-sm text-foreground">
                     <input
                       type="checkbox"
                       className="rounded"

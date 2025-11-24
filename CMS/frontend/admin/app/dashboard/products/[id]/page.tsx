@@ -369,8 +369,6 @@ export default function ProductFormPage() {
               <input
                 type="text"
                 required
-                key={`name-${params.id || 'new'}-${Date.now()}`}
-                defaultValue={formData.name}
                 value={formData.name || ''}
                 onChange={(e) => {
                   const newName = e.target.value;
@@ -382,7 +380,7 @@ export default function ProductFormPage() {
                     return { ...prev, name: newName, slug: newSlug };
                   });
                 }}
-                className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-4 py-2 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 

@@ -494,13 +494,13 @@ export default function CategoriesPage() {
       {/* Dialog */}
       {showDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowDialog(false)}>
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-4">{editing ? 'Edit Category' : 'Create Category'}</h3>
+          <div className="w-full max-w-md rounded-lg bg-card border border-border p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Edit Category' : 'Create Category'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto">
               <div>
-                <label className="block text-sm font-medium mb-1">Name <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Name <span className="text-red-500">*</span></label>
                 <input 
-                  className="w-full rounded border px-3 py-2" 
+                  className="w-full rounded border border-input bg-background text-foreground px-3 py-2" 
                   value={form.name} 
                   onChange={(e) => {
                     const newName = e.target.value;
@@ -519,9 +519,9 @@ export default function CategoriesPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Slug</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Slug</label>
                 <input 
-                  className="w-full rounded border px-3 py-2 bg-muted cursor-not-allowed" 
+                  className="w-full rounded border border-input bg-muted text-foreground cursor-not-allowed px-3 py-2" 
                   value={
                     editing && form.name === originalName 
                       ? form.slug 
@@ -539,12 +539,12 @@ export default function CategoriesPage() {
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <textarea className="w-full rounded border px-3 py-2" value={form.description} onChange={(e)=>setForm({...form,description:e.target.value})} rows={3} />
+                <label className="block text-sm font-medium mb-1 text-foreground">Description</label>
+                <textarea className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={form.description} onChange={(e)=>setForm({...form,description:e.target.value})} rows={3} />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Parent Category (optional)</label>
-                <select className="w-full rounded border px-3 py-2" value={form.parent_id} onChange={(e)=>setForm({...form,parent_id:e.target.value})}>
+                <label className="block text-sm font-medium mb-1 text-foreground">Parent Category (optional)</label>
+                <select className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={form.parent_id} onChange={(e)=>setForm({...form,parent_id:e.target.value})}>
                   <option value="">-- None (Root Category) --</option>
                   {categories.filter(c => !editing || c.id !== editing.id).map(cat => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -611,15 +611,15 @@ export default function CategoriesPage() {
                 )}
               </div>
               <div>
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-2 text-foreground">
                   <input type="checkbox" checked={form.is_featured} onChange={(e)=>setForm({...form,is_featured:e.target.checked})} />
                   <span className="text-sm font-medium">Featured Category</span>
                 </label>
-                <p className="text-xs text-gray-500 mt-1">Show on homepage</p>
+                <p className="text-xs text-muted-foreground mt-1">Show on homepage</p>
               </div>
               <div className="flex justify-end gap-2 pt-4">
-                <button type="button" onClick={()=>setShowDialog(false)} className="rounded border px-3 py-2">Cancel</button>
-                <button type="submit" className="rounded bg-blue-600 text-white px-3 py-2">Save</button>
+                <button type="button" onClick={()=>setShowDialog(false)} className="rounded border border-input bg-background text-foreground hover:bg-accent px-3 py-2">Cancel</button>
+                <button type="submit" className="rounded bg-primary text-primary-foreground px-3 py-2 hover:bg-primary/90">Save</button>
               </div>
             </form>
           </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Tag, Star } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import axios from 'axios';
-import { API_BASE_URL, getAssetUrl } from '@/lib/api';
+import { buildApiUrl, getAssetUrl } from '@/lib/api';
 import MediaPicker from '@/components/MediaPicker';
 
 interface Brand {
@@ -50,7 +50,7 @@ export default function BrandsPage() {
 
   const fetchBrands = async () => {
     try {
-      const response: any = await axios.get(`${API_BASE_URL}/api/brands`, {
+      const response: any = await axios.get(buildApiUrl('/api/brands'), {
         withCredentials: true
       });
       setBrands(response.data?.data || []);
@@ -67,7 +67,7 @@ export default function BrandsPage() {
 
   const fetchAssetMeta = async (assetId: string) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/assets/${assetId}`, {
+      const response = await axios.get(buildApiUrl(`/api/assets/${assetId}`), {
         withCredentials: true,
       });
       return response.data?.data || response.data;
@@ -116,7 +116,7 @@ export default function BrandsPage() {
 
     try {
       await axios.put(
-        `${API_BASE_URL}/api/brands/${brand.id}`,
+        buildApiUrl(`/api/brands/${brand.id}`),
         { logo_id: newLogoId },
         { withCredentials: true }
       );
@@ -185,11 +185,11 @@ export default function BrandsPage() {
       };
 
       if (editing) {
-        await axios.put(`${API_BASE_URL}/api/brands/${editing.id}`, payload, {
+        await axios.put(buildApiUrl(`/api/brands/${editing.id}`), payload, {
           withCredentials: true
         });
       } else {
-        await axios.post(`${API_BASE_URL}/api/brands`, payload, {
+        await axios.post(buildApiUrl('/api/brands'), payload, {
           withCredentials: true
         });
       }
@@ -205,7 +205,7 @@ export default function BrandsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this brand?')) return;
     try {
-      await axios.delete(`${API_BASE_URL}/api/brands/${id}`, {
+      await axios.delete(buildApiUrl(`/api/brands/${id}`), {
         withCredentials: true
       });
       fetchBrands();
@@ -222,7 +222,7 @@ export default function BrandsPage() {
 
     try {
       await axios.put(
-        `${API_BASE_URL}/api/brands/${brand.id}`,
+        buildApiUrl(`/api/brands/${brand.id}`),
         { is_featured: next },
         { withCredentials: true }
       );
@@ -352,13 +352,13 @@ export default function BrandsPage() {
 
       {showDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowDialog(false)}>
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl" onClick={(e)=>e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-4">{editing ? 'Edit Brand' : 'Create Brand'}</h3>
+          <div className="w-full max-w-md rounded-lg bg-card border border-border p-6 shadow-xl" onClick={(e)=>e.stopPropagation()}>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Edit Brand' : 'Create Brand'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Name</label>
                 <input
-                  className="w-full rounded border px-3 py-2"
+                  className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                   value={form.name}
                   onChange={(e) => {
                     const nextName = e.target.value;
@@ -372,9 +372,9 @@ export default function BrandsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Slug</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Slug</label>
                 <input
-                  className="w-full rounded border px-3 py-2"
+                  className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                   value={form.slug}
                   onChange={(e) => {
                     setForm((prev) => ({ ...prev, slug: toSlug(e.target.value) }));
@@ -391,18 +391,18 @@ export default function BrandsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Description</label>
                 <textarea
-                  className="w-full rounded border px-3 py-2"
+                  className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                   rows={3}
                   value={form.description}
                   onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Website</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Website</label>
                 <input
-                  className="w-full rounded border px-3 py-2"
+                  className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                   value={form.website}
                   onChange={(e) => setForm((prev) => ({ ...prev, website: e.target.value }))}
                 />
@@ -431,11 +431,11 @@ export default function BrandsPage() {
                 Featured brand
               </label>
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={()=>setShowDialog(false)} className="rounded border px-3 py-2">Cancel</button>
+                <button type="button" onClick={()=>setShowDialog(false)} className="rounded border border-input bg-background text-foreground hover:bg-accent px-3 py-2">Cancel</button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="rounded bg-blue-600 text-white px-3 py-2 disabled:opacity-50"
+                  className="rounded bg-primary text-primary-foreground px-3 py-2 hover:bg-primary/90 disabled:opacity-50"
                 >
                   {isSaving ? 'Saving...' : 'Save'}
                 </button>

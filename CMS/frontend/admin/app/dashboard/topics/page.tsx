@@ -57,7 +57,7 @@ export default function TopicsPage() {
       setTopics(data);
     } catch (error) {
       console.error('Failed to fetch topics:', error);
-      toast.error('Failed to load topics');
+      toast.error('Không thể tải chủ đề');
       setTopics([]);
     } finally {
       setLoading(false);
@@ -112,7 +112,7 @@ export default function TopicsPage() {
     e.preventDefault();
     
     if (!formData.name.trim() || !formData.slug.trim()) {
-      toast.error('Name and slug are required');
+      toast.error('Tên và slug là bắt buộc');
       return;
     }
 
@@ -134,19 +134,19 @@ export default function TopicsPage() {
         throw new Error(error.error || 'Failed to save topic');
       }
 
-      toast.success(editingTopic ? 'Topic updated!' : 'Topic created!');
+      toast.success(editingTopic ? 'Cập nhật chủ đề thành công!' : 'Tạo chủ đề thành công!');
       setShowModal(false);
       fetchTopics();
     } catch (error: any) {
       console.error('Failed to save topic:', error);
-      toast.error(error.message || 'Failed to save topic');
+      toast.error(error.message || 'Không thể lưu chủ đề');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa "${name}"?`)) return;
 
     try {
       const response = await fetch(buildApiUrl(`/api/topics/${id}`), {
@@ -158,11 +158,11 @@ export default function TopicsPage() {
         throw new Error('Failed to delete topic');
       }
       
-      toast.success('Topic deleted!');
+      toast.success('Xóa chủ đề thành công!');
       fetchTopics();
     } catch (error) {
       console.error('Failed to delete topic:', error);
-      toast.error('Failed to delete topic');
+      toast.error('Không thể xóa chủ đề');
     }
   };
 
@@ -179,11 +179,11 @@ export default function TopicsPage() {
         throw new Error('Failed to toggle status');
       }
 
-      toast.success(topic.is_active ? 'Topic deactivated' : 'Topic activated');
+      toast.success(topic.is_active ? 'Vô hiệu hóa chủ đề thành công' : 'Kích hoạt chủ đề thành công');
       fetchTopics();
     } catch (error) {
       console.error('Failed to toggle status:', error);
-      toast.error('Failed to toggle status');
+      toast.error('Không thể thay đổi trạng thái');
     }
   };
 
@@ -199,7 +199,7 @@ export default function TopicsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-muted-foreground">Loading topics...</div>
+        <div className="text-muted-foreground">Đang tải chủ đề...</div>
       </div>
     );
   }
@@ -211,17 +211,17 @@ export default function TopicsPage() {
         <div>
           <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-2">
             <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
+            Quay lại Bảng điều khiển
           </Link>
-          <h1 className="text-3xl font-bold text-foreground">Topics</h1>
-          <p className="text-muted-foreground mt-1">Manage your content topics and categories</p>
+          <h1 className="text-3xl font-bold text-foreground">Chủ đề</h1>
+          <p className="text-muted-foreground mt-1">Quản lý chủ đề và danh mục nội dung</p>
         </div>
         <button
           onClick={handleCreate}
           className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          New Topic
+          Chủ đề mới
         </button>
       </div>
 
@@ -231,7 +231,7 @@ export default function TopicsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search topics..."
+            placeholder="Tìm kiếm chủ đề..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -260,8 +260,8 @@ export default function TopicsPage() {
                 </div>
               </div>
               {!topic.is_active && (
-                <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                  Inactive
+                <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
+                  Không hoạt động
                 </span>
               )}
             </div>
@@ -278,12 +278,12 @@ export default function TopicsPage() {
                 className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
               >
                 <Pencil className="h-3.5 w-3.5" />
-                Edit
+                Chỉnh sửa
               </button>
               <button
                 onClick={() => toggleActive(topic)}
                 className="inline-flex items-center justify-center px-3 py-1.5 rounded-md bg-secondary hover:bg-secondary/80 transition-colors"
-                title={topic.is_active ? 'Deactivate' : 'Activate'}
+                title={topic.is_active ? 'Vô hiệu hóa' : 'Kích hoạt'}
               >
                 {topic.is_active ? (
                   <EyeOff className="h-3.5 w-3.5" />
@@ -294,7 +294,7 @@ export default function TopicsPage() {
               <button
                 onClick={() => handleDelete(topic.id, topic.name)}
                 className="inline-flex items-center justify-center px-3 py-1.5 rounded-md bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                title="Delete"
+                title="Xóa"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -306,7 +306,7 @@ export default function TopicsPage() {
       {filteredTopics.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
-            {searchQuery ? 'No topics found matching your search.' : 'No topics yet. Create your first topic to get started.'}
+            {searchQuery ? 'Không tìm thấy chủ đề nào phù hợp với tìm kiếm.' : 'Chưa có chủ đề nào. Tạo chủ đề đầu tiên để bắt đầu.'}
           </p>
         </div>
       )}
@@ -316,14 +316,14 @@ export default function TopicsPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-foreground mb-4">
-              {editingTopic ? 'Edit Topic' : 'Create New Topic'}
+              {editingTopic ? 'Chỉnh sửa Chủ đề' : 'Tạo Chủ đề Mới'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Name */}
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
-                  Name <span className="text-destructive">*</span>
+                  Tên <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
@@ -353,7 +353,7 @@ export default function TopicsPage() {
               {/* Description */}
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-foreground mb-1">
-                  Description
+                  Mô tả
                 </label>
                 <textarea
                   id="description"
@@ -367,7 +367,7 @@ export default function TopicsPage() {
               {/* Color */}
               <div>
                 <label htmlFor="color" className="block text-sm font-medium text-foreground mb-1">
-                  Color
+                  Màu sắc
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -390,7 +390,7 @@ export default function TopicsPage() {
               {/* Icon */}
               <div>
                 <label htmlFor="icon" className="block text-sm font-medium text-foreground mb-1">
-                  Icon (lucide-react name)
+                  Icon (tên lucide-react)
                 </label>
                 <input
                   type="text"
@@ -398,7 +398,7 @@ export default function TopicsPage() {
                   value={formData.icon}
                   onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="e.g., Cpu, Heart, Briefcase"
+                  placeholder="ví dụ: Cpu, Heart, Briefcase"
                 />
               </div>
 
@@ -412,7 +412,7 @@ export default function TopicsPage() {
                   className="w-4 h-4 rounded border-input text-primary focus:ring-primary/50"
                 />
                 <label htmlFor="is_active" className="text-sm text-foreground">
-                  Active (visible to users)
+                  Hoạt động (hiển thị cho người dùng)
                 </label>
               </div>
 
@@ -424,14 +424,14 @@ export default function TopicsPage() {
                   className="flex-1 px-4 py-2 rounded-lg border border-input bg-background hover:bg-accent transition-colors"
                   disabled={submitting}
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
                   disabled={submitting}
                 >
-                  {submitting ? 'Saving...' : editingTopic ? 'Update Topic' : 'Create Topic'}
+                  {submitting ? 'Đang lưu...' : editingTopic ? 'Cập nhật Chủ đề' : 'Tạo Chủ đề'}
                 </button>
               </div>
             </form>

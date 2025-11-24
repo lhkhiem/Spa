@@ -58,13 +58,13 @@ export default function ProductFilters({
     <div className="sticky top-4">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Bộ lọc</h2>
         {totalSelectedCount > 0 && (
           <button
             onClick={onClearAll}
             className="text-sm text-brand-purple-600 hover:text-brand-purple-700"
           >
-            Clear all ({totalSelectedCount})
+            Xóa tất cả ({totalSelectedCount})
           </button>
         )}
       </div>

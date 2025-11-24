@@ -45,7 +45,7 @@ export default function MediaPicker({
   value,
   onChange,
   multiple = false,
-  label = 'Select Image',
+  label = 'Chọn hình ảnh',
   maxFiles = 10,
   previewSize = 150,
   modalOnly = false,
@@ -725,7 +725,7 @@ export default function MediaPicker({
             <div className="bg-card border border-border rounded-lg shadow-lg flex flex-col w-full max-w-7xl h-full max-h-[90vh]">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-border">
-                <h3 className="text-lg font-semibold">Media Library</h3>
+                <h3 className="text-lg font-semibold">Thư viện Media</h3>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -738,7 +738,7 @@ export default function MediaPicker({
                     className="inline-flex items-center gap-2 px-3 py-1.5 border border-input rounded-md text-sm hover:bg-accent transition-colors"
                   >
                     <Folder className="w-4 h-4" />
-                    New Folder
+                    Thư mục mới
                   </button>
                   <button
                     type="button"
@@ -750,7 +750,7 @@ export default function MediaPicker({
                   </button>
                   <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90 transition-colors text-sm">
                     <Upload className="w-4 h-4" />
-                    {uploading ? 'Uploading...' : 'Upload'}
+                    {uploading ? 'Đang tải lên...' : 'Tải lên'}
                     <input
                       type="file"
                       multiple
@@ -785,7 +785,7 @@ export default function MediaPicker({
                     }`}
                   >
                     <ImageIcon className="w-4 h-4" />
-                    All Files
+                    Tất cả file
                   </button>
                   {renderFolderTree(folderTree)}
                 </div>
@@ -796,7 +796,7 @@ export default function MediaPicker({
                     <div className="flex-1 flex items-center gap-2">
                       <input
                         type="text"
-                        placeholder="Search files..."
+                        placeholder="Tìm kiếm file..."
                         value={searchQuery}
                         onChange={(event) => {
                           setSearchQuery(event.target.value);
@@ -814,7 +814,7 @@ export default function MediaPicker({
                               : 'border-input hover:bg-accent'
                           }`}
                         >
-                          Grid
+                          Lưới
                         </button>
                         <button
                           type="button"
@@ -825,7 +825,7 @@ export default function MediaPicker({
                               : 'border-input hover:bg-accent'
                           }`}
                         >
-                          List
+                          Danh sách
                         </button>
                       </div>
                     </div>
@@ -834,13 +834,13 @@ export default function MediaPicker({
                   <div className="flex-1 overflow-y-auto min-h-0">
                     {loading ? (
                       <div className="flex items-center justify-center h-64 text-muted-foreground">
-                        Loading...
+                        Đang tải...
                       </div>
                     ) : sortedMedia.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
                         <ImageIcon className="w-12 h-12 mb-2 opacity-50" />
-                        <p>No media files yet</p>
-                        <p className="text-sm">Upload some images to get started</p>
+                        <p>Chưa có file media</p>
+                        <p className="text-sm">Tải lên một số hình ảnh để bắt đầu</p>
                       </div>
                     ) : viewMode === 'grid' ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -878,18 +878,18 @@ export default function MediaPicker({
                         <table className="min-w-full divide-y divide-border">
                           <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
                             <tr>
-                              <th className="px-4 py-2 text-left">Preview</th>
+                              <th className="px-4 py-2 text-left">Xem trước</th>
                               <th
                                 className="px-4 py-2 text-left cursor-pointer hover:text-foreground"
                                 onClick={() => handleSort('name')}
                               >
-                                Name {sortField === 'name' && (sortOrder === 'asc' ? '▲' : '▼')}
+                                Tên {sortField === 'name' && (sortOrder === 'asc' ? '▲' : '▼')}
                               </th>
                               <th
                                 className="px-4 py-2 text-left cursor-pointer hover:text-foreground"
                                 onClick={() => handleSort('date')}
                               >
-                                Date {sortField === 'date' && (sortOrder === 'asc' ? '▲' : '▼')}
+                                Ngày {sortField === 'date' && (sortOrder === 'asc' ? '▲' : '▼')}
                               </th>
                             </tr>
                           </thead>
@@ -961,7 +961,7 @@ export default function MediaPicker({
                       onClick={handleClose}
                       className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                     >
-                      Done
+                      Xong
                     </button>
                   </div>
                 </div>
@@ -975,7 +975,7 @@ export default function MediaPicker({
           ? createPortal(
             <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 p-4">
               <div className="bg-card rounded-lg border border-border shadow-lg p-6 max-w-md w-full">
-                <h3 className="text-lg font-semibold mb-4">New Folder</h3>
+                <h3 className="text-lg font-semibold mb-4">Thư mục mới</h3>
                 <input
                   type="text"
                   value={newFolderName}
@@ -987,7 +987,7 @@ export default function MediaPicker({
                     }
                   }}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-ring"
-                  placeholder="Folder name"
+                  placeholder="Tên thư mục"
                 />
                 <div className="flex justify-end gap-2">
                   <button
@@ -998,7 +998,7 @@ export default function MediaPicker({
                     }}
                     className="px-4 py-2 rounded-md border border-input hover:bg-accent"
                   >
-                    Cancel
+                    Hủy
                   </button>
                   <button
                     type="button"
@@ -1030,7 +1030,7 @@ export default function MediaPicker({
                     }
                   }}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-ring"
-                  placeholder="Nhập URL ảnh..."
+                  placeholder="Nhập URL hình ảnh..."
                   disabled={urlUploading}
                 />
                 <div className="flex justify-end gap-2">
@@ -1043,7 +1043,7 @@ export default function MediaPicker({
                     disabled={urlUploading}
                     className="px-4 py-2 rounded-md border border-input hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Cancel
+                    Hủy
                   </button>
                   <button
                     type="button"
@@ -1107,8 +1107,8 @@ export default function MediaPicker({
         >
           <ImageIcon className="w-4 h-4" />
           {selectedAssets.length > 0 
-            ? (multiple ? 'Add More Images' : 'Change Image')
-            : 'Select Image'
+            ? (multiple ? 'Thêm hình ảnh' : 'Đổi hình ảnh')
+            : 'Chọn hình ảnh'
           }
         </button>
       )}
@@ -1335,14 +1335,14 @@ export default function MediaPicker({
                                     onClick={() => setPreviewFile(asset)}
                                     className="text-xs px-2 py-1 rounded-md border border-input hover:bg-accent"
                                   >
-                                    Preview
+                                    Xem trước
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => copyUrlToClipboard(asset)}
                                     className="text-xs px-2 py-1 rounded-md border border-input hover:bg-accent"
                                   >
-                                    Copy URL
+                                    Sao chép URL
                                   </button>
                                   <button
                                     type="button"
@@ -1479,7 +1479,7 @@ export default function MediaPicker({
               }}
               className="block w-full px-4 py-2 text-left hover:bg-accent"
             >
-              Rename
+              Đổi tên
             </button>
             <button
               type="button"
@@ -1492,7 +1492,7 @@ export default function MediaPicker({
               }}
               className="block w-full px-4 py-2 text-left hover:bg-accent"
             >
-              Move
+              Di chuyển
             </button>
             <div className="border-t border-border my-1" />
             <button
@@ -1504,7 +1504,7 @@ export default function MediaPicker({
               }}
               className="block w-full px-4 py-2 text-left text-destructive hover:bg-destructive/10"
             >
-              Delete
+              Xóa
             </button>
           </div>
         </>
@@ -1526,24 +1526,24 @@ export default function MediaPicker({
               <h3 className="text-lg font-semibold">{previewFile.file_name || previewFile.url.split('/').pop()}</h3>
               <img
                 src={getAssetUrl(previewFile.original_url || previewFile.url)}
-                alt={previewFile.file_name || 'Preview'}
+                alt={previewFile.file_name || 'Xem trước'}
                 className="w-full h-auto rounded-lg"
               />
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Type</p>
+                  <p className="text-muted-foreground">Loại</p>
                   <p className="font-medium">{previewFile.format?.toUpperCase() || '—'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Dimensions</p>
+                  <p className="text-muted-foreground">Kích thước</p>
                   <p className="font-medium">{previewFile.width && previewFile.height ? `${previewFile.width}×${previewFile.height}` : '—'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Folder</p>
+                  <p className="text-muted-foreground">Thư mục</p>
                   <p className="font-medium">{previewFile.folder_id || 'Root'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Uploaded</p>
+                  <p className="text-muted-foreground">Đã tải lên</p>
                   <p className="font-medium">{new Date(previewFile.created_at ?? 0).toLocaleString()}</p>
                 </div>
               </div>
@@ -1563,7 +1563,7 @@ export default function MediaPicker({
                   }}
                   className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                  Delete
+                  Xóa
                 </button>
               </div>
             </div>
@@ -1576,7 +1576,7 @@ export default function MediaPicker({
         ? createPortal(
         <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 p-4">
           <div className="bg-card rounded-lg border border-border shadow-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-4">Rename File</h3>
+            <h3 className="text-lg font-semibold mb-4">Đổi tên file</h3>
             <input
               type="text"
               value={renameFileName}
@@ -1588,7 +1588,7 @@ export default function MediaPicker({
                 }
               }}
               className="w-full rounded-md border border-input bg-background px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="File name"
+              placeholder="Tên file"
             />
             <div className="flex justify-end gap-2">
               <button
@@ -1608,7 +1608,7 @@ export default function MediaPicker({
                 disabled={!renameFileName.trim()}
                 className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Rename
+                Đổi tên
               </button>
             </div>
           </div>
@@ -1620,7 +1620,7 @@ export default function MediaPicker({
         ? createPortal(
         <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 p-4">
           <div className="bg-card rounded-lg border border-border shadow-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-4">Move {selectedFiles.size} file(s)</h3>
+            <h3 className="text-lg font-semibold mb-4">Di chuyển {selectedFiles.size} file</h3>
             <div className="max-h-64 overflow-y-auto border border-border rounded-lg mb-4">
               <button
                 type="button"

@@ -57,9 +57,9 @@ export default function CheckoutPage() {
   }, [user]);
 
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Cart', href: '/cart' },
-    { label: 'Checkout' },
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Giỏ hàng', href: '/cart' },
+    { label: 'Thanh toán' },
   ];
 
   const subtotal = getTotalPrice();
@@ -119,7 +119,7 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) {
-      toast.error('Your cart is empty.');
+      toast.error('Giỏ hàng của bạn đang trống.');
       return;
     }
     setIsProcessing(true);
@@ -244,9 +244,9 @@ export default function CheckoutPage() {
       <div className="min-h-screen bg-gray-50 py-16">
         <div className="container-custom">
           <div className="mx-auto max-w-md text-center">
-            <h1 className="mb-4 text-2xl font-bold text-gray-900">Your cart is empty</h1>
-            <p className="mb-8 text-gray-600">Add some products to checkout</p>
-            <Button href="/products">Continue Shopping</Button>
+            <h1 className="mb-4 text-2xl font-bold text-gray-900">Giỏ hàng của bạn đang trống</h1>
+            <p className="mb-8 text-gray-600">Thêm sản phẩm vào giỏ hàng để thanh toán</p>
+            <Button href="/products">Tiếp tục mua sắm</Button>
           </div>
         </div>
       </div>
@@ -264,7 +264,7 @@ export default function CheckoutPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Shipping Information */}
               <div className="rounded-lg bg-white p-6 shadow-md">
-                <h2 className="mb-6 text-xl font-bold text-gray-900">Shipping Information</h2>
+                <h2 className="mb-6 text-xl font-bold text-gray-900">Thông tin giao hàng</h2>
                 <div className="space-y-4">
                   <Input
                     label="Họ và tên"
@@ -276,14 +276,14 @@ export default function CheckoutPage() {
                   />
 
                   <Input
-                    label="Company (optional)"
+                    label="Công ty (tùy chọn)"
                     name="company"
                     value={formData.company}
                     onChange={handleInputChange}
                   />
 
                   <Input
-                    label="Address"
+                    label="Địa chỉ"
                     name="address"
                     value={formData.address}
                     onChange={handleInputChange}
@@ -291,7 +291,7 @@ export default function CheckoutPage() {
                   />
 
                   <Input
-                    label="Apartment, suite, etc. (optional)"
+                    label="Căn hộ, số nhà, v.v. (tùy chọn)"
                     name="apartment"
                     value={formData.apartment}
                     onChange={handleInputChange}
@@ -299,21 +299,21 @@ export default function CheckoutPage() {
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <Input
-                      label="City"
+                      label="Thành phố"
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
                       required
                     />
                     <Input
-                      label="State"
+                      label="Tỉnh/Thành phố"
                       name="state"
                       value={formData.state}
                       onChange={handleInputChange}
                       required
                     />
                     <Input
-                      label="ZIP Code"
+                      label="Mã bưu điện"
                       name="zipCode"
                       value={formData.zipCode}
                       onChange={handleInputChange}
@@ -328,7 +328,7 @@ export default function CheckoutPage() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="your@email.com"
+                      placeholder="email@example.com"
                       required
                     />
                     <Input
@@ -346,7 +346,7 @@ export default function CheckoutPage() {
 
               {/* Shipping Method */}
               <div className="rounded-lg bg-white p-6 shadow-md">
-                <h2 className="mb-6 text-xl font-bold text-gray-900">Shipping Method</h2>
+                <h2 className="mb-6 text-xl font-bold text-gray-900">Phương thức giao hàng</h2>
                 <div className="space-y-3">
                   <label className="flex cursor-pointer items-center justify-between rounded-lg border-2 border-brand-purple-600 bg-purple-50 p-4">
                     <div className="flex items-center">
@@ -360,13 +360,13 @@ export default function CheckoutPage() {
                       <div className="ml-3">
                         <div className="flex items-center gap-2">
                           <FiTruck className="text-brand-purple-600" />
-                          <span className="font-medium text-gray-900">Standard Shipping</span>
+                          <span className="font-medium text-gray-900">Giao hàng tiêu chuẩn</span>
                         </div>
-                        <span className="text-sm text-gray-600">5-7 business days</span>
+                        <span className="text-sm text-gray-600">5-7 ngày làm việc</span>
                       </div>
                     </div>
                     <span className="font-semibold text-gray-900">
-                      {standardShippingCost === 0 ? 'FREE' : formatCurrency(standardShippingCost)}
+                      {standardShippingCost === 0 ? 'MIỄN PHÍ' : formatCurrency(standardShippingCost)}
                     </span>
                   </label>
 
@@ -382,9 +382,9 @@ export default function CheckoutPage() {
                       <div className="ml-3">
                         <div className="flex items-center gap-2">
                           <FiTruck className="text-gray-600" />
-                          <span className="font-medium text-gray-900">Express Shipping</span>
+                          <span className="font-medium text-gray-900">Giao hàng nhanh</span>
                         </div>
-                        <span className="text-sm text-gray-600">2-3 business days</span>
+                        <span className="text-sm text-gray-600">2-3 ngày làm việc</span>
                       </div>
                     </div>
                     <span className="font-semibold text-gray-900">
@@ -411,7 +411,7 @@ export default function CheckoutPage() {
                   <h2 className="text-xl font-bold text-gray-900">Phương thức thanh toán</h2>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <FiLock className="text-green-600" />
-                    <span>Thanh toán an toàn</span>
+                    <span>Thanh toán bảo mật</span>
                   </div>
                 </div>
 
@@ -507,9 +507,9 @@ export default function CheckoutPage() {
               </Button>
 
               <p className="text-center text-sm text-gray-600">
-                By placing your order, you agree to our{' '}
+                Bằng việc đặt hàng, bạn đồng ý với{' '}
                 <Link href="/terms" className="text-brand-purple-600 hover:underline">
-                  Terms & Conditions
+                  Điều khoản & Điều kiện
                 </Link>
               </p>
             </form>
@@ -518,7 +518,7 @@ export default function CheckoutPage() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="sticky top-8 rounded-lg bg-white p-6 shadow-md">
-              <h2 className="mb-6 text-xl font-bold text-gray-900">Order Summary</h2>
+              <h2 className="mb-6 text-xl font-bold text-gray-900">Tóm tắt đơn hàng</h2>
 
               {/* Cart Items */}
               <div className="mb-6 space-y-4">
@@ -537,7 +537,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <p className="text-sm text-gray-600">Số lượng: {item.quantity}</p>
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
                       {formatCurrency(item.price * item.quantity)}
@@ -549,23 +549,23 @@ export default function CheckoutPage() {
               <div className="border-t border-gray-200 pt-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal ({getTotalItems()} items)</span>
+                    <span className="text-gray-600">Tạm tính ({getTotalItems()} sản phẩm)</span>
                     <span className="font-medium text-gray-900">{formatCurrency(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Shipping</span>
+                    <span className="text-gray-600">Phí vận chuyển</span>
                     <span className="font-medium text-gray-900">
-                      {shipping === 0 ? 'FREE' : formatCurrency(shipping)}
+                      {shipping === 0 ? 'MIỄN PHÍ' : formatCurrency(shipping)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax</span>
+                    <span className="text-gray-600">Thuế</span>
                     <span className="font-medium text-gray-900">{formatCurrency(tax)}</span>
                   </div>
                 </div>
 
                 <div className="mt-4 flex justify-between border-t border-gray-200 pt-4">
-                  <span className="text-lg font-bold text-gray-900">Total</span>
+                  <span className="text-lg font-bold text-gray-900">Tổng cộng</span>
                   <span className="text-lg font-bold text-brand-purple-600">
                     {formatCurrency(total)}
                   </span>
@@ -576,15 +576,15 @@ export default function CheckoutPage() {
               <div className="mt-6 space-y-3 border-t border-gray-200 pt-6">
                 <div className="flex items-center gap-3 text-sm text-gray-600">
                   <FiLock className="text-green-600" />
-                  <span>Secure 256-bit SSL encryption</span>
+                  <span>Mã hóa SSL 256-bit bảo mật</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-gray-600">
                   <FiTruck className="text-blue-600" />
-                  <span>Free shipping on orders over $749</span>
+                  <span>Miễn phí vận chuyển cho đơn hàng trên 749.000₫</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-gray-600">
                   <FiCreditCard className="text-purple-600" />
-                  <span>Money-back guarantee</span>
+                  <span>Đảm bảo hoàn tiền</span>
                 </div>
               </div>
             </div>

@@ -136,16 +136,16 @@ export default function DashboardPage() {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     
-    if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    return date.toLocaleDateString();
+    if (diffInSeconds < 60) return 'Vừa xong';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
+    return date.toLocaleDateString('vi-VN');
   };
 
   const statCards = [
     {
-      title: 'Total Posts',
+      title: 'Tổng bài viết',
       value: stats.totalPosts,
       icon: FileText,
       trend: '+12%',
@@ -154,7 +154,7 @@ export default function DashboardPage() {
       bgColor: 'bg-blue-100 dark:bg-blue-900/20',
     },
     {
-      title: 'Published',
+      title: 'Đã xuất bản',
       value: stats.publishedPosts,
       icon: CheckCircle,
       trend: '+8%',
@@ -163,7 +163,7 @@ export default function DashboardPage() {
       bgColor: 'bg-green-100 dark:bg-green-900/20',
     },
     {
-      title: 'Drafts',
+      title: 'Bản nháp',
       value: stats.draftPosts,
       icon: Edit,
       trend: '-3%',
@@ -172,7 +172,7 @@ export default function DashboardPage() {
       bgColor: 'bg-yellow-100 dark:bg-yellow-900/20',
     },
     {
-      title: 'Topics',
+      title: 'Chủ đề',
       value: stats.totalTopics,
       icon: Folder,
       trend: '+2',
@@ -187,10 +187,10 @@ export default function DashboardPage() {
         {/* Page Header */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Dashboard
+            Bảng điều khiển
           </h1>
           <p className="text-muted-foreground">
-            Welcome back! Here's an overview of your content.
+            Chào mừng trở lại! Đây là tổng quan về nội dung của bạn.
           </p>
         </div>
 
@@ -233,7 +233,7 @@ export default function DashboardPage() {
                   >
                     {stat.trend}
                   </span>
-                  <span className="text-muted-foreground">from last month</span>
+                  <span className="text-muted-foreground">so với tháng trước</span>
                 </div>
               </div>
             ))}
@@ -243,7 +243,7 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
-            Quick Actions
+            Thao tác nhanh
           </h2>
           <div className="grid gap-4 md:grid-cols-3">
             <Link
@@ -259,10 +259,10 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
-                    Manage Posts
+                    Quản lý bài viết
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Create and edit blog posts
+                    Tạo và chỉnh sửa bài viết blog
                   </p>
                 </div>
                 <ArrowUpRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
@@ -282,10 +282,10 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
-                    Topics
+                    Chủ đề
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Organize content by topics
+                    Tổ chức nội dung theo chủ đề
                   </p>
                 </div>
                 <ArrowUpRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
@@ -305,10 +305,10 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
-                    Media Library
+                    Thư viện Media
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Upload and manage media files
+                    Tải lên và quản lý file media
                   </p>
                 </div>
                 <ArrowUpRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
@@ -320,7 +320,7 @@ export default function DashboardPage() {
         {/* Recent Activity */}
         <div>
           <h2 className="mb-4 text-xl font-semibold text-foreground">
-            Recent Activity
+            Hoạt động gần đây
           </h2>
           <div className="rounded-lg border border-border bg-card">
             {loadingActivities ? (
@@ -333,10 +333,10 @@ export default function DashboardPage() {
                   <TrendingUp className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <h3 className="text-lg font-medium text-card-foreground mb-2">
-                  No activity yet
+                  Chưa có hoạt động
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Activity will appear here as you make changes to your content.
+                  Hoạt động sẽ hiển thị ở đây khi bạn thực hiện thay đổi nội dung.
                 </p>
               </div>
             ) : (
@@ -353,7 +353,7 @@ export default function DashboardPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-sm font-medium text-foreground">
-                              {activity.user_name || 'System'}
+                              {activity.user_name || 'Hệ thống'}
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {activity.action} {activity.entity_type}

@@ -135,7 +135,7 @@ export default function BrandsPage() {
             : b
         )
       );
-      alert('Failed to update logo');
+      alert('Không thể cập nhật logo');
     } finally {
       closeLogoPicker();
     }
@@ -196,21 +196,21 @@ export default function BrandsPage() {
       setShowDialog(false);
       fetchBrands();
     } catch (err) {
-      alert('Failed to save brand');
+      alert('Không thể lưu thương hiệu');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this brand?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa thương hiệu này?')) return;
     try {
       await axios.delete(buildApiUrl(`/api/brands/${id}`), {
         withCredentials: true
       });
       fetchBrands();
     } catch (error) {
-      alert('Failed to delete brand');
+      alert('Không thể xóa thương hiệu');
     }
   };
 
@@ -230,7 +230,7 @@ export default function BrandsPage() {
       setBrands(prev =>
         prev.map(b => (b.id === brand.id ? { ...b, is_featured: !next } : b))
       );
-      alert('Failed to update featured status');
+      alert('Không thể cập nhật trạng thái nổi bật');
     }
   };
 
@@ -238,12 +238,12 @@ export default function BrandsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Brands</h1>
-          <p className="text-sm text-muted-foreground">Manage product brands</p>
+          <h1 className="text-2xl font-bold text-foreground">Thương hiệu</h1>
+          <p className="text-sm text-muted-foreground">Quản lý thương hiệu sản phẩm</p>
         </div>
         <button onClick={openCreate} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
           <Plus className="h-4 w-4" />
-          Add Brand
+          Thêm thương hiệu
         </button>
       </div>
 
@@ -254,8 +254,8 @@ export default function BrandsPage() {
       ) : brands.length === 0 ? (
         <EmptyState
           icon={Tag}
-          title="No brands yet"
-          description="Add brands to organize products by manufacturer."
+          title="Chưa có thương hiệu nào"
+          description="Thêm thương hiệu để tổ chức sản phẩm theo nhà sản xuất."
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -285,16 +285,16 @@ export default function BrandsPage() {
                       onClick={() => openLogoPicker(brand)}
                       className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100 text-white text-xs"
                     >
-                      {isUpdatingLogo && logoPickerBrand?.id === brand.id ? 'Saving…' : 'Change Logo'}
+                      {isUpdatingLogo && logoPickerBrand?.id === brand.id ? 'Đang lưu…' : 'Đổi logo'}
                     </button>
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium text-card-foreground">{brand.name}</h3>
                       {brand.is_featured && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/20 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300">
                           <Star className="h-3 w-3" />
-                          Featured
+                          Nổi bật
                         </span>
                       )}
                     </div>
@@ -309,7 +309,7 @@ export default function BrandsPage() {
                         rel="noopener noreferrer"
                         className="text-xs text-primary hover:underline mt-2 inline-block"
                       >
-                        Visit website
+                        Truy cập website
                       </a>
                     )}
                   </div>
@@ -317,7 +317,7 @@ export default function BrandsPage() {
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                 <label className="flex items-center gap-2">
-                  <span>Featured</span>
+                  <span>Nổi bật</span>
                   <span className="relative inline-flex items-center">
                     <input
                       type="checkbox"
@@ -353,10 +353,10 @@ export default function BrandsPage() {
       {showDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowDialog(false)}>
           <div className="w-full max-w-md rounded-lg bg-card border border-border p-6 shadow-xl" onClick={(e)=>e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Edit Brand' : 'Create Brand'}</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Chỉnh sửa thương hiệu' : 'Tạo thương hiệu'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1 text-foreground">Name</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Tên</label>
                 <input
                   className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                   value={form.name}
@@ -387,11 +387,11 @@ export default function BrandsPage() {
                       setSlugManuallyEdited(false);
                     }
                   }}
-                  placeholder={form.name ? toSlug(form.name) : "auto from name"}
+                  placeholder={form.name ? toSlug(form.name) : "tự động từ tên"}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1 text-foreground">Description</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Mô tả</label>
                 <textarea
                   className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                   rows={3}
@@ -408,9 +408,9 @@ export default function BrandsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium">Logo</label>
+                <label className="block text-sm font-medium text-foreground">Logo</label>
                 <MediaPicker
-                  label="Choose Logo"
+                  label="Chọn Logo"
                   value={form.logo_id}
                   onChange={(value) =>
                     setForm((prev) => ({ ...prev, logo_id: (value as string) || '' }))
@@ -428,16 +428,16 @@ export default function BrandsPage() {
                   }
                   className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-0"
                 />
-                Featured brand
+                Thương hiệu nổi bật
               </label>
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={()=>setShowDialog(false)} className="rounded border border-input bg-background text-foreground hover:bg-accent px-3 py-2">Cancel</button>
+                <button type="button" onClick={()=>setShowDialog(false)} className="rounded border border-input bg-background text-foreground hover:bg-accent px-3 py-2">Hủy</button>
                 <button
                   type="submit"
                   disabled={isSaving}
                   className="rounded bg-primary text-primary-foreground px-3 py-2 hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {isSaving ? 'Saving...' : 'Save'}
+                  {isSaving ? 'Đang lưu...' : 'Lưu'}
                 </button>
               </div>
             </form>
@@ -452,7 +452,7 @@ export default function BrandsPage() {
         modalOnly
         isOpen={!!logoPickerBrand}
         onClose={closeLogoPicker}
-        label="Brand Logo"
+        label="Logo thương hiệu"
       />
     </div>
   );

@@ -492,7 +492,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     if (!product.description) {
       return (
         <p className="text-gray-600">
-          Product description is being updated. Please contact support if you need more details.
+          Mô tả sản phẩm đang được cập nhật. Vui lòng liên hệ hỗ trợ nếu bạn cần thêm thông tin chi tiết.
         </p>
       );
     }

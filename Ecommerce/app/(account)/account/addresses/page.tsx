@@ -249,9 +249,9 @@ export default function AddressesPage() {
   };
 
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Account', href: '/account' },
-    { label: 'Addresses', href: '/account/addresses' },
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Tài khoản', href: '/account' },
+    { label: 'Địa chỉ', href: '/account/addresses' },
   ];
 
   if (isLoading) {

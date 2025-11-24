@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,7 @@ import {
   Folder,
   Tags,
   ChevronRight,
+  ChevronLeft,
   Package,
   Grid3x3,
   Tag,
@@ -30,6 +32,68 @@ import {
   PhoneCall,
   Info,
 } from 'lucide-react';
+
+// Sidebar Context
+const SidebarContext = createContext<{
+  isCollapsed: boolean;
+  isMobile: boolean;
+  toggleCollapse: () => void;
+}>({
+  isCollapsed: false,
+  isMobile: false,
+  toggleCollapse: () => {},
+});
+
+export const useSidebar = () => useContext(SidebarContext);
+
+// Sidebar Provider Component
+export function SidebarProvider({ children }: { children: React.ReactNode }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768; // md breakpoint
+      setIsMobile(mobile);
+      // Auto-collapse on mobile
+      if (mobile) {
+        setIsCollapsed(true);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Load collapsed state from localStorage (only on desktop)
+  useEffect(() => {
+    if (!isMobile) {
+      const saved = localStorage.getItem('sidebar-collapsed');
+      if (saved !== null) {
+        setIsCollapsed(JSON.parse(saved));
+      }
+    }
+  }, [isMobile]);
+
+  // Save collapsed state to localStorage (only on desktop)
+  useEffect(() => {
+    if (!isMobile) {
+      localStorage.setItem('sidebar-collapsed', JSON.stringify(isCollapsed));
+    }
+  }, [isCollapsed, isMobile]);
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => !prev);
+  };
+
+  return (
+    <SidebarContext.Provider value={{ isCollapsed, isMobile, toggleCollapse }}>
+      {children}
+    </SidebarContext.Provider>
+  );
+}
 
 const navigation = [
   {
@@ -194,35 +258,76 @@ const navigation = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { appearance } = useAppearance();
+  const { isCollapsed, isMobile, toggleCollapse } = useSidebar();
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-sidebar-border bg-sidebar">
-      <div className="flex h-full flex-col">
-        {/* Logo */}
-        <div className="flex h-16 items-center border-b border-sidebar-border px-6">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            {appearance?.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={appearance.logo_url} alt="Logo" className="h-8 w-8 rounded-lg object-cover" />
-            ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-                P
-              </div>
-            )}
-            <span className="text-lg font-semibold text-sidebar-foreground">
-              PressUp CMS
-            </span>
-          </Link>
-        </div>
+    <>
+      {/* Overlay for mobile */}
+      {isMobile && !isCollapsed && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={toggleCollapse}
+        />
+      )}
+      <aside
+        className={cn(
+          'fixed left-0 top-0 z-40 h-screen border-r border-sidebar-border bg-sidebar transition-all duration-300',
+          isCollapsed ? 'w-16' : 'w-64',
+          // On mobile, sidebar slides in/out
+          isMobile && (isCollapsed ? '-translate-x-full' : 'translate-x-0')
+        )}
+      >
+        <div className="flex h-full flex-col">
+          {/* Logo */}
+          <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
+            <Link
+              href="/dashboard"
+              className={cn(
+                'flex items-center gap-2 transition-opacity',
+                isCollapsed ? 'w-full justify-center' : ''
+              )}
+            >
+              {appearance?.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={appearance.logo_url}
+                  alt="Logo"
+                  className="h-8 w-8 rounded-lg object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm flex-shrink-0">
+                  P
+                </div>
+              )}
+              {!isCollapsed && (
+                <span className="text-lg font-semibold text-sidebar-foreground whitespace-nowrap">
+                  Banyco CMS
+                </span>
+              )}
+            </Link>
+            <button
+              onClick={toggleCollapse}
+              className="p-1.5 rounded-lg hover:bg-sidebar-accent/50 text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors flex-shrink-0"
+              title={isCollapsed ? 'Mở rộng menu' : 'Thu nhỏ menu'}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
+            </button>
+          </div>
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto scrollbar-thin px-3 py-4">
           <div className="space-y-6">
             {navigation.map((section) => (
               <div key={section.title}>
-                <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
-                  {section.title}
-                </h3>
+                {!isCollapsed && (
+                  <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
+                    {section.title}
+                  </h3>
+                )}
                 <ul className="space-y-1">
                   {section.items.map((item) => {
                     // Exact match only - no parent highlighting
@@ -236,13 +341,19 @@ export function AppSidebar() {
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                             isActive
                               ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                              : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                              : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
+                            isCollapsed ? 'justify-center' : ''
                           )}
+                          title={isCollapsed ? item.title : undefined}
                         >
                           <item.icon className="h-4 w-4 flex-shrink-0" />
-                          <span className="flex-1">{item.title}</span>
-                          {isActive && (
-                            <ChevronRight className="h-4 w-4 text-primary" />
+                          {!isCollapsed && (
+                            <>
+                              <span className="flex-1">{item.title}</span>
+                              {isActive && (
+                                <ChevronRight className="h-4 w-4 text-primary" />
+                              )}
+                            </>
                           )}
                         </Link>
                       </li>
@@ -255,12 +366,15 @@ export function AppSidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-sidebar-border p-4">
-          <div className="text-xs text-sidebar-foreground/50 text-center">
-            Powered by <span className="font-semibold">PressUp</span>
+        {!isCollapsed && (
+          <div className="border-t border-sidebar-border p-4">
+            <div className="text-xs text-sidebar-foreground/50 text-center">
+              Được phát hành bởi <span className="font-semibold">Pressup.vn</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </aside>
+    </>
   );
 }

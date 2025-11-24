@@ -78,9 +78,9 @@ export default function OrdersPage() {
   }, []);
 
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Account', href: '/account' },
-    { label: 'Orders', href: '/account/orders' },
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Tài khoản', href: '/account' },
+    { label: 'Đơn hàng', href: '/account/orders' },
   ];
 
   if (isLoading) {

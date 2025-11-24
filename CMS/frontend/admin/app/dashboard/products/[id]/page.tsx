@@ -228,7 +228,7 @@ export default function ProductFormPage() {
           fetchProduct(retryCount + 1);
         }, delay);
       } else {
-        alert(`Failed to load product: ${errorMessage}\n\nPlease refresh the page or try again later.`);
+        alert(`Không thể tải sản phẩm: ${errorMessage}\n\nVui lòng làm mới trang hoặc thử lại sau.`);
       }
     } finally {
       setLoadingProduct(false);
@@ -273,7 +273,7 @@ export default function ProductFormPage() {
       router.push('/dashboard/products');
     } catch (error: any) {
       console.error('Failed to save product:', error);
-      const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Failed to save product';
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Không thể lưu sản phẩm';
       alert(errorMsg);
     } finally {
       setLoading(false);
@@ -310,18 +310,18 @@ export default function ProductFormPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            {isEdit ? 'Edit Product' : 'Create Product'}
+            {isEdit ? 'Chỉnh sửa sản phẩm' : 'Tạo sản phẩm'}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {isEdit ? 'Update product details' : 'Add a new product to your catalog'}
+            {isEdit ? 'Cập nhật chi tiết sản phẩm' : 'Thêm sản phẩm mới vào catalog của bạn'}
           </p>
         </div>
         <Link
           href="/dashboard/products"
-          className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg border border-input bg-background text-foreground px-3 py-2 text-sm hover:bg-accent transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          Quay lại
         </Link>
       </div>
 
@@ -329,7 +329,7 @@ export default function ProductFormPage() {
       {error && (
         <div className="rounded-lg border border-red-500 bg-red-50 dark:bg-red-900/20 p-4">
           <p className="text-sm text-red-800 dark:text-red-400">
-            <strong>Error loading product:</strong> {error}
+            <strong>Lỗi khi tải sản phẩm:</strong> {error}
           </p>
           <button
             type="button"
@@ -340,7 +340,7 @@ export default function ProductFormPage() {
             }}
             className="mt-2 text-sm text-red-600 dark:text-red-400 underline hover:no-underline"
           >
-            Retry
+            Thử lại
           </button>
         </div>
       )}
@@ -349,7 +349,7 @@ export default function ProductFormPage() {
       {loadingProduct && (
         <div className="rounded-lg border border-border bg-card p-6 text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent mb-2" />
-          <p className="text-sm text-muted-foreground">Loading product data...</p>
+          <p className="text-sm text-muted-foreground">Đang tải dữ liệu sản phẩm...</p>
         </div>
       )}
 
@@ -360,11 +360,11 @@ export default function ProductFormPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Info */}
           <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-            <h3 className="font-medium text-card-foreground">Basic Information</h3>
+            <h3 className="font-medium text-card-foreground">Thông tin cơ bản</h3>
             
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Product Name *
+                Tên sản phẩm *
               </label>
               <input
                 type="text"
@@ -404,22 +404,22 @@ export default function ProductFormPage() {
                   }
                 }}
                 className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder={formData.name ? generateSlug(formData.name) : "auto-generated-from-name"}
+                placeholder={formData.name ? generateSlug(formData.name) : "tự-động-tạo-từ-tên"}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                URL-friendly version of the name. Auto-generated if left empty.
+                Phiên bản thân thiện với URL của tên. Tự động tạo nếu để trống.
               </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Description
+                Mô tả
               </label>
               <RichTextEditor
                 key={`editor-${params.id || 'new'}`}
                 value={formData.description}
                 onChange={(html) => setFormData({ ...formData, description: html })}
-                placeholder="Enter product description..."
+                placeholder="Nhập mô tả sản phẩm..."
               />
             </div>
           </div>
@@ -432,7 +432,7 @@ export default function ProductFormPage() {
               {/* Left: Thumbnail */}
               <div className="flex-shrink-0">
                 <MediaPicker
-                  label="Thumbnail (Main Image)"
+                  label="Hình đại diện (Hình chính)"
                   value={thumbnailId}
                   onChange={(value) => setThumbnailId(value as string)}
                   multiple={false}
@@ -443,7 +443,7 @@ export default function ProductFormPage() {
               {/* Right: Gallery */}
               <div className="flex-1">
                 <MediaPicker
-                  label="Gallery Images"
+                  label="Hình ảnh thư viện"
                   value={galleryImages}
                   onChange={(value) => setGalleryImages(value as string[])}
                   multiple={true}
@@ -456,12 +456,12 @@ export default function ProductFormPage() {
 
           {/* Pricing */}
           <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-            <h3 className="font-medium text-card-foreground">Pricing & Inventory</h3>
+            <h3 className="font-medium text-card-foreground">Giá & Kho hàng</h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Price *
+                  Giá *
                 </label>
                 <input
                   type="number"
@@ -490,7 +490,7 @@ export default function ProductFormPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Compare at Price
+                  Giá so sánh
                 </label>
                 <input
                   type="number"
@@ -551,20 +551,20 @@ export default function ProductFormPage() {
         <div className="space-y-6">
           {/* Status */}
           <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-            <h3 className="font-medium text-card-foreground">Status</h3>
+            <h3 className="font-medium text-card-foreground">Trạng thái</h3>
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-4 py-2 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
+              <option value="draft">Bản nháp</option>
+              <option value="published">Đã xuất bản</option>
+              <option value="archived">Đã lưu trữ</option>
             </select>
 
             <div className="space-y-3">
               <label className="block text-sm font-medium text-foreground">
-                Merchandising
+                Tiếp thị
               </label>
 
               <label className="flex items-center gap-2 text-sm text-foreground">
@@ -574,7 +574,7 @@ export default function ProductFormPage() {
                   onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
                   className="rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-0"
                 />
-                Featured product
+                Sản phẩm nổi bật
               </label>
 
               <label className="flex items-center gap-2 text-sm text-foreground">
@@ -584,7 +584,7 @@ export default function ProductFormPage() {
                   onChange={(e) => setFormData({ ...formData, is_best_seller: e.target.checked })}
                   className="rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-0"
                 />
-                Best seller
+                Bán chạy nhất
               </label>
             </div>
           </div>
@@ -642,15 +642,15 @@ export default function ProductFormPage() {
 
           {/* Organization */}
           <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-            <h3 className="font-medium text-card-foreground">Organization</h3>
+            <h3 className="font-medium text-card-foreground">Tổ chức</h3>
             
             <div>
               <label className="block text-sm font-medium text-foreground mb-3">
-                Categories
+                Danh mục
               </label>
               <div className="space-y-2 max-h-60 overflow-y-auto p-2 border border-input rounded-lg bg-background">
                 {categories.length === 0 ? (
-                  <p className="text-sm text-muted-foreground px-2 py-1">No categories available</p>
+                  <p className="text-sm text-muted-foreground px-2 py-1">Không có danh mục nào</p>
                 ) : (
                   categories.map((cat) => (
                     <label key={cat.id} className="flex items-center gap-2 px-2 py-1 hover:bg-accent rounded cursor-pointer">
@@ -667,21 +667,21 @@ export default function ProductFormPage() {
               </div>
               {selectedCategories.length > 0 && (
                 <p className="text-xs text-muted-foreground mt-2">
-                  {selectedCategories.length} {selectedCategories.length === 1 ? 'category' : 'categories'} selected
+                  Đã chọn {selectedCategories.length} {selectedCategories.length === 1 ? 'danh mục' : 'danh mục'}
                 </p>
               )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Brand
+                Thương hiệu
               </label>
               <select
                 value={formData.brand_id}
                 onChange={(e) => setFormData({ ...formData, brand_id: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-4 py-2 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
-                <option value="">No brand</option>
+                <option value="">Không có thương hiệu</option>
                 {brands.map((brand) => (
                   <option key={brand.id} value={brand.id}>{brand.name}</option>
                 ))}
@@ -697,7 +697,7 @@ export default function ProductFormPage() {
               className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {loading ? 'Saving...' : isEdit ? 'Update Product' : 'Create Product'}
+              {loading ? 'Đang lưu...' : isEdit ? 'Cập nhật sản phẩm' : 'Tạo sản phẩm'}
             </button>
           </div>
         </div>

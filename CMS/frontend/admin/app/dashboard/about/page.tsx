@@ -159,11 +159,11 @@ export default function AboutPage() {
         },
         { withCredentials: true }
       );
-      alert('Welcome section saved successfully!');
+      alert('Đã lưu phần Chào mừng thành công!');
       fetchSections();
     } catch (error: any) {
       console.error('[handleSaveWelcome] Error:', error);
-      alert(error.response?.data?.error || 'Failed to save welcome section');
+      alert(error.response?.data?.error || 'Không thể lưu phần Chào mừng');
     } finally {
       setSaving(null);
     }
@@ -184,11 +184,11 @@ export default function AboutPage() {
         },
         { withCredentials: true }
       );
-      alert('Giving Back section saved successfully!');
+      alert('Đã lưu phần Giá trị cộng đồng thành công!');
       fetchSections();
     } catch (error: any) {
       console.error('[handleSaveGivingBack] Error:', error);
-      alert(error.response?.data?.error || 'Failed to save giving back section');
+      alert(error.response?.data?.error || 'Không thể lưu phần Giá trị cộng đồng');
     } finally {
       setSaving(null);
     }
@@ -247,38 +247,38 @@ export default function AboutPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">About Page Management</h1>
-        <p className="text-sm text-muted-foreground">Manage Welcome and Giving Back sections</p>
+        <h1 className="text-2xl font-bold text-foreground">Quản lý trang Giới thiệu</h1>
+        <p className="text-sm text-muted-foreground">Quản lý phần Chào mừng và Giá trị cộng đồng</p>
       </div>
 
       {/* Welcome Section */}
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Welcome Section</h2>
+          <h2 className="text-xl font-semibold text-foreground">Phần Chào mừng</h2>
           <button
             onClick={handleSaveWelcome}
             disabled={saving === 'welcome'}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {saving === 'welcome' ? 'Saving...' : 'Save'}
+            {saving === 'welcome' ? 'Đang lưu...' : 'Lưu'}
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Tiêu đề</label>
             <input
               type="text"
-              className="w-full rounded-md border border-input bg-background px-3 py-2"
+              className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2"
               value={welcomeForm.title}
               onChange={(e) => setWelcomeForm({ ...welcomeForm, title: e.target.value })}
-              placeholder="Section title"
+              placeholder="Tiêu đề phần"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Content</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Nội dung</label>
             <div className="w-full" style={{ minWidth: 0, overflow: 'visible' }}>
               <RichTextEditor
                 key="welcome-editor"
@@ -291,7 +291,7 @@ export default function AboutPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Image</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Hình ảnh</label>
             {welcomeForm.image_url ? (
               <div className="relative group mb-2">
                 <img
@@ -314,30 +314,30 @@ export default function AboutPage() {
                 className="w-full max-w-md h-48 rounded-lg border-2 border-dashed border-input hover:border-primary hover:bg-accent transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground"
               >
                 <ImageIcon className="h-8 w-8" />
-                <span className="text-sm">Choose from Media Library</span>
+                <span className="text-sm">Chọn từ Thư viện Media</span>
               </button>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Button Text</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Văn bản nút</label>
               <input
                 type="text"
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
+                className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2"
                 value={welcomeForm.button_text}
                 onChange={(e) => setWelcomeForm({ ...welcomeForm, button_text: e.target.value })}
-                placeholder="e.g., Tìm hiểu thêm"
+                placeholder="Ví dụ: Tìm hiểu thêm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Button Link</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Liên kết nút</label>
               <input
                 type="text"
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
+                className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2"
                 value={welcomeForm.button_link}
                 onChange={(e) => setWelcomeForm({ ...welcomeForm, button_link: e.target.value })}
-                placeholder="/products or #"
+                placeholder="/products hoặc #"
               />
             </div>
           </div>
@@ -347,31 +347,31 @@ export default function AboutPage() {
       {/* Giving Back Section */}
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Giving Back Section</h2>
+          <h2 className="text-xl font-semibold text-foreground">Phần Giá trị cộng đồng</h2>
           <button
             onClick={handleSaveGivingBack}
             disabled={saving === 'giving_back'}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {saving === 'giving_back' ? 'Saving...' : 'Save'}
+            {saving === 'giving_back' ? 'Đang lưu...' : 'Lưu'}
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Tiêu đề</label>
             <input
               type="text"
-              className="w-full rounded-md border border-input bg-background px-3 py-2"
+              className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2"
               value={givingBackForm.title}
               onChange={(e) => setGivingBackForm({ ...givingBackForm, title: e.target.value })}
-              placeholder="Section title"
+              placeholder="Tiêu đề phần"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Content</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Nội dung</label>
             <div className="w-full" style={{ minWidth: 0, overflow: 'visible' }}>
               <RichTextEditor
                 key="giving-back-editor"
@@ -384,7 +384,7 @@ export default function AboutPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Image</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Hình ảnh</label>
             {givingBackForm.image_url ? (
               <div className="relative group mb-2">
                 <img
@@ -407,20 +407,20 @@ export default function AboutPage() {
                 className="w-full max-w-md h-48 rounded-lg border-2 border-dashed border-input hover:border-primary hover:bg-accent transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground"
               >
                 <ImageIcon className="h-8 w-8" />
-                <span className="text-sm">Choose from Media Library</span>
+                <span className="text-sm">Chọn từ Thư viện Media</span>
               </button>
             )}
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium">List Items</label>
+              <label className="block text-sm font-medium text-foreground">Mục danh sách</label>
               <button
                 type="button"
                 onClick={handleAddListItem}
                 className="text-sm text-primary hover:underline"
               >
-                + Add Item
+                + Thêm mục
               </button>
             </div>
             <div className="space-y-3">
@@ -429,16 +429,16 @@ export default function AboutPage() {
                   <div className="flex-1 space-y-2">
                     <input
                       type="text"
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
                       value={item.title}
                       onChange={(e) => handleUpdateListItem(index, 'title', e.target.value)}
-                      placeholder="Item title"
+                      placeholder="Tiêu đề mục"
                     />
                     <textarea
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
                       value={item.description}
                       onChange={(e) => handleUpdateListItem(index, 'description', e.target.value)}
-                      placeholder="Item description"
+                      placeholder="Mô tả mục"
                       rows={2}
                     />
                   </div>
@@ -447,13 +447,13 @@ export default function AboutPage() {
                     onClick={() => handleRemoveListItem(index)}
                     className="px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md"
                   >
-                    Remove
+                    Xóa
                   </button>
                 </div>
               ))}
               {givingBackForm.list_items.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No list items. Click "Add Item" to add one.
+                  Chưa có mục nào. Nhấp "Thêm mục" để thêm.
                 </p>
               )}
             </div>

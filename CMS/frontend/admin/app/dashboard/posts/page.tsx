@@ -81,7 +81,7 @@ export default function PostsPage() {
       setPosts(items);
     } catch (error) {
       console.error('Failed to fetch posts:', error);
-      toast.error('Failed to load posts');
+      toast.error('Không thể tải bài viết');
       setPosts([]);
     } finally {
       setLoading(false);
@@ -89,7 +89,7 @@ export default function PostsPage() {
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa "${title}"?`)) return;
 
     try {
       const response = await fetch(buildApiUrl(`/api/posts/${id}`), {
@@ -101,12 +101,12 @@ export default function PostsPage() {
         throw new Error('Failed to delete post');
       }
       
-      toast.success('Post deleted successfully');
+      toast.success('Xóa bài viết thành công');
       // Update state without full reload
       setPosts(prevPosts => prevPosts.filter(p => p.id !== id));
     } catch (error) {
       console.error('Failed to delete post:', error);
-      toast.error('Failed to delete post');
+      toast.error('Không thể xóa bài viết');
     }
   };
 
@@ -123,14 +123,14 @@ export default function PostsPage() {
         throw new Error('Failed to update status');
       }
       
-      toast.success(`Status updated to ${newStatus}`);
+      toast.success(`Cập nhật trạng thái thành ${newStatus === 'published' ? 'Đã xuất bản' : newStatus === 'draft' ? 'Bản nháp' : 'Đã lưu trữ'}`);
       // Update state without full reload
       setPosts(prevPosts => 
         prevPosts.map(p => p.id === id ? { ...p, status: newStatus } : p)
       );
     } catch (error) {
       console.error('Failed to update status:', error);
-      toast.error('Failed to update status');
+      toast.error('Không thể cập nhật trạng thái');
     }
   };
 
@@ -197,15 +197,15 @@ export default function PostsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Posts</h1>
+            <h1 className="text-2xl font-bold text-foreground">Bài viết</h1>
             <p className="text-sm text-muted-foreground">
-              {filteredAndSortedPosts.length} {filteredAndSortedPosts.length === 1 ? 'post' : 'posts'} total
+              Tổng cộng {filteredAndSortedPosts.length} {filteredAndSortedPosts.length === 1 ? 'bài viết' : 'bài viết'}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/dashboard/posts/new" className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
               <Plus className="h-4 w-4" />
-              New Post
+              Bài viết mới
             </Link>
           </div>
         </div>
@@ -216,7 +216,7 @@ export default function PostsPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search by title, slug, author, or status..."
+              placeholder="Tìm kiếm theo tiêu đề, slug, tác giả hoặc trạng thái..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -226,19 +226,19 @@ export default function PostsPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground whitespace-nowrap">Show:</label>
+            <label className="text-sm text-muted-foreground whitespace-nowrap">Hiển thị:</label>
             <select
               value={pageSize}
               onChange={(e) => {
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="rounded-lg border border-input bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
-              <option value={0}>All</option>
+              <option value={0}>Tất cả</option>
             </select>
             <div className="flex items-center gap-1 border border-input rounded-lg">
               <button
@@ -248,7 +248,7 @@ export default function PostsPage() {
                     ? 'bg-accent text-accent-foreground' 
                     : 'text-muted-foreground hover:bg-muted'
                 }`}
-                title="List View"
+                title="Xem dạng danh sách"
               >
                 <List className="h-5 w-5" />
               </button>
@@ -259,7 +259,7 @@ export default function PostsPage() {
                     ? 'bg-accent text-accent-foreground' 
                     : 'text-muted-foreground hover:bg-muted'
                 }`}
-                title="Card View"
+                title="Xem dạng thẻ"
               >
                 <Grid className="h-5 w-5" />
               </button>
@@ -269,7 +269,7 @@ export default function PostsPage() {
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="mt-2 text-muted-foreground">Loading posts...</p>
+            <p className="mt-2 text-muted-foreground">Đang tải bài viết...</p>
           </div>
         ) : posts.length === 0 ? (
           <div className="rounded-lg border border-border bg-card p-12 text-center">
@@ -278,18 +278,18 @@ export default function PostsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-card-foreground mb-2">No posts yet</h3>
-            <p className="text-sm text-muted-foreground">Get started by creating a new post.</p>
+            <h3 className="text-lg font-medium text-card-foreground mb-2">Chưa có bài viết nào</h3>
+            <p className="text-sm text-muted-foreground">Bắt đầu bằng cách tạo bài viết mới.</p>
             <div className="mt-6">
               <Link href="/dashboard/posts/new" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
                 <Plus className="h-4 w-4" />
-                New Post
+                Bài viết mới
               </Link>
             </div>
           </div>
         ) : filteredAndSortedPosts.length === 0 ? (
           <div className="rounded-lg border border-border bg-card p-12 text-center">
-            <p className="text-muted-foreground">No posts match your search criteria.</p>
+            <p className="text-muted-foreground">Không tìm thấy bài viết nào phù hợp với tiêu chí tìm kiếm.</p>
           </div>
         ) : (
           <>
@@ -304,7 +304,7 @@ export default function PostsPage() {
                         className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted/70 transition-colors"
                       >
                         <div className="flex items-center">
-                          Title
+                          Tiêu đề
                           <SortIcon field="title" />
                         </div>
                       </th>
@@ -312,14 +312,14 @@ export default function PostsPage() {
                         Slug
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Author
+                        Tác giả
                       </th>
                       <th 
                         onClick={() => handleSort('status')}
                         className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted/70 transition-colors"
                       >
                         <div className="flex items-center">
-                          Status
+                          Trạng thái
                           <SortIcon field="status" />
                         </div>
                       </th>
@@ -328,12 +328,12 @@ export default function PostsPage() {
                         className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted/70 transition-colors"
                       >
                         <div className="flex items-center">
-                          Date
+                          Ngày
                           <SortIcon field="created_at" />
                         </div>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Actions
+                        Thao tác
                       </th>
                     </tr>
                   </thead>
@@ -367,9 +367,9 @@ export default function PostsPage() {
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                            <option value="archived">Archived</option>
+                            <option value="draft">Bản nháp</option>
+                            <option value="published">Đã xuất bản</option>
+                            <option value="archived">Đã lưu trữ</option>
                           </select>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
@@ -386,14 +386,14 @@ export default function PostsPage() {
                               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
                             >
                               <Pencil className="h-3.5 w-3.5" />
-                              <span>Edit</span>
+                              <span>Chỉnh sửa</span>
                             </Link>
                             <button
                               onClick={() => handleDelete(post.id, post.title)}
                               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
-                              <span>Delete</span>
+                              <span>Xóa</span>
                             </button>
                           </div>
                         </td>
@@ -451,28 +451,28 @@ export default function PostsPage() {
                         <div className="space-y-2 mt-auto pt-3 border-t border-border">
                           {/* Status */}
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">Status</span>
+                            <span className="text-xs text-muted-foreground">Trạng thái</span>
                             <select
                               value={post.status}
                               onChange={(e) => handleStatusChange(post.id, e.target.value)}
                               onClick={(e) => e.stopPropagation()}
                               className={`px-2 py-1 text-xs font-semibold rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer ${
                                 post.status === 'published'
-                                  ? 'bg-green-100 text-green-800'
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                                   : post.status === 'draft'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-gray-100 text-gray-800'
+                                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                  : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
                               }`}
                             >
-                              <option value="draft">Draft</option>
-                              <option value="published">Published</option>
-                              <option value="archived">Archived</option>
+                              <option value="draft">Bản nháp</option>
+                              <option value="published">Đã xuất bản</option>
+                              <option value="archived">Đã lưu trữ</option>
                             </select>
                           </div>
 
                           {/* Author */}
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">Author</span>
+                            <span className="text-xs text-muted-foreground">Tác giả</span>
                             <span className="text-sm text-foreground truncate max-w-[60%]">
                               {authors[post.author_id] || '-'}
                             </span>
@@ -482,7 +482,7 @@ export default function PostsPage() {
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              Date
+                              Ngày
                             </span>
                             <span className="text-xs text-foreground">
                               {new Date(post.published_at || post.created_at).toLocaleDateString('en-US', {
@@ -502,14 +502,14 @@ export default function PostsPage() {
                           className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
                         >
                           <Pencil className="h-3.5 w-3.5" />
-                          <span>Edit</span>
+                          <span>Chỉnh sửa</span>
                         </Link>
                         <button
                           onClick={() => handleDelete(post.id, post.title)}
                           className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors text-sm"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
-                          <span>Delete</span>
+                          <span>Xóa</span>
                         </button>
                       </div>
                     </div>
@@ -522,7 +522,7 @@ export default function PostsPage() {
             {pageSize > 0 && totalPages > 1 && (
               <div className="flex items-center justify-between px-6 py-4 bg-card border border-border rounded-lg">
                 <div className="text-sm text-muted-foreground">
-                  Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredAndSortedPosts.length)} of {filteredAndSortedPosts.length} posts
+                  Hiển thị {((currentPage - 1) * pageSize) + 1} đến {Math.min(currentPage * pageSize, filteredAndSortedPosts.length)} trong tổng số {filteredAndSortedPosts.length} bài viết
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -530,7 +530,7 @@ export default function PostsPage() {
                     disabled={currentPage === 1}
                     className="px-3 py-1.5 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Previous
+                    Trước
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -561,7 +561,7 @@ export default function PostsPage() {
                     disabled={currentPage === totalPages}
                     className="px-3 py-1.5 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Next
+                    Sau
                   </button>
                 </div>
               </div>

@@ -14,8 +14,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "PressUp CMS - Admin Dashboard",
-  description: "Modern Content Management System",
+  title: "Banyco CMS - Bảng điều khiển",
+  description: "Hệ thống quản lý nội dung hiện đại",
 };
 
 // DOM patch is now imported from @/lib/dom-safe-patch

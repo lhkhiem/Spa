@@ -100,7 +100,7 @@ export default function ConsultationsPage() {
       setTotalPages(response.data?.pagination?.totalPages || 1);
     } catch (error) {
       console.error('Failed to fetch consultation submissions:', error);
-      toast.error('Failed to load consultation submissions');
+      toast.error('Không thể tải yêu cầu tư vấn');
       setSubmissions([]);
     } finally {
       setLoading(false);
@@ -114,20 +114,20 @@ export default function ConsultationsPage() {
         { status },
         { withCredentials: true }
       );
-      toast.success('Status updated successfully');
+      toast.success('Cập nhật trạng thái thành công');
       fetchSubmissions();
       if (selectedSubmission?.id === id) {
         setSelectedSubmission({ ...selectedSubmission, status: status as any });
       }
     } catch (error) {
       console.error('Failed to update status:', error);
-      toast.error('Failed to update status');
+      toast.error('Không thể cập nhật trạng thái');
     }
   };
 
   const handleReply = async () => {
     if (!selectedSubmission || !replyMessage.trim()) {
-      toast.error('Please enter a reply message');
+      toast.error('Vui lòng nhập tin nhắn phản hồi');
       return;
     }
 
@@ -137,18 +137,18 @@ export default function ConsultationsPage() {
         { reply_message: replyMessage, status: 'replied' },
         { withCredentials: true }
       );
-      toast.success('Reply sent successfully');
+      toast.success('Gửi phản hồi thành công');
       setReplyMessage('');
       setShowDetailModal(false);
       fetchSubmissions();
     } catch (error) {
       console.error('Failed to send reply:', error);
-      toast.error('Failed to send reply');
+      toast.error('Không thể gửi phản hồi');
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this consultation submission?')) {
+    if (!confirm('Bạn có chắc chắn muốn xóa yêu cầu tư vấn này?')) {
       return;
     }
 
@@ -156,14 +156,14 @@ export default function ConsultationsPage() {
       await axios.delete(buildApiUrl(`/api/consultations/${id}`), {
         withCredentials: true,
       });
-      toast.success('Consultation submission deleted successfully');
+      toast.success('Xóa yêu cầu tư vấn thành công');
       fetchSubmissions();
       if (selectedSubmission?.id === id) {
         setShowDetailModal(false);
       }
     } catch (error) {
       console.error('Failed to delete submission:', error);
-      toast.error('Failed to delete submission');
+      toast.error('Không thể xóa yêu cầu tư vấn');
     }
   };
 
@@ -189,12 +189,12 @@ export default function ConsultationsPage() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      new: 'bg-blue-100 text-blue-800',
-      read: 'bg-gray-100 text-gray-800',
-      replied: 'bg-green-100 text-green-800',
-      archived: 'bg-yellow-100 text-yellow-800',
+      new: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+      read: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+      replied: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+      archived: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
   };
 
   const getStatusIcon = (status: string) => {
@@ -219,9 +219,9 @@ export default function ConsultationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Consultation Submissions</h1>
+          <h1 className="text-2xl font-bold text-foreground">Yêu cầu tư vấn</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage spa equipment setup consultation requests
+            Quản lý yêu cầu tư vấn thiết lập thiết bị spa
           </p>
         </div>
       </div>
@@ -233,10 +233,10 @@ export default function ConsultationsPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search by name, phone, email, or message..."
+              placeholder="Tìm kiếm theo tên, điện thoại, email hoặc tin nhắn..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-10 pr-4 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
@@ -244,21 +244,21 @@ export default function ConsultationsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value="">All Status</option>
-          <option value="new">New</option>
-          <option value="read">Read</option>
-          <option value="replied">Replied</option>
-          <option value="archived">Archived</option>
+          <option value="">Tất cả trạng thái</option>
+          <option value="new">Mới</option>
+          <option value="read">Đã đọc</option>
+          <option value="replied">Đã trả lời</option>
+          <option value="archived">Đã lưu trữ</option>
         </select>
 
         <select
           value={provinceFilter}
           onChange={(e) => setProvinceFilter(e.target.value)}
-          className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value="">All Provinces</option>
+          <option value="">Tất cả tỉnh/thành</option>
           {uniqueProvinces.map((province) => (
             <option key={province} value={province}>
               {province}
@@ -269,38 +269,38 @@ export default function ConsultationsPage() {
         <select
           value={pageSize}
           onChange={(e) => setPageSize(Number(e.target.value))}
-          className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value="10">10 per page</option>
-          <option value="20">20 per page</option>
-          <option value="50">50 per page</option>
+          <option value="10">10 mỗi trang</option>
+          <option value="20">20 mỗi trang</option>
+          <option value="50">50 mỗi trang</option>
         </select>
       </div>
 
       {/* Submissions List */}
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading submissions...</p>
+          <p className="text-muted-foreground">Đang tải yêu cầu tư vấn...</p>
         </div>
       ) : submissions.length === 0 ? (
         <EmptyState
           icon={MapPin}
-          title="No consultation submissions found"
-          description="Spa equipment setup consultation form submissions will appear here"
+          title="Không tìm thấy yêu cầu tư vấn"
+          description="Các yêu cầu tư vấn từ form sẽ xuất hiện ở đây"
         />
       ) : (
         <div className="overflow-hidden border border-border rounded-lg">
           <table className="w-full">
             <thead className="bg-muted">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Name</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Phone</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Tên</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Điện thoại</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Email</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Province</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Message</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Date</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Tỉnh/Thành</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Tin nhắn</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Trạng thái</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Ngày</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -325,9 +325,9 @@ export default function ConsultationsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)} dark:bg-opacity-20 dark:text-opacity-90`}>
                       {getStatusIcon(submission.status)}
-                      {submission.status}
+                      {submission.status === 'new' ? 'Mới' : submission.status === 'read' ? 'Đã đọc' : submission.status === 'replied' ? 'Đã trả lời' : 'Đã lưu trữ'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
@@ -338,23 +338,23 @@ export default function ConsultationsPage() {
                       <button
                         onClick={() => openDetailModal(submission)}
                         className="p-1.5 text-primary hover:bg-primary/10 rounded transition-colors"
-                        title="View details"
+                        title="Xem chi tiết"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
                       {submission.status !== 'replied' && (
                         <button
                           onClick={() => handleStatusUpdate(submission.id, 'replied')}
-                          className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
-                          title="Mark as replied"
+                          className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                          title="Đánh dấu đã trả lời"
                         >
                           <Reply className="h-4 w-4" />
                         </button>
                       )}
                       <button
                         onClick={() => handleDelete(submission.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title="Delete"
+                        className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                        title="Xóa"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -371,7 +371,7 @@ export default function ConsultationsPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, total)} of {total} submissions
+            Hiển thị {(currentPage - 1) * pageSize + 1} đến {Math.min(currentPage * pageSize, total)} trong tổng số {total} yêu cầu
           </div>
           <div className="flex gap-2">
             <button
@@ -379,14 +379,14 @@ export default function ConsultationsPage() {
               disabled={currentPage === 1}
               className="px-4 py-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted"
             >
-              Previous
+              Trước
             </button>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted"
+              className="px-4 py-2 border border-border bg-background text-foreground rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted"
             >
-              Next
+              Sau
             </button>
           </div>
         </div>
@@ -398,7 +398,7 @@ export default function ConsultationsPage() {
           <div className="bg-card rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-foreground">Consultation Submission Details</h2>
+                <h2 className="text-xl font-bold text-foreground">Chi tiết yêu cầu tư vấn</h2>
                 <button
                   onClick={() => {
                     setShowDetailModal(false);
@@ -416,11 +416,11 @@ export default function ConsultationsPage() {
               {/* Contact Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Name</label>
+                  <label className="text-sm font-medium text-muted-foreground">Tên</label>
                   <p className="text-foreground font-medium">{selectedSubmission.name}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                  <label className="text-sm font-medium text-muted-foreground">Điện thoại</label>
                   <p className="text-foreground">{selectedSubmission.phone}</p>
                 </div>
                 {selectedSubmission.email && (
@@ -430,21 +430,21 @@ export default function ConsultationsPage() {
                   </div>
                 )}
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Province</label>
+                  <label className="text-sm font-medium text-muted-foreground">Tỉnh/Thành</label>
                   <p className="text-foreground flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
                     {selectedSubmission.province}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Status</label>
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedSubmission.status)}`}>
+                  <label className="text-sm font-medium text-muted-foreground">Trạng thái</label>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedSubmission.status)} dark:bg-opacity-20 dark:text-opacity-90`}>
                     {getStatusIcon(selectedSubmission.status)}
-                    {selectedSubmission.status}
+                    {selectedSubmission.status === 'new' ? 'Mới' : selectedSubmission.status === 'read' ? 'Đã đọc' : selectedSubmission.status === 'replied' ? 'Đã trả lời' : 'Đã lưu trữ'}
                   </span>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Date</label>
+                  <label className="text-sm font-medium text-muted-foreground">Ngày</label>
                   <p className="text-foreground">{formatDate(selectedSubmission.created_at)}</p>
                 </div>
               </div>
@@ -452,7 +452,7 @@ export default function ConsultationsPage() {
               {/* Message */}
               {selectedSubmission.message && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Message</label>
+                  <label className="text-sm font-medium text-muted-foreground">Tin nhắn</label>
                   <div className="mt-2 p-4 bg-muted rounded-lg text-foreground whitespace-pre-wrap">
                     {selectedSubmission.message}
                   </div>
@@ -462,13 +462,13 @@ export default function ConsultationsPage() {
               {/* Existing Reply */}
               {selectedSubmission.reply_message && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Previous Reply</label>
-                  <div className="mt-2 p-4 bg-green-50 border border-green-200 rounded-lg text-foreground whitespace-pre-wrap">
+                  <label className="text-sm font-medium text-muted-foreground">Phản hồi trước đó</label>
+                  <div className="mt-2 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-foreground whitespace-pre-wrap">
                     {selectedSubmission.reply_message}
                   </div>
                   {selectedSubmission.replied_by_name && (
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Replied by {selectedSubmission.replied_by_name} on {selectedSubmission.replied_at ? formatDate(selectedSubmission.replied_at) : ''}
+                      Đã trả lời bởi {selectedSubmission.replied_by_name} vào {selectedSubmission.replied_at ? formatDate(selectedSubmission.replied_at) : ''}
                     </p>
                   )}
                 </div>
@@ -477,21 +477,21 @@ export default function ConsultationsPage() {
               {/* Reply Form */}
               <div>
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                  Reply Message
+                  Tin nhắn phản hồi
                 </label>
                 <textarea
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
                   rows={6}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Enter your reply..."
+                  className="w-full px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Nhập phản hồi của bạn..."
                 />
                 <button
                   onClick={handleReply}
                   disabled={!replyMessage.trim()}
                   className="mt-3 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Send Reply
+                  Gửi phản hồi
                 </button>
               </div>
 
@@ -500,24 +500,24 @@ export default function ConsultationsPage() {
                 {selectedSubmission.status !== 'read' && (
                   <button
                     onClick={() => handleStatusUpdate(selectedSubmission.id, 'read')}
-                    className="px-4 py-2 border border-border rounded-lg hover:bg-muted"
+                    className="px-4 py-2 border border-border bg-background text-foreground rounded-lg hover:bg-muted"
                   >
-                    Mark as Read
+                    Đánh dấu đã đọc
                   </button>
                 )}
                 {selectedSubmission.status !== 'archived' && (
                   <button
                     onClick={() => handleStatusUpdate(selectedSubmission.id, 'archived')}
-                    className="px-4 py-2 border border-border rounded-lg hover:bg-muted"
+                    className="px-4 py-2 border border-border bg-background text-foreground rounded-lg hover:bg-muted"
                   >
-                    Archive
+                    Lưu trữ
                   </button>
                 )}
                 <button
                   onClick={() => handleDelete(selectedSubmission.id)}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
-                  Delete
+                  Xóa
                 </button>
               </div>
             </div>

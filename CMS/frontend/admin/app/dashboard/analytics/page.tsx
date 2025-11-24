@@ -109,7 +109,7 @@ export default function AnalyticsPage() {
       }
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
-      toast.error('Failed to load analytics data');
+      toast.error('Không thể tải dữ liệu phân tích');
     } finally {
       setLoading(false);
     }
@@ -139,7 +139,7 @@ export default function AnalyticsPage() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">Loading analytics...</p>
+          <p className="mt-4 text-muted-foreground">Đang tải phân tích...</p>
         </div>
       </div>
     );
@@ -150,9 +150,9 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Analytics Dashboard</h1>
+          <h1 className="text-2xl font-bold text-foreground">Bảng phân tích</h1>
           <p className="text-sm text-muted-foreground">
-            Real-time website traffic and visitor insights
+            Thống kê lưu lượng truy cập và thông tin khách truy cập theo thời gian thực
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -160,12 +160,12 @@ export default function AnalyticsPage() {
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
-            className="px-3 py-2 border border-border rounded-lg bg-background text-sm"
+            className="px-3 py-2 border border-input bg-background text-foreground rounded-lg text-sm"
           >
-            <option value="1d">Today</option>
-            <option value="7d">Last 7 Days</option>
-            <option value="30d">Last 30 Days</option>
-            <option value="90d">Last 90 Days</option>
+            <option value="1d">Hôm nay</option>
+            <option value="7d">7 ngày qua</option>
+            <option value="30d">30 ngày qua</option>
+            <option value="90d">90 ngày qua</option>
           </select>
           
           {/* Auto-refresh Toggle */}
@@ -174,11 +174,11 @@ export default function AnalyticsPage() {
             className={`px-3 py-2 border rounded-lg text-sm transition-colors ${
               autoRefresh 
                 ? 'bg-primary text-primary-foreground border-primary' 
-                : 'bg-background border-border hover:bg-accent'
+                : 'bg-background border-border hover:bg-accent text-foreground'
             }`}
           >
             <Activity className="h-4 w-4 inline mr-1" />
-            {autoRefresh ? 'Auto-refresh ON' : 'Auto-refresh OFF'}
+            {autoRefresh ? 'Tự làm mới BẬT' : 'Tự làm mới TẮT'}
           </button>
         </div>
       </div>
@@ -189,7 +189,7 @@ export default function AnalyticsPage() {
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Page Views</p>
+              <p className="text-sm font-medium text-muted-foreground">Lượt xem trang</p>
               <p className="text-2xl font-bold text-card-foreground">
                 {stats?.overview.total_pageviews.toLocaleString() || 0}
               </p>
@@ -204,7 +204,7 @@ export default function AnalyticsPage() {
               {stats?.trend.pageviews_change > 0 ? '+' : ''}
               {stats?.trend.pageviews_change.toFixed(1)}%
             </p>
-            <p className="text-xs text-muted-foreground ml-1">vs previous period</p>
+            <p className="text-xs text-muted-foreground ml-1">so với kỳ trước</p>
           </div>
         </div>
 
@@ -212,7 +212,7 @@ export default function AnalyticsPage() {
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Unique Visitors</p>
+              <p className="text-sm font-medium text-muted-foreground">Khách truy cập</p>
               <p className="text-2xl font-bold text-card-foreground">
                 {stats?.overview.unique_visitors.toLocaleString() || 0}
               </p>
@@ -227,7 +227,7 @@ export default function AnalyticsPage() {
               {stats?.trend.visitors_change > 0 ? '+' : ''}
               {stats?.trend.visitors_change.toFixed(1)}%
             </p>
-            <p className="text-xs text-muted-foreground ml-1">vs previous period</p>
+            <p className="text-xs text-muted-foreground ml-1">so với kỳ trước</p>
           </div>
         </div>
 
@@ -235,7 +235,7 @@ export default function AnalyticsPage() {
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Avg. Session</p>
+              <p className="text-sm font-medium text-muted-foreground">Phiên trung bình</p>
               <p className="text-2xl font-bold text-card-foreground">
                 {formatDuration(stats?.overview.avg_session_duration || 0)}
               </p>
@@ -245,7 +245,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            {stats?.overview.avg_pages_per_session.toFixed(1) || 0} pages/session
+            {stats?.overview.avg_pages_per_session.toFixed(1) || 0} trang/phiên
           </p>
         </div>
 
@@ -253,7 +253,7 @@ export default function AnalyticsPage() {
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Active Now</p>
+              <p className="text-sm font-medium text-muted-foreground">Đang hoạt động</p>
               <p className="text-2xl font-bold text-card-foreground">
                 {stats?.overview.active_users || 0}
               </p>
@@ -266,7 +266,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            users in last 5 minutes
+            người dùng trong 5 phút qua
           </p>
         </div>
       </div>
@@ -274,22 +274,22 @@ export default function AnalyticsPage() {
       {/* Secondary Stats */}
       <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm font-medium text-muted-foreground mb-1">Total Sessions</p>
+          <p className="text-sm font-medium text-muted-foreground mb-1">Tổng phiên</p>
           <p className="text-xl font-bold">{stats?.overview.total_sessions.toLocaleString() || 0}</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm font-medium text-muted-foreground mb-1">Bounce Rate</p>
+          <p className="text-sm font-medium text-muted-foreground mb-1">Tỷ lệ thoát</p>
           <p className="text-xl font-bold">{stats?.overview.bounce_rate.toFixed(1)}%</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm font-medium text-muted-foreground mb-1">Pages/Session</p>
+          <p className="text-sm font-medium text-muted-foreground mb-1">Trang/Phiên</p>
           <p className="text-xl font-bold">{stats?.overview.avg_pages_per_session.toFixed(2)}</p>
         </div>
       </div>
 
       {/* Top Pages */}
       <div className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold mb-4">Top Pages</h2>
+        <h2 className="text-lg font-semibold mb-4">Trang phổ biến</h2>
         {stats && stats.top_pages.length > 0 ? (
           <div className="space-y-2">
             {stats.top_pages.map((page, idx) => (
@@ -299,14 +299,14 @@ export default function AnalyticsPage() {
                   <p className="text-xs text-muted-foreground">{page.page_path}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold">{page.pageviews.toLocaleString()} views</p>
-                  <p className="text-xs text-muted-foreground">{page.unique_visitors} visitors</p>
+                  <p className="text-sm font-semibold">{page.pageviews.toLocaleString()} lượt xem</p>
+                  <p className="text-xs text-muted-foreground">{page.unique_visitors} khách truy cập</p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No data available</p>
+          <p className="text-sm text-muted-foreground">Không có dữ liệu</p>
         )}
       </div>
 
@@ -316,7 +316,7 @@ export default function AnalyticsPage() {
         <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Traffic Sources
+            Nguồn lưu lượng
           </h2>
           {stats && stats.traffic_sources.length > 0 ? (
             <div className="space-y-3">
@@ -338,7 +338,7 @@ export default function AnalyticsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No data available</p>
+            <p className="text-sm text-muted-foreground">Không có dữ liệu</p>
           )}
         </div>
 
@@ -346,7 +346,7 @@ export default function AnalyticsPage() {
         <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Monitor className="h-5 w-5" />
-            Devices
+            Thiết bị
           </h2>
           {stats && stats.devices.length > 0 ? (
             <div className="space-y-3">
@@ -374,7 +374,7 @@ export default function AnalyticsPage() {
               })}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No data available</p>
+            <p className="text-sm text-muted-foreground">Không có dữ liệu</p>
           )}
         </div>
       </div>
@@ -384,9 +384,9 @@ export default function AnalyticsPage() {
         <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Activity className="h-5 w-5 text-green-500" />
-            Active Users Right Now
+            Người dùng đang hoạt động
             <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">
-              {stats.realtime.active_users} LIVE
+              {stats.realtime.active_users} TRỰC TIẾP
             </span>
           </h2>
           {stats.realtime.active_pages.length > 0 ? (
@@ -396,20 +396,20 @@ export default function AnalyticsPage() {
                   <p className="text-sm font-medium">{page.page_path}</p>
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-semibold">{page.users} active</span>
+                    <span className="text-sm font-semibold">{page.users} đang hoạt động</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No active users</p>
+            <p className="text-sm text-muted-foreground">Không có người dùng đang hoạt động</p>
           )}
         </div>
       )}
 
       {/* Browsers */}
       <div className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold mb-4">Top Browsers</h2>
+        <h2 className="text-lg font-semibold mb-4">Trình duyệt phổ biến</h2>
         {stats && stats.browsers.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.browsers.slice(0, 4).map((browser, idx) => (
@@ -420,7 +420,7 @@ export default function AnalyticsPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No data available</p>
+          <p className="text-sm text-muted-foreground">Không có dữ liệu</p>
         )}
       </div>
     </div>

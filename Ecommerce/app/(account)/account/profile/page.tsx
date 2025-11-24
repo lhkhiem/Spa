@@ -232,9 +232,9 @@ export default function ProfilePage() {
   };
 
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Account', href: '/account' },
-    { label: 'Profile', href: '/account/profile' },
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Tài khoản', href: '/account' },
+    { label: 'Hồ sơ', href: '/account/profile' },
   ];
 
   if (isLoading) {

@@ -73,7 +73,7 @@ export default function OrdersPage() {
       setTotalPages(response.data?.pagination?.totalPages || 1);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
-      toast.error('Failed to load orders');
+      toast.error('Không thể tải đơn hàng');
       setOrders([]);
     } finally {
       setLoading(false);
@@ -81,7 +81,7 @@ export default function OrdersPage() {
   };
 
   const handleDelete = async (orderId: string, orderNumber: string) => {
-    if (!confirm(`Are you sure you want to delete order ${orderNumber}? This action cannot be undone.`)) {
+    if (!confirm(`Bạn có chắc chắn muốn xóa đơn hàng ${orderNumber}? Hành động này không thể hoàn tác.`)) {
       return;
     }
 
@@ -90,13 +90,13 @@ export default function OrdersPage() {
         withCredentials: true,
       });
       
-      toast.success('Order deleted successfully');
+      toast.success('Xóa đơn hàng thành công');
       // Update state without full reload
       setOrders(prevOrders => prevOrders.filter(o => o.id !== orderId));
       setTotal(prevTotal => prevTotal - 1);
     } catch (error) {
       console.error('Failed to delete order:', error);
-      toast.error('Failed to delete order');
+      toast.error('Không thể xóa đơn hàng');
     }
   };
 
@@ -112,23 +112,23 @@ export default function OrdersPage() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      processing: 'bg-blue-100 text-blue-800',
-      shipped: 'bg-purple-100 text-purple-800',
-      delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
+      pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+      processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+      shipped: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+      delivered: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+      cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
   };
 
   const getPaymentStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      paid: 'bg-green-100 text-green-800',
-      failed: 'bg-red-100 text-red-800',
-      refunded: 'bg-orange-100 text-orange-800',
+      pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+      paid: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+      failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+      refunded: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
   };
 
   if (loading && orders.length === 0) {
@@ -136,7 +136,7 @@ export default function OrdersPage() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">Loading orders...</p>
+          <p className="mt-4 text-muted-foreground">Đang tải đơn hàng...</p>
         </div>
       </div>
     );
@@ -147,9 +147,9 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Orders</h1>
+          <h1 className="text-2xl font-bold text-foreground">Đơn hàng</h1>
           <p className="text-sm text-muted-foreground">
-            Manage customer orders ({total} total)
+            Quản lý đơn hàng khách hàng ({total} tổng số)
           </p>
         </div>
       </div>
@@ -160,34 +160,34 @@ export default function OrdersPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search by order number, customer name, email..."
+            placeholder="Tìm kiếm theo số đơn hàng, tên khách hàng, email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full pl-10 pr-4 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
         
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="">Tất cả trạng thái</option>
+          <option value="pending">Chờ xử lý</option>
+          <option value="processing">Đang xử lý</option>
+          <option value="shipped">Đã gửi hàng</option>
+          <option value="delivered">Đã giao hàng</option>
+          <option value="cancelled">Đã hủy</option>
         </select>
 
         <select
           value={pageSize}
           onChange={(e) => setPageSize(Number(e.target.value))}
-          className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value="10">10 per page</option>
-          <option value="20">20 per page</option>
-          <option value="50">50 per page</option>
+          <option value="10">10 mỗi trang</option>
+          <option value="20">20 mỗi trang</option>
+          <option value="50">50 mỗi trang</option>
         </select>
       </div>
 
@@ -195,22 +195,22 @@ export default function OrdersPage() {
       {orders.length === 0 ? (
         <EmptyState
           icon={Filter}
-          title="No orders found"
-          description="Orders will appear here when customers place orders"
+          title="Không tìm thấy đơn hàng"
+          description="Đơn hàng sẽ xuất hiện ở đây khi khách hàng đặt hàng"
         />
       ) : (
         <div className="overflow-hidden border border-border rounded-lg">
           <table className="w-full">
             <thead className="bg-muted">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Order</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Customer</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Items</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Total</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Payment</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Date</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Đơn hàng</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Khách hàng</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Sản phẩm</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Tổng tiền</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Trạng thái</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Thanh toán</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Ngày</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -227,7 +227,7 @@ export default function OrdersPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm text-foreground">
-                      {order.items?.length || 0} item(s)
+                      {order.items?.length || 0} sản phẩm
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -241,13 +241,13 @@ export default function OrdersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)} dark:bg-opacity-20 dark:text-opacity-90`}>
+                      {order.status === 'pending' ? 'Chờ xử lý' : order.status === 'processing' ? 'Đang xử lý' : order.status === 'shipped' ? 'Đã gửi hàng' : order.status === 'delivered' ? 'Đã giao hàng' : 'Đã hủy'}
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment_status)}`}>
-                      {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment_status)} dark:bg-opacity-20 dark:text-opacity-90`}>
+                      {order.payment_status === 'pending' ? 'Chờ thanh toán' : order.payment_status === 'paid' ? 'Đã thanh toán' : order.payment_status === 'failed' ? 'Thanh toán thất bại' : 'Đã hoàn tiền'}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -262,15 +262,15 @@ export default function OrdersPage() {
                         className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
                       >
                         <Eye className="h-4 w-4" />
-                        View
+                        Xem
                       </Link>
                       <button
                         onClick={() => handleDelete(order.id, order.order_number)}
-                        className="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-700 hover:underline"
-                        title="Delete order"
+                        className="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-700 dark:hover:text-red-400 hover:underline"
+                        title="Xóa đơn hàng"
                       >
                         <Trash2 className="h-4 w-4" />
-                        Delete
+                        Xóa
                       </button>
                     </div>
                   </td>
@@ -285,7 +285,7 @@ export default function OrdersPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, total)} of {total} orders
+            Hiển thị {(currentPage - 1) * pageSize + 1} đến {Math.min(currentPage * pageSize, total)} trong tổng số {total} đơn hàng
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -293,17 +293,17 @@ export default function OrdersPage() {
               disabled={currentPage === 1}
               className="px-4 py-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted transition-colors"
             >
-              Previous
+              Trước
             </button>
-            <span className="px-4 py-2 text-sm">
-              Page {currentPage} of {totalPages}
+            <span className="px-4 py-2 text-sm text-foreground">
+              Trang {currentPage} / {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted transition-colors"
+              className="px-4 py-2 border border-border bg-background text-foreground rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted transition-colors"
             >
-              Next
+              Sau
             </button>
           </div>
         </div>

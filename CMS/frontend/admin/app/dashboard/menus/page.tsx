@@ -53,7 +53,7 @@ export default function MenusPage() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}" menu location? All menu items will be deleted.`)) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa vị trí menu "${name}"? Tất cả các mục menu sẽ bị xóa.`)) return;
 
     try {
       const response = await fetch(buildApiUrl(`/api/menu-locations/${id}`), {
@@ -191,9 +191,9 @@ export default function MenusPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Menu Management</h1>
+          <h1 className="text-2xl font-bold text-foreground">Quản lý Menu</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your website navigation menus
+            Quản lý menu điều hướng website của bạn
           </p>
         </div>
         <button
@@ -201,7 +201,7 @@ export default function MenusPage() {
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          New Menu Location
+          Vị trí menu mới
         </button>
       </div>
 
@@ -209,23 +209,23 @@ export default function MenusPage() {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="mt-2 text-muted-foreground">Loading menu locations...</p>
+          <p className="mt-2 text-muted-foreground">Đang tải vị trí menu...</p>
         </div>
       ) : locations.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-12 text-center">
           <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
             <MenuIcon className="h-6 w-6 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-medium text-card-foreground mb-2">No menu locations yet</h3>
+          <h3 className="text-lg font-medium text-card-foreground mb-2">Chưa có vị trí menu nào</h3>
           <p className="text-sm text-muted-foreground mb-6">
-            Create your first menu location to start building your navigation.
+            Tạo vị trí menu đầu tiên để bắt đầu xây dựng điều hướng của bạn.
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="h-4 w-4" />
-            Create Menu Location
+            Tạo vị trí menu
           </button>
         </div>
       ) : (
@@ -288,7 +288,7 @@ export default function MenusPage() {
               <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <MenuIcon className="h-4 w-4" />
-                  <span>{location.item_count} items</span>
+                  <span>{location.item_count} mục</span>
                 </div>
               </div>
 
@@ -299,7 +299,7 @@ export default function MenusPage() {
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
                 >
                   <Edit className="h-4 w-4" />
-                  <span>Edit Menu Items</span>
+                  <span>Chỉnh sửa mục menu</span>
                 </Link>
               </div>
             </div>
@@ -312,14 +312,14 @@ export default function MenusPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-lg p-6 max-w-lg w-full mx-4 shadow-xl">
             <h2 className="text-xl font-bold text-foreground mb-6">
-              {editingLocation ? 'Edit Menu Location' : 'Create Menu Location'}
+              {editingLocation ? 'Chỉnh sửa vị trí menu' : 'Tạo vị trí menu'}
             </h2>
             
             <form onSubmit={editingLocation ? handleUpdateLocation : handleCreateLocation} className="space-y-4">
               {/* Name Field */}
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
-                  Name <span className="text-destructive">*</span>
+                  Tên <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
@@ -327,7 +327,7 @@ export default function MenusPage() {
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="e.g., Sidebar Menu"
+                  placeholder="Ví dụ: Menu Sidebar"
                   required
                 />
               </div>
@@ -343,25 +343,25 @@ export default function MenusPage() {
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="e.g., sidebar"
+                  placeholder="Ví dụ: sidebar"
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Auto-generated from name. Used in code to reference this menu.
+                  Tự động tạo từ tên. Được sử dụng trong code để tham chiếu menu này.
                 </p>
               </div>
 
               {/* Description Field */}
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-foreground mb-2">
-                  Description
+                  Mô tả
                 </label>
                 <textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Brief description of where this menu is used"
+                  placeholder="Mô tả ngắn về nơi menu này được sử dụng"
                   rows={3}
                 />
               </div>
@@ -376,7 +376,7 @@ export default function MenusPage() {
                   className="w-4 h-4 rounded border-input text-primary focus:ring-2 focus:ring-primary/50"
                 />
                 <label htmlFor="is_active" className="text-sm font-medium text-foreground">
-                  Active (Menu location will be available immediately)
+                  Hoạt động (Vị trí menu sẽ có sẵn ngay lập tức)
                 </label>
               </div>
 
@@ -389,17 +389,17 @@ export default function MenusPage() {
                     setEditingLocation(null);
                     setFormData({ name: '', slug: '', description: '', is_active: true });
                   }}
-                  className="flex-1 px-4 py-2 rounded-lg border border-input bg-background hover:bg-accent transition-colors"
+                  className="flex-1 px-4 py-2 rounded-lg border border-input bg-background text-foreground hover:bg-accent transition-colors"
                   disabled={submitting}
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
                   disabled={submitting}
                 >
-                  {submitting ? (editingLocation ? 'Updating...' : 'Creating...') : (editingLocation ? 'Update Location' : 'Create Location')}
+                  {submitting ? (editingLocation ? 'Đang cập nhật...' : 'Đang tạo...') : (editingLocation ? 'Cập nhật vị trí' : 'Tạo vị trí')}
                 </button>
               </div>
             </form>

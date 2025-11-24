@@ -9,7 +9,7 @@ import {
   ChevronRight, ChevronDown, Check, SortAsc, SortDesc
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { buildApiUrl } from '@/lib/api';
+import { buildApiUrl, getAssetUrl } from '@/lib/api';
 
 interface MediaFolder {
   id: string;
@@ -82,7 +82,7 @@ export default function MediaLibraryPage() {
       setFolders(data.folders || []);
     } catch (error: any) {
       console.error('Failed to fetch folders:', error);
-      toast.error('Failed to load folders');
+      toast.error('Không thể tải thư mục');
     }
   };
 
@@ -102,7 +102,7 @@ export default function MediaLibraryPage() {
       setMedia(Array.isArray(data) ? data : (data?.data || []));
     } catch (error: any) {
       console.error('Failed to fetch media:', error);
-      toast.error('Failed to load media');
+      toast.error('Không thể tải media');
       setMedia([]);
     } finally {
       setLoading(false);
@@ -165,11 +165,11 @@ export default function MediaLibraryPage() {
         }
       }
 
-      toast.success(`${fileArray.length} file(s) uploaded successfully!`);
+      toast.success(`Đã tải lên thành công ${fileArray.length} tệp!`);
       fetchMedia();
     } catch (error: any) {
       console.error('Upload failed:', error);
-      toast.error(error.message || 'Upload failed');
+      toast.error(error.message || 'Tải lên thất bại');
     } finally {
       setUploading(false);
     }
@@ -188,12 +188,12 @@ export default function MediaLibraryPage() {
 
       if (!response.ok) throw new Error('Failed to create folder');
 
-      toast.success('Folder created successfully!');
+      toast.success('Đã tạo thư mục thành công!');
       setNewFolderName('');
       setShowNewFolderModal(false);
       fetchFolders();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create folder');
+      toast.error(error.message || 'Không thể tạo thư mục');
     }
   };
 
@@ -210,17 +210,17 @@ export default function MediaLibraryPage() {
 
       if (!response.ok) throw new Error('Failed to rename folder');
 
-      toast.success('Folder renamed successfully!');
+      toast.success('Đã đổi tên thư mục thành công!');
       setRenameFolderName('');
       setShowRenameFolderModal(null);
       fetchFolders();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to rename folder');
+      toast.error(error.message || 'Không thể đổi tên thư mục');
     }
   };
 
   const handleDeleteFolder = async (folderId: string) => {
-    if (!confirm('Delete this folder and all its contents?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa thư mục này và tất cả nội dung bên trong?')) return;
 
     try {
       const response = await fetch(buildApiUrl('/api/media/folders/${folderId}'), {
@@ -230,17 +230,17 @@ export default function MediaLibraryPage() {
 
       if (!response.ok) throw new Error('Failed to delete folder');
 
-      toast.success('Folder deleted successfully!');
+      toast.success('Đã xóa thư mục thành công!');
       if (selectedFolder === folderId) setSelectedFolder(null);
       fetchFolders();
       fetchMedia();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete folder');
+      toast.error(error.message || 'Không thể xóa thư mục');
     }
   };
 
   const handleDeleteFiles = async (fileIds: string[]) => {
-    if (!confirm(`Delete ${fileIds.length} file(s)?`)) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${fileIds.length} tệp?`)) return;
 
     try {
       await Promise.all(
@@ -252,11 +252,11 @@ export default function MediaLibraryPage() {
         )
       );
 
-      toast.success(`${fileIds.length} file(s) deleted successfully!`);
+      toast.success(`Đã xóa thành công ${fileIds.length} tệp!`);
       setSelectedFiles(new Set());
       fetchMedia();
     } catch (error: any) {
-      toast.error('Failed to delete files');
+      toast.error('Không thể xóa tệp');
     }
   };
 
@@ -273,12 +273,12 @@ export default function MediaLibraryPage() {
         )
       );
 
-      toast.success('Files moved successfully!');
+      toast.success('Đã di chuyển tệp thành công!');
       setSelectedFiles(new Set());
       setShowMoveFilesModal(false);
       fetchMedia();
     } catch (error: any) {
-      toast.error('Failed to move files');
+      toast.error('Không thể di chuyển tệp');
     }
   };
 
@@ -409,17 +409,17 @@ export default function MediaLibraryPage() {
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            Back
+            Quay lại
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
-            <p className="text-sm text-muted-foreground">Manage your files and folders</p>
+            <h1 className="text-2xl font-bold text-foreground">Thư viện Media</h1>
+            <p className="text-sm text-muted-foreground">Quản lý tệp và thư mục của bạn</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <label htmlFor="file-upload" className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer">
             <Upload className="h-4 w-4" />
-            Upload Files
+            Tải lên tệp
           </label>
           <input
             id="file-upload"
@@ -431,10 +431,10 @@ export default function MediaLibraryPage() {
           />
           <button
             onClick={() => setShowNewFolderModal(true)}
-            className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg border border-input bg-background text-foreground px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
           >
             <FolderPlus className="h-4 w-4" />
-            New Folder
+            Thư mục mới
           </button>
         </div>
       </div>
@@ -450,7 +450,7 @@ export default function MediaLibraryPage() {
               onClick={() => setSelectedFolder(null)}
             >
               <Folder className="h-4 w-4" />
-              <span className="text-sm font-medium">All Files</span>
+              <span className="text-sm font-medium">Tất cả tệp</span>
             </div>
             <div className="mt-2">
               {renderFolderTree(folderTree)}
@@ -466,7 +466,7 @@ export default function MediaLibraryPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search files..."
+                placeholder="Tìm kiếm tệp..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -475,26 +475,26 @@ export default function MediaLibraryPage() {
             <div className="flex items-center gap-2">
               {selectedFiles.size > 0 && (
                 <>
-                  <span className="text-sm text-muted-foreground">{selectedFiles.size} selected</span>
+                  <span className="text-sm text-muted-foreground">{selectedFiles.size} đã chọn</span>
                   <button
                     onClick={() => setShowMoveFilesModal(true)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors text-sm"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground transition-colors text-sm"
                   >
                     <Move className="h-4 w-4" />
-                    Move
+                    Di chuyển
                   </button>
                   <button
                     onClick={() => handleDeleteFiles(Array.from(selectedFiles))}
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors text-sm"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Delete
+                    Xóa
                   </button>
                   <button
                     onClick={deselectAll}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors text-sm"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground transition-colors text-sm"
                   >
-                    Clear
+                    Xóa chọn
                   </button>
                 </>
               )}
@@ -518,14 +518,14 @@ export default function MediaLibraryPage() {
             {uploading && (
               <div className="mb-4 p-4 rounded-lg border border-border bg-card text-center">
                 <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                <p className="mt-2 text-sm text-muted-foreground">Uploading files...</p>
+                <p className="mt-2 text-sm text-muted-foreground">Đang tải lên tệp...</p>
               </div>
             )}
 
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="mt-2 text-muted-foreground">Loading media...</p>
+                <p className="mt-2 text-muted-foreground">Đang tải media...</p>
               </div>
             ) : filteredAndSortedMedia.length === 0 ? (
               <div
@@ -541,8 +541,8 @@ export default function MediaLibraryPage() {
                 }}
               >
                 <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium text-card-foreground mb-2">No files here</p>
-                <p className="text-sm text-muted-foreground">Drag & drop files or click "Upload Files"</p>
+                <p className="text-lg font-medium text-card-foreground mb-2">Chưa có tệp nào</p>
+                <p className="text-sm text-muted-foreground">Kéo thả tệp hoặc nhấp "Tải lên tệp"</p>
               </div>
             ) : (
               <>
@@ -572,9 +572,12 @@ export default function MediaLibraryPage() {
                         }}
                       >
                         <img
-                          src={`${API_BASE_URL}${asset.thumb_url || asset.url}`}
+                          src={getAssetUrl(asset.thumb_url || asset.url)}
                           alt={asset.file_name || 'Media'}
                           className="w-full h-32 object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getAssetUrl(asset.url);
+                          }}
                         />
                         <div className="p-2 text-xs truncate bg-card">
                           {asset.file_name || asset.url.split('/').pop()}
@@ -609,13 +612,13 @@ export default function MediaLibraryPage() {
                               className="w-4 h-4"
                             />
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Preview</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Xem trước</th>
                           <th 
                             className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase cursor-pointer hover:text-foreground"
                             onClick={() => handleSort('name')}
                           >
                             <div className="flex items-center gap-1">
-                              Name
+                              Tên
                               {sortField === 'name' && (sortOrder === 'asc' ? <SortAsc className="h-3 w-3" /> : <SortDesc className="h-3 w-3" />)}
                             </div>
                           </th>
@@ -624,7 +627,7 @@ export default function MediaLibraryPage() {
                             onClick={() => handleSort('type')}
                           >
                             <div className="flex items-center gap-1">
-                              Type
+                              Loại
                               {sortField === 'type' && (sortOrder === 'asc' ? <SortAsc className="h-3 w-3" /> : <SortDesc className="h-3 w-3" />)}
                             </div>
                           </th>
@@ -633,7 +636,7 @@ export default function MediaLibraryPage() {
                             onClick={() => handleSort('size')}
                           >
                             <div className="flex items-center gap-1">
-                              Size
+                              Kích thước
                               {sortField === 'size' && (sortOrder === 'asc' ? <SortAsc className="h-3 w-3" /> : <SortDesc className="h-3 w-3" />)}
                             </div>
                           </th>
@@ -642,11 +645,11 @@ export default function MediaLibraryPage() {
                             onClick={() => handleSort('date')}
                           >
                             <div className="flex items-center gap-1">
-                              Date
+                              Ngày
                               {sortField === 'date' && (sortOrder === 'asc' ? <SortAsc className="h-3 w-3" /> : <SortDesc className="h-3 w-3" />)}
                             </div>
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Thao tác</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
@@ -665,9 +668,12 @@ export default function MediaLibraryPage() {
                             </td>
                             <td className="px-4 py-3">
                               <img
-                                src={`${API_BASE_URL}${asset.thumb_url || asset.url}`}
+                                src={getAssetUrl(asset.thumb_url || asset.url)}
                                 alt={asset.file_name || 'Media'}
                                 className="h-10 w-10 object-cover rounded"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = getAssetUrl(asset.url);
+                                }}
                               />
                             </td>
                             <td className="px-4 py-3 text-sm text-foreground max-w-xs truncate">
@@ -735,21 +741,22 @@ export default function MediaLibraryPage() {
                   className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
                 >
                   <Eye className="h-4 w-4" />
-                  Preview
+                  Xem trước
                 </button>
                 <button
                   onClick={() => {
                     const asset = media.find(m => m.id === contextMenu.itemId);
                     if (asset) {
-                      navigator.clipboard.writeText(window.location.origin + asset.original_url);
-                      toast.success('URL copied!');
+                      const url = getAssetUrl(asset.original_url || asset.url);
+                      navigator.clipboard.writeText(url);
+                      toast.success('Đã sao chép URL!');
                     }
                     setContextMenu(null);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-accent flex items-center gap-2"
                 >
                   <Copy className="h-4 w-4" />
-                  Copy URL
+                  Sao chép URL
                 </button>
                 <button
                   onClick={() => {
@@ -757,10 +764,10 @@ export default function MediaLibraryPage() {
                     setShowMoveFilesModal(true);
                     setContextMenu(null);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-accent flex items-center gap-2"
                 >
                   <Move className="h-4 w-4" />
-                  Move
+                  Di chuyển
                 </button>
                 <div className="border-t border-border my-1" />
                 <button
@@ -768,10 +775,10 @@ export default function MediaLibraryPage() {
                     handleDeleteFiles([contextMenu.itemId]);
                     setContextMenu(null);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2 text-destructive"
+                  className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-accent flex items-center gap-2 text-destructive"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Delete
+                  Xóa
                 </button>
               </>
             ) : (
@@ -785,10 +792,10 @@ export default function MediaLibraryPage() {
                     }
                     setContextMenu(null);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-accent flex items-center gap-2"
                 >
                   <Edit2 className="h-4 w-4" />
-                  Rename
+                  Đổi tên
                 </button>
                 <div className="border-t border-border my-1" />
                 <button
@@ -796,10 +803,10 @@ export default function MediaLibraryPage() {
                     handleDeleteFolder(contextMenu.itemId);
                     setContextMenu(null);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2 text-destructive"
+                  className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-accent flex items-center gap-2 text-destructive"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Delete
+                  Xóa
                 </button>
               </>
             )}
@@ -820,38 +827,42 @@ export default function MediaLibraryPage() {
             <div className="p-6">
               <h3 className="text-xl font-bold mb-4">{previewFile.file_name || previewFile.url.split('/').pop()}</h3>
               <img
-                src={`${API_BASE_URL}${previewFile.original_url || previewFile.url}`}
+                src={getAssetUrl(previewFile.original_url || previewFile.url)}
                 alt={previewFile.file_name || 'Preview'}
                 className="max-w-full h-auto mx-auto rounded-lg mb-4"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = getAssetUrl(previewFile.url);
+                }}
               />
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Type</p>
-                  <p className="font-medium">{previewFile.format?.toUpperCase()}</p>
+                  <p className="text-muted-foreground">Loại</p>
+                  <p className="font-medium text-foreground">{previewFile.format?.toUpperCase()}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Dimensions</p>
-                  <p className="font-medium">{previewFile.width}x{previewFile.height}</p>
+                  <p className="text-muted-foreground">Kích thước</p>
+                  <p className="font-medium text-foreground">{previewFile.width}x{previewFile.height}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Size</p>
-                  <p className="font-medium">{previewFile.file_size ? `${(previewFile.file_size / 1024).toFixed(2)} KB` : '-'}</p>
+                  <p className="text-muted-foreground">Dung lượng</p>
+                  <p className="font-medium text-foreground">{previewFile.file_size ? `${(previewFile.file_size / 1024).toFixed(2)} KB` : '-'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Uploaded</p>
-                  <p className="font-medium">{new Date(previewFile.created_at).toLocaleDateString()}</p>
+                  <p className="text-muted-foreground">Đã tải lên</p>
+                  <p className="font-medium text-foreground">{new Date(previewFile.created_at).toLocaleDateString('vi-VN')}</p>
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(window.location.origin + previewFile.original_url);
-                    toast.success('URL copied!');
+                    const url = getAssetUrl(previewFile.original_url || previewFile.url);
+                    navigator.clipboard.writeText(url);
+                    toast.success('Đã sao chép URL!');
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                 >
                   <Copy className="h-4 w-4" />
-                  Copy URL
+                  Sao chép URL
                 </button>
                 <button
                   onClick={() => {
@@ -861,7 +872,7 @@ export default function MediaLibraryPage() {
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Delete
+                  Xóa
                 </button>
               </div>
             </div>
@@ -873,13 +884,13 @@ export default function MediaLibraryPage() {
       {showNewFolderModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-card rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold mb-4">Create New Folder</h3>
+            <h3 className="text-lg font-bold mb-4 text-foreground">Tạo thư mục mới</h3>
             <input
               type="text"
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="Folder name"
-              className="w-full px-3 py-2 rounded-lg border border-input bg-background mb-4"
+              placeholder="Tên thư mục"
+              className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground mb-4"
               onKeyPress={(e) => e.key === 'Enter' && handleCreateFolder()}
               autoFocus
             />
@@ -889,15 +900,15 @@ export default function MediaLibraryPage() {
                   setShowNewFolderModal(false);
                   setNewFolderName('');
                 }}
-                className="px-4 py-2 rounded-lg border border-input hover:bg-accent transition-colors"
+                className="px-4 py-2 rounded-lg border border-input bg-background text-foreground hover:bg-accent transition-colors"
               >
-                Cancel
+                Hủy
               </button>
               <button
                 onClick={handleCreateFolder}
                 className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                Create
+                Tạo
               </button>
             </div>
           </div>
@@ -908,13 +919,13 @@ export default function MediaLibraryPage() {
       {showRenameFolderModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-card rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold mb-4">Rename Folder</h3>
+            <h3 className="text-lg font-bold mb-4 text-foreground">Đổi tên thư mục</h3>
             <input
               type="text"
               value={renameFolderName}
               onChange={(e) => setRenameFolderName(e.target.value)}
-              placeholder="New folder name"
-              className="w-full px-3 py-2 rounded-lg border border-input bg-background mb-4"
+              placeholder="Tên thư mục mới"
+              className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground mb-4"
               onKeyPress={(e) => e.key === 'Enter' && handleRenameFolder(showRenameFolderModal)}
               autoFocus
             />
@@ -924,15 +935,15 @@ export default function MediaLibraryPage() {
                   setShowRenameFolderModal(null);
                   setRenameFolderName('');
                 }}
-                className="px-4 py-2 rounded-lg border border-input hover:bg-accent transition-colors"
+                className="px-4 py-2 rounded-lg border border-input bg-background text-foreground hover:bg-accent transition-colors"
               >
-                Cancel
+                Hủy
               </button>
               <button
                 onClick={() => handleRenameFolder(showRenameFolderModal)}
                 className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                Rename
+                Đổi tên
               </button>
             </div>
           </div>
@@ -943,15 +954,15 @@ export default function MediaLibraryPage() {
       {showMoveFilesModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-card rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold mb-4">Move {selectedFiles.size} File(s)</h3>
+            <h3 className="text-lg font-bold mb-4 text-foreground">Di chuyển {selectedFiles.size} tệp</h3>
             <div className="max-h-64 overflow-y-auto border border-border rounded-lg mb-4">
               <div
                 onClick={() => handleMoveFiles(null)}
                 className="px-4 py-2 hover:bg-accent cursor-pointer border-b border-border"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-foreground">
                   <Folder className="h-4 w-4" />
-                  <span className="font-medium">All Files (Root)</span>
+                  <span className="font-medium">Tất cả tệp (Gốc)</span>
                 </div>
               </div>
               {folders.map(folder => (
@@ -960,7 +971,7 @@ export default function MediaLibraryPage() {
                   onClick={() => handleMoveFiles(folder.id)}
                   className="px-4 py-2 hover:bg-accent cursor-pointer border-b border-border last:border-b-0"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-foreground">
                     <Folder className="h-4 w-4" />
                     <span>{folder.name}</span>
                   </div>
@@ -970,9 +981,9 @@ export default function MediaLibraryPage() {
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowMoveFilesModal(false)}
-                className="px-4 py-2 rounded-lg border border-input hover:bg-accent transition-colors"
+                className="px-4 py-2 rounded-lg border border-input bg-background text-foreground hover:bg-accent transition-colors"
               >
-                Cancel
+                Hủy
               </button>
             </div>
           </div>

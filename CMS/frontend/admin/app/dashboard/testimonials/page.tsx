@@ -156,11 +156,11 @@ export default function TestimonialsPage() {
     });
 
     if (!payload.customer_name) {
-      alert('Customer name is required.');
+      alert('Tên khách hàng là bắt buộc.');
       return;
     }
     if (!payload.testimonial_text) {
-      alert('Testimonial text is required.');
+      alert('Lời chứng thực là bắt buộc.');
       return;
     }
 
@@ -187,7 +187,7 @@ export default function TestimonialsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this testimonial?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa lời chứng thực này?')) return;
     try {
       await axios.delete(buildApiUrl(`/api/homepage/testimonials/${id}`), {
         withCredentials: true,
@@ -195,7 +195,7 @@ export default function TestimonialsPage() {
       fetchTestimonials();
     } catch (error) {
       console.error(')[Testimonials] delete failed:', error);
-      alert('Failed to delete testimonial');
+      alert('Không thể xóa lời chứng thực');
     }
   };
 
@@ -225,7 +225,7 @@ export default function TestimonialsPage() {
             : t
         )
       );
-      alert('Failed to update testimonial');
+      alert('Không thể cập nhật lời chứng thực');
     }
   };
 
@@ -247,7 +247,7 @@ export default function TestimonialsPage() {
       fetchTestimonials();
     } catch (error) {
       console.error(')[Testimonials] sort update failed:', error);
-      alert('Failed to update sort order');
+      alert('Không thể cập nhật thứ tự');
       fetchTestimonials();
     }
   };
@@ -256,15 +256,15 @@ export default function TestimonialsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Testimonials</h1>
-          <p className="text-sm text-muted-foreground">Manage customer testimonials displayed on the homepage.</p>
+          <h1 className="text-2xl font-bold text-foreground">Lời chứng thực</h1>
+          <p className="text-sm text-muted-foreground">Quản lý lời chứng thực khách hàng hiển thị trên trang chủ.</p>
         </div>
         <button
           onClick={openCreate}
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
-          Add Testimonial
+          Thêm lời chứng thực
         </button>
       </div>
 
@@ -275,10 +275,10 @@ export default function TestimonialsPage() {
       ) : orderedTestimonials.length === 0 ? (
         <EmptyState
           icon={Star}
-          title="No testimonials yet"
-          description="Add customer testimonials to build trust on your homepage."
+          title="Chưa có lời chứng thực nào"
+          description="Thêm lời chứng thực khách hàng để xây dựng niềm tin trên trang chủ của bạn."
           action={{
-            label: 'Add Testimonial',
+            label: 'Thêm lời chứng thực',
             onClick: openCreate,
           }}
         />
@@ -307,9 +307,9 @@ export default function TestimonialsPage() {
 
               <div className="space-y-3 text-xs font-medium text-muted-foreground">
                 <div className="flex items-center justify-between">
-                  <span>Status</span>
+                  <span>Trạng thái</span>
                   <label className="inline-flex items-center gap-2">
-                    <span className="text-[11px] uppercase tracking-wide">{item.is_active ? 'Active' : 'Hidden'}</span>
+                    <span className="text-[11px] uppercase tracking-wide">{item.is_active ? 'Hoạt động' : 'Ẩn'}</span>
                     <span className="relative inline-flex items-center">
                       <input
                         type="checkbox"
@@ -324,9 +324,9 @@ export default function TestimonialsPage() {
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Featured</span>
+                  <span>Nổi bật</span>
                   <label className="inline-flex items-center gap-2">
-                    <span className="text-[11px] uppercase tracking-wide">{item.is_featured ? 'Featured' : 'Standard'}</span>
+                    <span className="text-[11px] uppercase tracking-wide">{item.is_featured ? 'Nổi bật' : 'Tiêu chuẩn'}</span>
                     <span className="relative inline-flex items-center">
                       <input
                         type="checkbox"
@@ -341,7 +341,7 @@ export default function TestimonialsPage() {
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Sort Order</span>
+                  <span>Thứ tự</span>
                   <input
                     type="number"
                     className="w-20 rounded border border-input bg-background px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
@@ -381,11 +381,11 @@ export default function TestimonialsPage() {
             className="w-full max-w-2xl rounded-lg bg-card border border-border p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Edit Testimonial' : 'Create Testimonial'}</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Chỉnh sửa lời chứng thực' : 'Tạo lời chứng thực'}</h3>
             <form onSubmit={handleSubmit} className="grid gap-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-foreground">Customer Name *</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Tên khách hàng *</label>
                   <input
                     className="w-full rounded border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={form.customer_name}
@@ -394,18 +394,18 @@ export default function TestimonialsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-foreground">Customer Title</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Chức danh khách hàng</label>
                   <input
-                    className="w-full rounded border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full rounded border border-input bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={form.customer_title}
                     onChange={(e) => setForm((prev) => ({ ...prev, customer_title: e.target.value }))}
-                    placeholder="Owner, Esthetician, etc."
+                    placeholder="Chủ sở hữu, Chuyên viên thẩm mỹ, v.v."
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-foreground">Initials</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Chữ viết tắt</label>
                   <input
-                    className="w-full rounded border border-input bg-background px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full rounded border border-input bg-background text-foreground px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-ring"
                     value={form.customer_initials}
                     onChange={(e) => setForm((prev) => ({ ...prev, customer_initials: e.target.value }))}
                     maxLength={4}
@@ -413,7 +413,7 @@ export default function TestimonialsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-foreground">Rating (1-5)</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Đánh giá (1-5)</label>
                   <input
                     type="number"
                     min={1}
@@ -426,7 +426,7 @@ export default function TestimonialsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-foreground">Testimonial *</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Lời chứng thực *</label>
                 <textarea
                   className="w-full rounded border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   rows={5}
@@ -438,7 +438,7 @@ export default function TestimonialsPage() {
 
               <div className="grid gap-4 md:grid-cols-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-foreground">Sort Order</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Thứ tự</label>
                   <input
                     type="number"
                     className="w-full rounded border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -453,7 +453,7 @@ export default function TestimonialsPage() {
                     checked={form.is_featured}
                     onChange={(e) => setForm((prev) => ({ ...prev, is_featured: e.target.checked }))}
                   />
-                  Featured
+                  Nổi bật
                 </label>
                 <label className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <input
@@ -462,7 +462,7 @@ export default function TestimonialsPage() {
                     checked={form.is_active}
                     onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.checked }))}
                   />
-                  Active
+                  Hoạt động
                 </label>
               </div>
 
@@ -470,16 +470,16 @@ export default function TestimonialsPage() {
                 <button
                   type="button"
                   onClick={resetDialog}
-                  className="rounded border border-input px-3 py-2 text-sm hover:bg-muted transition-colors"
+                  className="rounded border border-input bg-background text-foreground px-3 py-2 text-sm hover:bg-muted transition-colors"
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
                   className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {saving ? 'Saving...' : 'Save Testimonial'}
+                  {saving ? 'Đang lưu...' : 'Lưu lời chứng thực'}
                 </button>
               </div>
             </form>

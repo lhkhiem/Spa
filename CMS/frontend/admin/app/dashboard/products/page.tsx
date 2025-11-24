@@ -170,7 +170,7 @@ export default function ProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) return;
     
     try {
       await axios.delete(buildApiUrl(`/api/products/${id}`), {
@@ -179,7 +179,7 @@ export default function ProductsPage() {
       await fetchProducts();
     } catch (error) {
       console.error('Failed to delete product:', error);
-      alert('Failed to delete product');
+      alert('Không thể xóa sản phẩm');
     }
   };
 
@@ -212,7 +212,7 @@ export default function ProductsPage() {
       );
     } catch (error) {
       console.error('Failed to update status:', error);
-      alert('Failed to update product status');
+      alert('Không thể cập nhật trạng thái sản phẩm');
       // Revert by refetching
       fetchProducts();
     }
@@ -240,7 +240,7 @@ export default function ProductsPage() {
       );
     } catch (error) {
       console.error(`Failed to update ${field}:`, error);
-      alert('Failed to update product flags');
+      alert('Không thể cập nhật cờ sản phẩm');
       // Revert to previous value
       setProducts((prev) =>
         prev.map((product) =>
@@ -273,13 +273,13 @@ export default function ProductsPage() {
         failureCount?: number;
       };
       await fetchProducts();
-      alert(`Import completed. Success: ${successCount ?? 0}, Failed: ${failureCount ?? 0}`);
+      alert(`Import hoàn tất. Thành công: ${successCount ?? 0}, Thất bại: ${failureCount ?? 0}`);
     } catch (error: any) {
       console.error('Import failed:', error);
       const message =
         error.response?.data?.error ||
         error.response?.data?.message ||
-        'Failed to import products';
+        'Không thể import sản phẩm';
       alert(message);
     } finally {
       setIsImporting(false);
@@ -294,9 +294,9 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Products</h1>
+          <h1 className="text-2xl font-bold text-foreground">Sản phẩm</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your product catalog
+            Quản lý danh mục sản phẩm của bạn
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -325,7 +325,7 @@ export default function ProductsPage() {
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            Add Product
+            Thêm sản phẩm
           </Link>
         </div>
       </div>
@@ -337,7 +337,7 @@ export default function ProductsPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Tìm kiếm sản phẩm..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -352,10 +352,10 @@ export default function ProductsPage() {
           }}
           className="px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="">All Status</option>
-          <option value="published">Published</option>
-          <option value="draft">Draft</option>
-          <option value="archived">Archived</option>
+          <option value="">Tất cả trạng thái</option>
+          <option value="published">Đã xuất bản</option>
+          <option value="draft">Bản nháp</option>
+          <option value="archived">Đã lưu trữ</option>
         </select>
         <select
           value={categoryFilter}
@@ -365,7 +365,7 @@ export default function ProductsPage() {
           }}
           className="px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="">All Categories</option>
+          <option value="">Tất cả danh mục</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
@@ -378,7 +378,7 @@ export default function ProductsPage() {
           }}
           className="px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="">All Brands</option>
+          <option value="">Tất cả thương hiệu</option>
           {brands.map((brand) => (
             <option key={brand.id} value={brand.id}>{brand.name}</option>
           ))}
@@ -386,7 +386,7 @@ export default function ProductsPage() {
         
         {/* Page Size Selector - Now inline */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground border-l border-border pl-4">
-          <span>Show</span>
+          <span>Hiển thị</span>
           <select
             value={pageSize}
             onChange={(e) => {
@@ -400,14 +400,14 @@ export default function ProductsPage() {
             <option value={50}>50</option>
             <option value={100}>100</option>
           </select>
-          <span>per page</span>
+          <span>mỗi trang</span>
         </div>
 
         <button
           onClick={handleShowAll}
           className="inline-flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors"
         >
-          Show All
+          Hiển thị tất cả
         </button>
       </div>
 
@@ -419,10 +419,10 @@ export default function ProductsPage() {
       ) : products.length === 0 ? (
         <EmptyState
           icon={Package}
-          title="No products yet"
-          description="Start building your product catalog by adding your first product. You can add details, images, pricing, and inventory information."
+          title="Chưa có sản phẩm"
+          description="Bắt đầu xây dựng danh mục sản phẩm bằng cách thêm sản phẩm đầu tiên. Bạn có thể thêm chi tiết, hình ảnh, giá và thông tin kho hàng."
           action={{
-            label: 'Add Your First Product',
+            label: 'Thêm sản phẩm đầu tiên',
             onClick: () => window.location.href = '/dashboard/products/new'
           }}
         />
@@ -431,16 +431,16 @@ export default function ProductsPage() {
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-muted/50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase w-[32%]">Product</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase w-[32%]">Sản phẩm</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase w-[12%] whitespace-nowrap">SKU</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase w-[14%]">Category</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase w-[12%]">Brand</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase w-24">Price</th>
-                <th className="px-3 py-3 text-center text-xs font-medium text-muted-foreground uppercase w-16">Stock</th>
-                <th className="px-3 py-3 text-center text-xs font-medium text-muted-foreground uppercase w-20">Featured</th>
-                <th className="px-3 py-3 text-center text-xs font-medium text-muted-foreground uppercase w-24 whitespace-nowrap">Best&nbsp;Seller</th>
-                <th className="px-3 py-3 text-center text-xs font-medium text-muted-foreground uppercase w-28">Status</th>
-                <th className="px-3 py-3 text-center text-xs font-medium text-muted-foreground uppercase w-32">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase w-[14%]">Danh mục</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase w-[12%]">Thương hiệu</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase w-24">Giá</th>
+                <th className="px-3 py-3 text-center text-xs font-medium text-muted-foreground uppercase w-16">Kho</th>
+                <th className="px-3 py-3 text-center text-xs font-medium text-muted-foreground uppercase w-20">Nổi bật</th>
+                <th className="px-3 py-3 text-center text-xs font-medium text-muted-foreground uppercase w-24 whitespace-nowrap">Bán chạy</th>
+                <th className="px-3 py-3 text-center text-xs font-medium text-muted-foreground uppercase w-28">Trạng thái</th>
+                <th className="px-3 py-3 text-center text-xs font-medium text-muted-foreground uppercase w-32">Thao tác</th>
               </tr>
             </thead>
             <tbody className="bg-card divide-y divide-border">
@@ -531,9 +531,9 @@ export default function ProductsPage() {
                           : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
-                      <option value="archived">Archived</option>
+                      <option value="draft">Bản nháp</option>
+                      <option value="published">Đã xuất bản</option>
+                      <option value="archived">Đã lưu trữ</option>
                     </select>
                   </td>
                   <td className="px-3 py-4 text-sm font-medium">
@@ -541,21 +541,21 @@ export default function ProductsPage() {
                       <Link
                         href={`/dashboard/products/${product.id}`}
                         className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-                        title="Edit"
+                        title="Chỉnh sửa"
                       >
                         <Edit className="h-4 w-4" />
                       </Link>
                       <button
                         onClick={() => handleDuplicate(product.id)}
                         className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-blue-500/10 text-blue-600 hover:bg-blue-500 hover:text-white transition-colors dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white"
-                        title="Duplicate"
+                        title="Sao chép"
                       >
                         <Copy className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(product.id)}
                         className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                        title="Delete"
+                        title="Xóa"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -573,14 +573,14 @@ export default function ProductsPage() {
         <div className="space-y-4">
           {/* Results Summary */}
           <div className="text-sm text-muted-foreground">
-            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, total)} of {total} results
+            Hiển thị {((currentPage - 1) * pageSize) + 1} đến {Math.min(currentPage * pageSize, total)} trong tổng số {total} kết quả
           </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-border pt-4">
               <div className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages}
+                Trang {currentPage} / {totalPages}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -588,7 +588,7 @@ export default function ProductsPage() {
                   disabled={currentPage === 1}
                   className="px-3 py-2 rounded-lg border border-input bg-background text-sm hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Previous
+                  Trước
                 </button>
                 <div className="flex items-center gap-1">
                   {[...Array(Math.min(5, totalPages))].map((_, idx) => {
@@ -614,7 +614,7 @@ export default function ProductsPage() {
                   disabled={currentPage === totalPages}
                   className="px-3 py-2 rounded-lg border border-input bg-background text-sm hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next
+                  Sau
                 </button>
               </div>
             </div>
@@ -625,12 +625,12 @@ export default function ProductsPage() {
       {/* No results message */}
       {!loading && products.length === 0 && total === 0 && (statusFilter || categoryFilter || brandFilter || searchQuery) && (
         <div className="text-center py-8 text-muted-foreground">
-          <p>No products found matching your filters.</p>
+          <p>Không tìm thấy sản phẩm nào phù hợp với bộ lọc của bạn.</p>
           <button
             onClick={handleShowAll}
             className="mt-2 text-primary hover:underline"
           >
-            Clear all filters
+            Xóa tất cả bộ lọc
           </button>
         </div>
       )}

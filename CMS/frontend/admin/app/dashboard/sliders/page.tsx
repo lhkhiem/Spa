@@ -194,14 +194,14 @@ export default function SlidersPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this slider?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa slider này?')) return;
     try {
       await axios.delete(buildApiUrl('/api/sliders/${id}'), {
         withCredentials: true,
       });
       fetchSliders();
     } catch (err) {
-      alert(')Failed to delete slider');
+      alert('Không thể xóa slider');
       console.error(err);
     }
   };
@@ -215,7 +215,7 @@ export default function SlidersPage() {
       );
       fetchSliders();
     } catch (err) {
-      alert(')Failed to update slider status');
+      alert('Không thể cập nhật trạng thái slider');
       console.error(err);
     }
   };
@@ -238,7 +238,7 @@ export default function SlidersPage() {
       });
       fetchSliders();
     } catch (err) {
-      alert(')Failed to reorder sliders');
+      alert('Không thể sắp xếp lại slider');
       console.error(err);
     }
   };
@@ -247,15 +247,15 @@ export default function SlidersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Slider Management</h1>
-          <p className="text-sm text-muted-foreground">Manage hero banner sliders</p>
+          <h1 className="text-2xl font-bold text-foreground">Quản lý Slider</h1>
+          <p className="text-sm text-muted-foreground">Quản lý slider banner trang chủ</p>
         </div>
         <button
           onClick={openCreate}
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
-          Add Slider
+          Thêm Slider
         </button>
       </div>
 
@@ -266,8 +266,8 @@ export default function SlidersPage() {
       ) : sliders.length === 0 ? (
         <EmptyState
           icon={ImageIcon}
-          title="No sliders yet"
-          description="Create your first slider to display on the homepage"
+          title="Chưa có slider nào"
+          description="Tạo slider đầu tiên để hiển thị trên trang chủ"
         />
       ) : (
         <div className="space-y-4">
@@ -302,12 +302,12 @@ export default function SlidersPage() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-card-foreground">{slider.title}</h3>
                         {slider.is_active ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Active
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                            Hoạt động
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            Inactive
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                            Không hoạt động
                           </span>
                         )}
                       </div>
@@ -316,10 +316,10 @@ export default function SlidersPage() {
                       )}
                       {slider.button_text && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Button: {slider.button_text} → {slider.button_link || 'No link'}
+                          Nút: {slider.button_text} → {slider.button_link || 'Không có liên kết'}
                         </p>
                       )}
-                      <p className="text-xs text-muted-foreground mt-1">Order: {slider.order_index}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Thứ tự: {slider.order_index}</p>
                     </div>
 
                     {/* Actions */}
@@ -328,7 +328,7 @@ export default function SlidersPage() {
                         onClick={() => handleMove(slider.id, 'up')}
                         disabled={index === 0}
                         className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Move up"
+                        title="Di chuyển lên"
                       >
                         <ChevronUp className="h-4 w-4" />
                       </button>
@@ -336,14 +336,14 @@ export default function SlidersPage() {
                         onClick={() => handleMove(slider.id, 'down')}
                         disabled={index === sliders.length - 1}
                         className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Move down"
+                        title="Di chuyển xuống"
                       >
                         <ChevronDown className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleToggleActive(slider.id, slider.is_active)}
                         className="p-2 text-muted-foreground hover:text-foreground"
-                        title={slider.is_active ? 'Deactivate' : 'Activate'}
+                        title={slider.is_active ? 'Hủy kích hoạt' : 'Kích hoạt'}
                       >
                         {slider.is_active ? (
                           <Eye className="h-4 w-4" />
@@ -354,14 +354,14 @@ export default function SlidersPage() {
                       <button
                         onClick={() => openEdit(slider)}
                         className="p-2 text-primary hover:bg-primary/10 rounded"
-                        title="Edit"
+                        title="Chỉnh sửa"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(slider.id)}
                         className="p-2 text-destructive hover:bg-destructive/10 rounded"
-                        title="Delete"
+                        title="Xóa"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -384,11 +384,11 @@ export default function SlidersPage() {
             className="w-full max-w-2xl rounded-lg bg-card border border-border p-6 shadow-xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Edit Slider' : 'Create Slider'}</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Chỉnh sửa Slider' : 'Tạo Slider'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1 text-foreground">
-                  Title <span className="text-red-500">*</span>
+                  Tiêu đề <span className="text-red-500">*</span>
                 </label>
                 <input
                   className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
@@ -399,7 +399,7 @@ export default function SlidersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-foreground">Description</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Mô tả</label>
                 <textarea
                   className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                   value={form.description}
@@ -410,27 +410,27 @@ export default function SlidersPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-foreground">Button Text</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Văn bản nút</label>
                   <input
                     className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                     value={form.button_text}
                     onChange={(e) => setForm({ ...form, button_text: e.target.value })}
-                    placeholder="e.g., Explore Equipment"
+                    placeholder="Ví dụ: Khám phá Thiết bị"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-foreground">Button Link</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Liên kết nút</label>
                   <input
                     className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                     value={form.button_link}
                     onChange={(e) => setForm({ ...form, button_link: e.target.value })}
-                    placeholder="/products or https://..."
+                    placeholder="/products hoặc https://..."
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Background Image</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Hình ảnh</label>
                 {imagePreview ? (
                   <div className="relative group mb-2">
                     <img
@@ -453,10 +453,10 @@ export default function SlidersPage() {
                   <button
                     type="button"
                     onClick={() => setShowMediaPicker(true)}
-                    className="w-full h-48 rounded border-2 border-dashed border-gray-300 hover:border-primary hover:bg-gray-50 transition-colors flex flex-col items-center justify-center gap-2 text-gray-400 hover:text-gray-600"
+                    className="w-full h-48 rounded border-2 border-dashed border-input hover:border-primary hover:bg-muted/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
                   >
                     <ImageIcon className="h-8 w-8" />
-                    <span className="text-sm">Choose from Media Library</span>
+                    <span className="text-sm">Chọn từ Thư viện Media</span>
                   </button>
                 )}
                 {imagePreview && (
@@ -465,14 +465,14 @@ export default function SlidersPage() {
                     onClick={() => setShowMediaPicker(true)}
                     className="w-full mt-2 text-sm text-primary hover:underline"
                   >
-                    Change Image
+                    Đổi hình ảnh
                   </button>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-foreground">Order Index</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Thứ tự</label>
                   <input
                     type="number"
                     className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
@@ -488,7 +488,7 @@ export default function SlidersPage() {
                       checked={form.is_active}
                       onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
                     />
-                    <span className="text-sm font-medium">Active</span>
+                    <span className="text-sm font-medium">Hoạt động</span>
                   </label>
                 </div>
               </div>
@@ -499,10 +499,10 @@ export default function SlidersPage() {
                   onClick={() => setShowDialog(false)}
                   className="rounded border border-input bg-background text-foreground hover:bg-accent px-4 py-2"
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button type="submit" className="rounded bg-primary text-primary-foreground px-4 py-2 hover:bg-primary/90">
-                  Save
+                  Lưu
                 </button>
               </div>
             </form>

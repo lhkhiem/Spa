@@ -243,7 +243,7 @@ export default function CategoriesPage() {
         }
       }
     } catch (err) {
-      alert('Failed to save category');
+      alert('Không thể lưu danh mục');
     }
   };
 
@@ -272,7 +272,7 @@ export default function CategoriesPage() {
         });
       } else {
         // No relationships, proceed with delete
-        if (confirm(`Are you sure you want to delete "${categoryName}"?`)) {
+        if (confirm(`Bạn có chắc chắn muốn xóa "${categoryName}"?`)) {
           await performDelete(id);
         }
       }
@@ -280,12 +280,12 @@ export default function CategoriesPage() {
       // If check endpoint fails, try direct delete (backend will check)
       if (err.response?.status === 404) {
         // Endpoint not found, try direct delete
-        if (confirm(`Are you sure you want to delete "${categoryName}"?`)) {
+        if (confirm(`Bạn có chắc chắn muốn xóa "${categoryName}"?`)) {
           await performDelete(id);
         }
       } else {
         console.error('Failed to check relationships:', err);
-        alert('Failed to check category relationships. Please try again.');
+        alert('Không thể kiểm tra mối quan hệ danh mục. Vui lòng thử lại.');
       }
     }
   };
@@ -311,7 +311,7 @@ export default function CategoriesPage() {
           warnings: data.warnings || []
         });
       } else {
-        alert(err.response?.data?.error || 'Failed to delete category');
+        alert(err.response?.data?.error || 'Không thể xóa danh mục');
       }
     }
   };
@@ -320,8 +320,8 @@ export default function CategoriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Product Categories</h1>
-          <p className="text-sm text-muted-foreground">Organize products into categories</p>
+          <h1 className="text-2xl font-bold text-foreground">Danh mục sản phẩm</h1>
+          <p className="text-sm text-muted-foreground">Tổ chức sản phẩm vào các danh mục</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 border border-input rounded-lg">
@@ -332,7 +332,7 @@ export default function CategoriesPage() {
                   ? 'bg-accent text-accent-foreground' 
                   : 'text-muted-foreground hover:bg-muted'
               }`}
-              title="Grid View"
+              title="Xem dạng lưới"
             >
               <Grid className="h-5 w-5" />
             </button>
@@ -343,14 +343,14 @@ export default function CategoriesPage() {
                   ? 'bg-accent text-accent-foreground' 
                   : 'text-muted-foreground hover:bg-muted'
               }`}
-              title="Compact View"
+              title="Xem dạng danh sách"
             >
               <List className="h-5 w-5" />
             </button>
           </div>
           <button onClick={openCreate} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
             <Plus className="h-4 w-4" />
-            Add Category
+            Thêm danh mục
           </button>
         </div>
       </div>
@@ -362,8 +362,8 @@ export default function CategoriesPage() {
       ) : categories.length === 0 ? (
         <EmptyState
           icon={Grid3x3}
-          title="No categories yet"
-          description="Create product categories to organize your catalog."
+          title="Chưa có danh mục nào"
+          description="Tạo danh mục sản phẩm để tổ chức catalog của bạn."
         />
       ) : viewMode === 'grid' ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -402,14 +402,14 @@ export default function CategoriesPage() {
                       <button 
                         onClick={() => openEdit(cat)} 
                         className="text-primary hover:bg-primary/10 p-1.5 rounded transition-colors"
-                        title="Edit"
+                        title="Chỉnh sửa"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(cat.id)} 
                         className="text-destructive hover:bg-destructive/10 p-1.5 rounded transition-colors"
-                        title="Delete"
+                        title="Xóa"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -428,12 +428,12 @@ export default function CategoriesPage() {
           <table className="w-full">
             <thead className="bg-muted">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Name</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Tên</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Slug</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Parent</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Description</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Featured</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Danh mục cha</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Mô tả</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Nổi bật</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -457,12 +457,12 @@ export default function CategoriesPage() {
                   </td>
                   <td className="px-4 py-3">
                     {cat.is_featured ? (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Yes
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                        Có
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        No
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                        Không
                       </span>
                     )}
                   </td>
@@ -471,14 +471,14 @@ export default function CategoriesPage() {
                       <button 
                         onClick={() => openEdit(cat)} 
                         className="text-primary hover:bg-primary/10 p-1.5 rounded transition-colors"
-                        title="Edit"
+                        title="Chỉnh sửa"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(cat.id)} 
                         className="text-destructive hover:bg-destructive/10 p-1.5 rounded transition-colors"
-                        title="Delete"
+                        title="Xóa"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -495,10 +495,10 @@ export default function CategoriesPage() {
       {showDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowDialog(false)}>
           <div className="w-full max-w-md rounded-lg bg-card border border-border p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Edit Category' : 'Create Category'}</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Chỉnh sửa danh mục' : 'Tạo danh mục'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto">
               <div>
-                <label className="block text-sm font-medium mb-1 text-foreground">Name <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Tên <span className="text-red-500">*</span></label>
                 <input 
                   className="w-full rounded border border-input bg-background text-foreground px-3 py-2" 
                   value={form.name} 
@@ -529,30 +529,30 @@ export default function CategoriesPage() {
                   } 
                   readOnly
                   disabled
-                  placeholder={form.name ? generateSlug(form.name) : "will be generated from name"} 
+                  placeholder={form.name ? generateSlug(form.name) : "sẽ được tạo tự động từ tên"} 
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   {editing 
-                    ? "Slug is automatically generated when name changes" 
-                    : "Slug is automatically generated from name"
+                    ? "Slug được tạo tự động khi tên thay đổi" 
+                    : "Slug được tạo tự động từ tên"
                   }
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1 text-foreground">Description</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Mô tả</label>
                 <textarea className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={form.description} onChange={(e)=>setForm({...form,description:e.target.value})} rows={3} />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1 text-foreground">Parent Category (optional)</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Danh mục cha (tùy chọn)</label>
                 <select className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={form.parent_id} onChange={(e)=>setForm({...form,parent_id:e.target.value})}>
-                  <option value="">-- None (Root Category) --</option>
+                  <option value="">-- Không có (Danh mục gốc) --</option>
                   {categories.filter(c => !editing || c.id !== editing.id).map(cat => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Featured Image</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Hình ảnh nổi bật</label>
                 {featuredImageUrl ? (
                   <div className="relative group">
                     <img 
@@ -585,7 +585,7 @@ export default function CategoriesPage() {
                         setImageRemoved(true); // Mark as explicitly removed
                       }} 
                       className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
-                      title="Remove image"
+                      title="Xóa hình ảnh"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -594,32 +594,32 @@ export default function CategoriesPage() {
                   <button 
                     type="button" 
                     onClick={() => setShowMediaPicker(true)} 
-                    className="w-full h-40 rounded border-2 border-dashed border-gray-300 hover:border-blue-500 hover:bg-gray-50 transition-colors flex flex-col items-center justify-center gap-2 text-gray-400 hover:text-gray-600"
+                    className="w-full h-40 rounded border-2 border-dashed border-input hover:border-primary hover:bg-muted/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
                   >
                     <ImageIcon className="h-8 w-8" />
-                    <span className="text-sm">Choose from Media Library</span>
+                    <span className="text-sm">Chọn từ Thư viện Media</span>
                   </button>
                 )}
                 {featuredImageUrl && (
                   <button 
                     type="button" 
                     onClick={() => setShowMediaPicker(true)} 
-                    className="w-full mt-2 text-sm text-blue-600 hover:underline"
+                    className="w-full mt-2 text-sm text-primary hover:underline"
                   >
-                    Change Image
+                    Đổi hình ảnh
                   </button>
                 )}
               </div>
               <div>
                 <label className="flex items-center gap-2 text-foreground">
                   <input type="checkbox" checked={form.is_featured} onChange={(e)=>setForm({...form,is_featured:e.target.checked})} />
-                  <span className="text-sm font-medium">Featured Category</span>
+                  <span className="text-sm font-medium">Danh mục nổi bật</span>
                 </label>
-                <p className="text-xs text-muted-foreground mt-1">Show on homepage</p>
+                <p className="text-xs text-muted-foreground mt-1">Hiển thị trên trang chủ</p>
               </div>
               <div className="flex justify-end gap-2 pt-4">
-                <button type="button" onClick={()=>setShowDialog(false)} className="rounded border border-input bg-background text-foreground hover:bg-accent px-3 py-2">Cancel</button>
-                <button type="submit" className="rounded bg-primary text-primary-foreground px-3 py-2 hover:bg-primary/90">Save</button>
+                <button type="button" onClick={()=>setShowDialog(false)} className="rounded border border-input bg-background text-foreground hover:bg-accent px-3 py-2">Hủy</button>
+                <button type="submit" className="rounded bg-primary text-primary-foreground px-3 py-2 hover:bg-primary/90">Lưu</button>
               </div>
             </form>
           </div>
@@ -639,55 +639,55 @@ export default function CategoriesPage() {
       {/* Delete Warning Modal */}
       {deleteWarning.show && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setDeleteWarning({ ...deleteWarning, show: false })}>
-          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg rounded-lg bg-card border border-border p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-4 mb-4">
               <div className="flex-shrink-0">
                 <AlertTriangle className="h-6 w-6 text-amber-500" />
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Cannot Delete Category
+                  Không thể xóa danh mục
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  The category <strong>"{deleteWarning.categoryName}"</strong> cannot be deleted because it has active relationships:
+                  Danh mục <strong>"{deleteWarning.categoryName}"</strong> không thể xóa vì có các mối quan hệ đang hoạt động:
                 </p>
                 
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
                   <ul className="space-y-2">
                     {deleteWarning.productsCount > 0 && (
-                      <li className="text-sm text-amber-800">
-                        <strong>{deleteWarning.productsCount}</strong> product(s) are assigned to this category
+                      <li className="text-sm text-amber-800 dark:text-amber-300">
+                        <strong>{deleteWarning.productsCount}</strong> sản phẩm được gán cho danh mục này
                       </li>
                     )}
                     {deleteWarning.subcategoriesCount > 0 && (
-                      <li className="text-sm text-amber-800">
-                        <strong>{deleteWarning.subcategoriesCount}</strong> subcategory(ies) belong to this category
+                      <li className="text-sm text-amber-800 dark:text-amber-300">
+                        <strong>{deleteWarning.subcategoriesCount}</strong> danh mục con thuộc về danh mục này
                       </li>
                     )}
                   </ul>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-blue-800 font-medium mb-2">
-                    📋 How to Delete This Category:
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-blue-800 dark:text-blue-300 font-medium mb-2">
+                    📋 Cách xóa danh mục này:
                   </p>
-                  <ol className="text-xs text-blue-700 space-y-2 list-decimal list-inside">
+                  <ol className="text-xs text-blue-700 dark:text-blue-400 space-y-2 list-decimal list-inside">
                     {deleteWarning.subcategoriesCount > 0 && (
                       <li>
-                        <strong>First:</strong> Delete or reassign all <strong>{deleteWarning.subcategoriesCount}</strong> subcategory(ies) that belong to this category.
+                        <strong>Bước 1:</strong> Xóa hoặc chuyển tất cả <strong>{deleteWarning.subcategoriesCount}</strong> danh mục con thuộc về danh mục này.
                         <br />
-                        <span className="text-blue-600">Go to each subcategory and change its parent category, or delete them.</span>
+                        <span className="text-blue-600 dark:text-blue-400">Đi đến từng danh mục con và thay đổi danh mục cha của nó, hoặc xóa chúng.</span>
                       </li>
                     )}
                     {deleteWarning.productsCount > 0 && (
                       <li>
-                        <strong>Then:</strong> Remove or reassign all <strong>{deleteWarning.productsCount}</strong> product(s) from this category.
+                        <strong>Bước 2:</strong> Xóa hoặc chuyển tất cả <strong>{deleteWarning.productsCount}</strong> sản phẩm khỏi danh mục này.
                         <br />
-                        <span className="text-blue-600">Go to Products page, edit each product, and change its category to another one.</span>
+                        <span className="text-blue-600 dark:text-blue-400">Đi đến trang Sản phẩm, chỉnh sửa từng sản phẩm và thay đổi danh mục của nó sang danh mục khác.</span>
                       </li>
                     )}
                     <li>
-                      <strong>Finally:</strong> Once all relationships are removed, you can delete this category.
+                      <strong>Bước 3:</strong> Sau khi tất cả các mối quan hệ đã được xóa, bạn có thể xóa danh mục này.
                     </li>
                   </ol>
                 </div>
@@ -697,7 +697,7 @@ export default function CategoriesPage() {
                     onClick={() => setDeleteWarning({ ...deleteWarning, show: false })}
                     className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
-                    I Understand
+                    Tôi hiểu
                   </button>
                 </div>
               </div>

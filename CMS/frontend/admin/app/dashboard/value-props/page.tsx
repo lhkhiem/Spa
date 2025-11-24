@@ -186,7 +186,7 @@ export default function ValuePropsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this value prop?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa giá trị cốt lõi này?')) return;
     try {
       await axios.delete(buildApiUrl(`/api/homepage/value-props/${id}`), {
         withCredentials: true,
@@ -210,7 +210,7 @@ export default function ValuePropsPage() {
       fetchValueProps();
     } catch (error) {
       console.error(')[ValuePropsPage] Toggle failed:', error);
-      alert('Failed to update status');
+      alert('Không thể cập nhật trạng thái');
     }
   };
 
@@ -235,7 +235,7 @@ export default function ValuePropsPage() {
       fetchValueProps();
     } catch (error) {
       console.error('[ValuePropsPage] Reorder failed:', error);
-      alert('Failed to reorder value props');
+      alert('Không thể sắp xếp lại giá trị cốt lõi');
     }
   };
 
@@ -243,15 +243,15 @@ export default function ValuePropsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Homepage Value Props</h1>
-          <p className="text-sm text-muted-foreground">Manage the value proposition tiles shown on the homepage.</p>
+          <h1 className="text-2xl font-bold text-foreground">Giá trị cốt lõi trang chủ</h1>
+          <p className="text-sm text-muted-foreground">Quản lý các ô giá trị cốt lõi hiển thị trên trang chủ.</p>
         </div>
         <button
           onClick={openCreate}
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
-          Add Value Prop
+          Thêm giá trị cốt lõi
         </button>
       </div>
 
@@ -262,8 +262,8 @@ export default function ValuePropsPage() {
       ) : sortedValueProps.length === 0 ? (
         <EmptyState
           icon={Sparkles}
-          title="No value props yet"
-          description="Create your first value proposition to highlight key benefits on the homepage."
+          title="Chưa có giá trị cốt lõi nào"
+          description="Tạo giá trị cốt lõi đầu tiên để làm nổi bật các lợi ích chính trên trang chủ."
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -291,10 +291,10 @@ export default function ValuePropsPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                    <span>Order: {item.sort_order}</span>
-                    <span>Icon: {item.icon_key || 'default'}</span>
+                    <span>Thứ tự: {item.sort_order}</span>
+                    <span>Icon: {item.icon_key || 'mặc định'}</span>
                     <span>
-                      Colors: <span className="inline-block h-3 w-3 rounded-full mr-1" style={{ backgroundColor: color }} />
+                      Màu sắc: <span className="inline-block h-3 w-3 rounded-full mr-1" style={{ backgroundColor: color }} />
                       <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: background }} />
                     </span>
                   </div>
@@ -306,7 +306,7 @@ export default function ValuePropsPage() {
                       onClick={() => handleMove(item, 'up')}
                       disabled={index === 0}
                       className="rounded p-2 text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-                      title="Move up"
+                      title="Di chuyển lên"
                     >
                       <ChevronUp className="h-4 w-4" />
                     </button>
@@ -314,14 +314,14 @@ export default function ValuePropsPage() {
                       onClick={() => handleMove(item, 'down')}
                       disabled={index === sortedValueProps.length - 1}
                       className="rounded p-2 text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-                      title="Move down"
+                      title="Di chuyển xuống"
                     >
                       <ChevronDown className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleToggleActive(item)}
                       className="rounded p-2 text-muted-foreground hover:text-foreground"
-                      title={item.is_active ? 'Deactivate' : 'Activate'}
+                      title={item.is_active ? 'Hủy kích hoạt' : 'Kích hoạt'}
                     >
                       {item.is_active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </button>
@@ -331,14 +331,14 @@ export default function ValuePropsPage() {
                     <button
                       onClick={() => openEdit(item)}
                       className="rounded p-2 text-primary hover:bg-primary/10"
-                      title="Edit"
+                      title="Chỉnh sửa"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
                       className="rounded p-2 text-destructive hover:bg-destructive/10"
-                      title="Delete"
+                      title="Xóa"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -359,15 +359,15 @@ export default function ValuePropsPage() {
             className="w-full max-w-xl rounded-lg bg-card border border-border p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Edit Value Prop' : 'Create Value Prop'}</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Chỉnh sửa giá trị cốt lõi' : 'Tạo giá trị cốt lõi'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">
-                    Title <span className="text-destructive">*</span>
+                    Tiêu đề <span className="text-destructive">*</span>
                   </label>
                   <input
-                    className="w-full rounded border border-input bg-background px-3 py-2"
+                    className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                     required
@@ -375,12 +375,12 @@ export default function ValuePropsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Subtitle</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Phụ đề</label>
                   <input
-                    className="w-full rounded border border-input bg-background px-3 py-2"
+                    className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                     value={form.subtitle}
                     onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
-                    placeholder="Short supporting text"
+                    placeholder="Văn bản hỗ trợ ngắn"
                   />
                 </div>
 
@@ -388,7 +388,7 @@ export default function ValuePropsPage() {
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1">Icon</label>
                     <select
-                      className="w-full rounded border border-input bg-background px-3 py-2"
+                      className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                       value={form.icon_key}
                       onChange={(e) => setForm({ ...form, icon_key: e.target.value })}
                     >
@@ -402,7 +402,7 @@ export default function ValuePropsPage() {
 
                   <div className="flex items-end gap-3">
                     <div className="flex flex-1 flex-col">
-                      <label className="text-sm font-medium text-foreground mb-1">Icon Color</label>
+                      <label className="text-sm font-medium text-foreground mb-1">Màu icon</label>
                       <input
                         type="color"
                         className="h-10 w-full rounded border border-input"
@@ -411,7 +411,7 @@ export default function ValuePropsPage() {
                       />
                     </div>
                     <div className="flex flex-1 flex-col">
-                      <label className="text-sm font-medium text-foreground mb-1">Background</label>
+                      <label className="text-sm font-medium text-foreground mb-1">Nền</label>
                       <input
                         type="color"
                         className="h-10 w-full rounded border border-input"
@@ -424,11 +424,11 @@ export default function ValuePropsPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Sort Order</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Thứ tự</label>
                     <input
                       type="number"
                       min={0}
-                      className="w-full rounded border border-input bg-background px-3 py-2"
+                      className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                       value={form.sort_order}
                       onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })}
                     />
@@ -441,7 +441,7 @@ export default function ValuePropsPage() {
                       onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
                       className="h-4 w-4"
                     />
-                    <label htmlFor="value-prop-active" className="text-sm text-foreground">Active</label>
+                    <label htmlFor="value-prop-active" className="text-sm text-foreground">Hoạt động</label>
                   </div>
                 </div>
               </div>
@@ -450,16 +450,16 @@ export default function ValuePropsPage() {
                 <button
                   type="button"
                   onClick={resetDialog}
-                  className="rounded-lg border border-input px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+                  className="rounded-lg border border-input bg-background text-foreground px-4 py-2 text-sm font-medium hover:bg-muted"
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
                 >
-                  {saving ? 'Saving…' : editing ? 'Update Value Prop' : 'Create Value Prop'}
+                  {saving ? 'Đang lưu…' : editing ? 'Cập nhật giá trị cốt lõi' : 'Tạo giá trị cốt lõi'}
                 </button>
               </div>
             </form>

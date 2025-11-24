@@ -134,7 +134,7 @@ export default function InventoryPage() {
         {
           productId: selectedProduct.id,
           quantity,
-          notes: adjustNotes || 'Manual stock adjustment',
+          notes: adjustNotes || 'Điều chỉnh tồn kho thủ công',
         },
         { withCredentials: true }
       );
@@ -148,7 +148,7 @@ export default function InventoryPage() {
       setSelectedProduct(null);
     } catch (error: any) {
       console.error('Failed to adjust stock:', error);
-      alert(error.response?.data?.error || 'Failed to adjust stock');
+      alert(error.response?.data?.error || 'Không thể điều chỉnh tồn kho');
     }
   };
 
@@ -195,8 +195,8 @@ export default function InventoryPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Inventory Management</h1>
-        <p className="text-sm text-muted-foreground">Track and manage product stock levels</p>
+        <h1 className="text-2xl font-bold text-foreground">Quản lý kho hàng</h1>
+        <p className="text-sm text-muted-foreground">Theo dõi và quản lý mức tồn kho sản phẩm</p>
       </div>
 
       {/* Stats Cards */}
@@ -205,7 +205,7 @@ export default function InventoryPage() {
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Products</p>
+                <p className="text-sm font-medium text-muted-foreground">Tổng sản phẩm</p>
                 <p className="text-2xl font-bold text-card-foreground mt-2">{stats.totalProducts}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
@@ -217,7 +217,7 @@ export default function InventoryPage() {
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Low Stock Items</p>
+                <p className="text-sm font-medium text-muted-foreground">Sản phẩm sắp hết</p>
                 <p className="text-2xl font-bold text-card-foreground mt-2">{stats.lowStockItems}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
@@ -229,7 +229,7 @@ export default function InventoryPage() {
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Out of Stock</p>
+                <p className="text-sm font-medium text-muted-foreground">Hết hàng</p>
                 <p className="text-2xl font-bold text-card-foreground mt-2">{stats.outOfStockItems}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
@@ -241,7 +241,7 @@ export default function InventoryPage() {
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Stock Value</p>
+                <p className="text-sm font-medium text-muted-foreground">Tổng giá trị tồn kho</p>
                 <p className="text-2xl font-bold text-card-foreground mt-2">
                   {new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
@@ -263,7 +263,7 @@ export default function InventoryPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search products by name or SKU..."
+            placeholder="Tìm kiếm sản phẩm theo tên hoặc SKU..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -274,42 +274,42 @@ export default function InventoryPage() {
           onChange={(e) => setFilter(e.target.value as any)}
           className="px-4 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="all">All Products</option>
-          <option value="low_stock">Low Stock</option>
-          <option value="out_of_stock">Out of Stock</option>
+          <option value="all">Tất cả sản phẩm</option>
+          <option value="low_stock">Sắp hết hàng</option>
+          <option value="out_of_stock">Hết hàng</option>
         </select>
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as any)}
           className="px-4 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="stock_asc">Stock: Low to High</option>
-          <option value="stock_desc">Stock: High to Low</option>
-          <option value="name">Name A-Z</option>
+          <option value="stock_asc">Tồn kho: Thấp đến cao</option>
+          <option value="stock_desc">Tồn kho: Cao đến thấp</option>
+          <option value="name">Tên A-Z</option>
           <option value="sku">SKU</option>
         </select>
       </div>
 
       {/* Products Table */}
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading...</div>
+        <div className="text-center py-8 text-muted-foreground">Đang tải...</div>
       ) : products.length === 0 ? (
         <EmptyState
           icon={PackageOpen}
-          title="No products found"
-          description="No products match your current filters."
+          title="Không tìm thấy sản phẩm"
+          description="Không có sản phẩm nào phù hợp với bộ lọc hiện tại của bạn."
         />
       ) : (
         <div className="rounded-lg border border-border bg-card overflow-hidden">
           <table className="w-full">
             <thead className="bg-muted/50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Product</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Sản phẩm</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-foreground">SKU</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Stock</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Price</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Tồn kho</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Trạng thái</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Giá</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -329,10 +329,10 @@ export default function InventoryPage() {
                       )}`}
                     >
                       {product.stock_status === 'out_of_stock'
-                        ? 'Out of Stock'
+                        ? 'Hết hàng'
                         : product.stock_status === 'low_stock'
-                        ? 'Low Stock'
-                        : 'In Stock'}
+                        ? 'Sắp hết hàng'
+                        : 'Còn hàng'}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -351,14 +351,14 @@ export default function InventoryPage() {
                         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-input bg-background text-foreground hover:bg-accent transition-colors text-sm"
                       >
                         <Plus className="h-4 w-4" />
-                        Adjust
+                        Điều chỉnh
                       </button>
                       <button
                         onClick={() => handleViewMovements(product)}
                         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-input bg-background text-foreground hover:bg-accent transition-colors text-sm"
                       >
                         <History className="h-4 w-4" />
-                        History
+                        Lịch sử
                       </button>
                     </div>
                   </td>
@@ -373,32 +373,32 @@ export default function InventoryPage() {
       {adjustDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <div className="bg-card border border-border rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-semibold mb-2">Adjust Stock</h2>
+            <h2 className="text-xl font-semibold mb-2 text-foreground">Điều chỉnh tồn kho</h2>
             {selectedProduct && (
               <p className="text-sm text-muted-foreground mb-4">
-                Adjust stock for <strong>{selectedProduct.name}</strong>
+                Điều chỉnh tồn kho cho <strong>{selectedProduct.name}</strong>
                 <br />
-                Current stock: <strong>{selectedProduct.stock}</strong>
+                Tồn kho hiện tại: <strong>{selectedProduct.stock}</strong>
               </p>
             )}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Quantity Change</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Thay đổi số lượng</label>
                 <input
                   type="number"
-                  placeholder="e.g., +10 or -5"
+                  placeholder="ví dụ: +10 hoặc -5"
                   value={adjustQuantity}
                   onChange={(e) => setAdjustQuantity(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Use positive number to increase, negative to decrease
+                  Sử dụng số dương để tăng, số âm để giảm
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Notes (optional)</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Ghi chú (tùy chọn)</label>
                 <textarea
-                  placeholder="Reason for adjustment..."
+                  placeholder="Lý do điều chỉnh..."
                   value={adjustNotes}
                   onChange={(e) => setAdjustNotes(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px]"
@@ -415,13 +415,13 @@ export default function InventoryPage() {
                 }}
                 className="px-4 py-2 rounded-lg border border-input bg-background text-foreground hover:bg-accent transition-colors"
               >
-                Cancel
+                Hủy
               </button>
               <button
                 onClick={handleAdjustStock}
                 className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                Apply Adjustment
+                Áp dụng điều chỉnh
               </button>
             </div>
           </div>
@@ -432,46 +432,46 @@ export default function InventoryPage() {
       {movementsDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <div className="bg-card border border-border rounded-lg shadow-lg p-6 max-w-3xl w-full max-h-[80vh] flex flex-col">
-            <h2 className="text-xl font-semibold mb-2">Stock Movement History</h2>
+            <h2 className="text-xl font-semibold mb-2 text-foreground">Lịch sử thay đổi tồn kho</h2>
             {selectedProduct && (
               <p className="text-sm text-muted-foreground mb-4">
-                History for <strong>{selectedProduct.name}</strong>
+                Lịch sử cho <strong>{selectedProduct.name}</strong>
               </p>
             )}
             <div className="flex-1 overflow-y-auto">
               {loadingMovements ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                <div className="text-center py-8 text-muted-foreground">Đang tải...</div>
               ) : movements.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No movements found</div>
+                <div className="text-center py-8 text-muted-foreground">Không tìm thấy thay đổi nào</div>
               ) : (
                 <table className="w-full">
                   <thead className="bg-muted/50 sticky top-0">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Change</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Previous</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">New</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Notes</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Ngày</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Loại</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Thay đổi</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Trước</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Sau</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Ghi chú</th>
                     </tr>
                   </thead>
                   <tbody>
                     {movements.map((movement) => (
                       <tr key={movement.id} className="border-t border-border">
-                        <td className="px-4 py-3 text-sm">
+                        <td className="px-4 py-3 text-sm text-foreground">
                           {new Date(movement.created_at).toLocaleString('vi-VN')}
                         </td>
-                        <td className="px-4 py-3 text-sm">{formatMovementType(movement.movement_type)}</td>
+                        <td className="px-4 py-3 text-sm text-foreground">{formatMovementType(movement.movement_type)}</td>
                         <td
                           className={`px-4 py-3 text-sm ${
-                            movement.quantity > 0 ? 'text-green-600' : 'text-red-600'
+                            movement.quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                           }`}
                         >
                           {movement.quantity > 0 ? '+' : ''}
                           {movement.quantity}
                         </td>
-                        <td className="px-4 py-3 text-sm">{movement.previous_stock}</td>
-                        <td className="px-4 py-3 text-sm">{movement.new_stock}</td>
+                        <td className="px-4 py-3 text-sm text-foreground">{movement.previous_stock}</td>
+                        <td className="px-4 py-3 text-sm text-foreground">{movement.new_stock}</td>
                         <td className="px-4 py-3 text-sm text-muted-foreground">
                           {movement.notes || '—'}
                         </td>
@@ -490,7 +490,7 @@ export default function InventoryPage() {
                 }}
                 className="px-4 py-2 rounded-lg border border-input bg-background text-foreground hover:bg-accent transition-colors"
               >
-                Close
+                Đóng
               </button>
             </div>
           </div>

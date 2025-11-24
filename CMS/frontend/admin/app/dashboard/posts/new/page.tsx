@@ -124,8 +124,8 @@ export default function NewPostPage(){
 
   const handleSubmit = async (autosave?: boolean) => {
     console.log('[handleSubmit] featuredImageId:', featuredImageId);
-    if (!title) { 
-      if(!autosave) toast.error('Title is required');
+      if (!title) { 
+      if(!autosave) toast.error('Tiêu đề là bắt buộc');
       return;
     }
     setSaving(true);
@@ -177,14 +177,14 @@ export default function NewPostPage(){
       }
       
       if (!autosave) {
-        toast.success(status === 'published' ? 'Post published successfully!' : 'Draft saved successfully!');
+        toast.success(status === 'published' ? 'Xuất bản bài viết thành công!' : 'Lưu bản nháp thành công!');
         router.push('/dashboard/posts');
       }
       setDirty(false);
     }catch(err){
       console.error('[NewPost] Error:', err);
       if (!autosave) {
-        toast.error(err instanceof Error ? err.message : 'Failed to create post');
+        toast.error(err instanceof Error ? err.message : 'Không thể tạo bài viết');
       }
     }finally{ 
       setSaving(false);
@@ -195,35 +195,35 @@ export default function NewPostPage(){
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Create Post</h1>
-          <p className="text-sm text-muted-foreground">Add a new post to your blog</p>
+          <h1 className="text-2xl font-bold text-foreground">Tạo bài viết</h1>
+          <p className="text-sm text-muted-foreground">Thêm bài viết mới vào blog của bạn</p>
         </div>
         <Link
           href="/dashboard/posts"
-          className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg border border-input bg-background text-foreground px-3 py-2 text-sm hover:bg-accent transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          Quay lại
         </Link>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">Title</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Tiêu đề</label>
             <input className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={title} onChange={(e)=>setTitle(e.target.value)} required />
-            <div className="text-xs text-muted-foreground mt-1">Preview: {slugPreview}</div>
+            <div className="text-xs text-muted-foreground mt-1">Xem trước: {slugPreview}</div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1 text-foreground">Slug</label>
             <input className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={slug} onChange={(e)=>setSlug(generateSlug(e.target.value))} />
-            <p className="text-xs text-muted-foreground mt-1">Auto-generated from title; you can edit.</p>
+            <p className="text-xs text-muted-foreground mt-1">Tự động tạo từ tiêu đề; bạn có thể chỉnh sửa.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">Excerpt</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Tóm tắt</label>
             <textarea className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={excerpt} onChange={(e)=>setExcerpt(e.target.value)} rows={3} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">Estimated Read Time</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Thời gian đọc ước tính</label>
             <input
               className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
               value={readTime}
@@ -231,28 +231,28 @@ export default function NewPostPage(){
                 setReadTime(e.target.value);
                 setDirty(true);
               }}
-              placeholder="e.g. 5 min read"
+              placeholder="ví dụ: 5 phút đọc"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Displayed with the post to help readers gauge the reading length.
+              Hiển thị cùng bài viết để giúp người đọc ước tính thời gian đọc.
             </p>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-foreground">Content</label>
+            <label className="block text-sm font-medium mb-1 text-foreground">Nội dung</label>
             <RichTextEditor 
               value={content} 
               onChange={(html) => { 
                 setContent(html); 
                 setDirty(true); 
               }} 
-              placeholder="Start writing your post content here..."
+              placeholder="Bắt đầu viết nội dung bài viết của bạn tại đây..."
             />
           </div>
         </div>
         <div className="space-y-4">
           <div className="rounded border p-4 space-y-3">
             <div>
-              <label className="block text-sm font-medium mb-1 text-foreground">Featured Image</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Hình ảnh nổi bật</label>
               {featuredImage ? (
                 <div className="relative">
                   <img
@@ -279,7 +279,7 @@ export default function NewPostPage(){
                   className="w-full h-40 rounded border-2 border-dashed border-muted-foreground/25 hover:border-primary hover:bg-muted/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
                 >
                   <ImageIcon className="h-8 w-8" />
-                  <span className="text-sm">Choose from Media Library</span>
+                  <span className="text-sm">Chọn từ Thư viện Media</span>
                 </button>
               )}
               {featuredImage && (
@@ -288,48 +288,48 @@ export default function NewPostPage(){
                   onClick={() => setShowMediaPicker(true)}
                   className="w-full mt-2 text-sm text-primary hover:underline"
                 >
-                  Change Image
+                  Đổi hình ảnh
                 </button>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-foreground">Author (optional)</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Tác giả (tùy chọn)</label>
               <select
                 className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                 value={authorId}
                 onChange={(e)=>setAuthorId(e.target.value)}
               >
-                <option value="">-- No Author --</option>
+                <option value="">-- Không có tác giả --</option>
                 {users.map(user => (
                   <option key={user.id} value={user.id}>
                     {user.name || user.email}
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground mt-1">Select an author or leave blank.</p>
+              <p className="text-xs text-muted-foreground mt-1">Chọn tác giả hoặc để trống.</p>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-foreground">Published Date</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Ngày xuất bản</label>
               <input type="date" className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={pubDate} onChange={(e)=>setPubDate(e.target.value)} />
-              <p className="text-xs text-muted-foreground mt-1">Used when status is Published (can schedule future).</p>
+              <p className="text-xs text-muted-foreground mt-1">Sử dụng khi trạng thái là Đã xuất bản (có thể lên lịch tương lai).</p>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-foreground">Status</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Trạng thái</label>
               <select className="w-full rounded border border-input bg-background text-foreground px-3 py-2" value={status} onChange={(e)=>setStatus(e.target.value as any)}>
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
+                <option value="draft">Bản nháp</option>
+                <option value="published">Đã xuất bản</option>
               </select>
             </div>
             <div>
               <label className="flex items-center gap-2 text-foreground">
                 <input type="checkbox" checked={isFeatured} onChange={(e)=>setIsFeatured(e.target.checked)} />
-                <span className="text-sm font-medium">Featured Post</span>
+                <span className="text-sm font-medium">Bài viết nổi bật</span>
               </label>
-              <p className="text-xs text-muted-foreground mt-1">Show on homepage</p>
+              <p className="text-xs text-muted-foreground mt-1">Hiển thị trên trang chủ</p>
             </div>
             {/* Topics */}
             <div>
-              <label className="block text-sm font-medium mb-1 text-foreground">Topics</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Chủ đề</label>
               <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border border-input bg-background p-2">
                 {allTopics.map(t => (
                   <label key={t.id} className="flex items-center gap-2 text-sm text-foreground">
@@ -346,11 +346,11 @@ export default function NewPostPage(){
                   </label>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Choose one or more topics.</p>
+              <p className="text-xs text-muted-foreground mt-1">Chọn một hoặc nhiều chủ đề.</p>
             </div>
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium mb-1 text-foreground">Tags</label>
+              <label className="block text-sm font-medium mb-1 text-foreground">Thẻ</label>
               <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto rounded border border-input bg-background p-2">
                 {allTags.map(t => (
                   <label key={t.id} className="flex items-center gap-2 text-sm text-foreground">
@@ -367,10 +367,10 @@ export default function NewPostPage(){
                   </label>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Add tags to improve discovery.</p>
+              <p className="text-xs text-muted-foreground mt-1">Thêm thẻ để cải thiện khả năng tìm kiếm.</p>
             </div>
           </div>
-          <button onClick={()=>handleSubmit(false)} disabled={saving} className="w-full rounded bg-blue-600 text-white px-3 py-2">{saving? 'Saving...':'Save'}</button>
+          <button onClick={()=>handleSubmit(false)} disabled={saving} className="w-full rounded bg-blue-600 text-white px-3 py-2">{saving? 'Đang lưu...':'Lưu'}</button>
         </div>
       </div>
       

@@ -88,10 +88,10 @@ export default function OrderDetailPage() {
   }, [orderId]);
 
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Account', href: '/account' },
-    { label: 'Orders', href: '/account/orders' },
-    { label: order?.orderNumber || 'Order Detail', href: '#' },
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Tài khoản', href: '/account' },
+    { label: 'Đơn hàng', href: '/account/orders' },
+    { label: order?.orderNumber || 'Chi tiết đơn hàng', href: '#' },
   ];
 
   if (isLoading) {

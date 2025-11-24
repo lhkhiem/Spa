@@ -51,7 +51,7 @@ export default function LoginPage() {
       router.push(redirectUrl);
       router.refresh(); // Force a refresh to ensure middleware picks up the new auth state
     } catch (err: any) {
-      setLocalError(err?.response?.data?.error || 'Invalid email or password');
+      setLocalError(err?.response?.data?.error || 'Email hoặc mật khẩu không hợp lệ');
       console.error('Login error:', err);
     }
   };
@@ -67,44 +67,44 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-2xl p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2 text-center">CMS Dashboard</h1>
-          <p className="text-gray-600 text-center mb-6">Sign in to your account</p>
+        <div className="bg-card border border-border rounded-lg shadow-2xl p-8">
+          <h1 className="text-2xl font-bold text-foreground mb-2 text-center">Bảng điều khiển CMS</h1>
+          <p className="text-muted-foreground text-center mb-6">Đăng nhập vào tài khoản của bạn</p>
 
           {(error || localError) && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mb-4">
               {error || localError}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" autoComplete="username" required suppressHydrationWarning />
+              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">Địa chỉ Email</label>
+              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="abc@example.com" className="w-full px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition" autoComplete="username" required suppressHydrationWarning />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" autoComplete="current-password" required suppressHydrationWarning />
+              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">Mật khẩu</label>
+              <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition" autoComplete="current-password" required suppressHydrationWarning />
             </div>
 
-            <button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
-              {isLoading ? 'Signing in...' : 'Sign In'}
+            <button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground font-semibold py-2 px-4 rounded-lg transition duration-200">
+              {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-center text-sm text-gray-600">
-              Default credentials:
+          <div className="mt-6 pt-6 border-t border-border">
+            <p className="text-center text-sm text-muted-foreground">
+              Thông tin đăng nhập mặc định:
               <br />
-              Email: <code className="bg-gray-100 px-2 py-1 rounded text-xs">admin@pressup.com</code>
+              Email: <code className="bg-muted px-2 py-1 rounded text-xs text-foreground">admin@pressup.com</code>
               <br />
-              Password: <code className="bg-gray-100 px-2 py-1 rounded text-xs">admin123</code>
+              Mật khẩu: <code className="bg-muted px-2 py-1 rounded text-xs text-foreground">admin123</code>
             </p>
           </div>
         </div>
 
-        <p className="text-center text-gray-400 text-sm mt-6">© 2024 PressUp Agency CMS. All rights reserved.</p>
+        <p className="text-center text-muted-foreground text-sm mt-6">© 2024 Banyco CMS. Bảo lưu mọi quyền.</p>
       </div>
     </div>
   );

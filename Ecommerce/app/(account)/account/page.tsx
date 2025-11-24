@@ -53,8 +53,8 @@ export default function AccountPage() {
   };
 
   const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Account', href: '/account' },
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Tài khoản', href: '/account' },
   ];
 
   return (

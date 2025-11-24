@@ -34,7 +34,11 @@ interface AuthStore {
 
 const getApiUrl = () => {
   const base = resolveApiBaseUrl();
-  return base.endsWith('/') ? base.slice(0, -1) : base;
+  // Remove trailing slash if present
+  let url = base.endsWith('/') ? base.slice(0, -1) : base;
+  // If URL already ends with /api, don't add it again
+  // This handles cases where NEXT_PUBLIC_API_URL already includes /api
+  return url;
 };
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -48,8 +52,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
+      const apiUrl = getApiUrl();
+      // Check if /api is already in the URL
+      const authPath = apiUrl.endsWith('/api') ? '/auth/login' : '/api/auth/login';
       const response = await axios.post(
-        `${getApiUrl()}/api/auth/login`,
+        `${apiUrl}${authPath}`,
         { email, password },
         { withCredentials: true }
       );
@@ -70,7 +77,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   register: async (email: string, password: string, name: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${getApiUrl()}/api/auth/register`, {
+      const apiUrl = getApiUrl();
+      const authPath = apiUrl.endsWith('/api') ? '/auth/register' : '/api/auth/register';
+      const response = await axios.post(`${apiUrl}${authPath}`, {
         email,
         password,
         name,
@@ -89,7 +98,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   // Đăng xuất: gọi API để xóa cookie và xóa user khỏi state
   logout: async () => {
     try {
-      await axios.post(`${getApiUrl()}/api/auth/logout`, {}, { withCredentials: true });
+      const apiUrl = getApiUrl();
+      const authPath = apiUrl.endsWith('/api') ? '/auth/logout' : '/api/auth/logout';
+      await axios.post(`${apiUrl}${authPath}`, {}, { withCredentials: true });
     } catch {}
     set({ user: null });
   },
@@ -97,7 +108,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   // Khôi phục session từ cookie
   hydrate: async () => {
     try {
-      const res = await axios.get(`${getApiUrl()}/api/auth/verify`, { withCredentials: true });
+      const apiUrl = getApiUrl();
+      const authPath = apiUrl.endsWith('/api') ? '/auth/verify' : '/api/auth/verify';
+      const res = await axios.get(`${apiUrl}${authPath}`, { withCredentials: true });
       const { user } = res.data as { user: User };
       set({ user });
     } catch {

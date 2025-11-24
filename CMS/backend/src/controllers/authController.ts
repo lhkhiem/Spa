@@ -81,13 +81,28 @@ export const login = async (req: Request, res: Response) => {
 
     // Set HTTP-only cookie for session
     const maxAgeMs = 7 * 24 * 60 * 60 * 1000; // 7 days
-    res.cookie('token', token, {
+    
+    // Set domain for cross-subdomain cookie sharing
+    // Allow cookie to be shared between api.banyco.vn and admin.banyco.vn
+    const cookieOptions: any = {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       maxAge: maxAgeMs,
       path: '/',
-    });
+    };
+    
+    // Set domain for cross-subdomain cookie sharing (always in production-like environment)
+    const apiDomain = process.env.API_DOMAIN || 'api.banyco.vn';
+    if (apiDomain && !apiDomain.includes('localhost')) {
+      // Extract root domain (e.g., 'banyco.vn' from 'api.banyco.vn')
+      const rootDomain = apiDomain.split('.').slice(-2).join('.');
+      if (rootDomain && rootDomain !== 'localhost' && !rootDomain.includes('127.0.0.1')) {
+        cookieOptions.domain = `.${rootDomain}`;
+      }
+    }
+    
+    res.cookie('token', token, cookieOptions);
 
     res.json({
       token,
@@ -142,13 +157,23 @@ export const verify = async (req: Request, res: Response) => {
 
 // Đăng xuất: xóa cookie token
 export const logout = async (_req: Request, res: Response) => {
-  res.cookie('token', '', {
+  const logoutCookieOptions: any = {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     expires: new Date(0),
     path: '/',
-  });
+  };
+  
+  const apiDomain = process.env.API_DOMAIN || 'api.banyco.vn';
+  if (apiDomain && !apiDomain.includes('localhost')) {
+    const rootDomain = apiDomain.split('.').slice(-2).join('.');
+    if (rootDomain && rootDomain !== 'localhost' && !rootDomain.includes('127.0.0.1')) {
+      logoutCookieOptions.domain = `.${rootDomain}`;
+    }
+  }
+  
+  res.cookie('token', '', logoutCookieOptions);
   res.json({ ok: true });
 };
 

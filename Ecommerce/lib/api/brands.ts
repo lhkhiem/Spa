@@ -1,5 +1,6 @@
 import { buildApiUrl, buildFromApiOrigin } from '@/config/site';
 import { API_ENDPOINTS } from './endpoints';
+import { normalizeMediaUrl } from '@/lib/utils/domainUtils';
 
 export interface BrandSummaryDTO {
   id: string;
@@ -17,47 +18,6 @@ interface ApiResponse<T> {
   success?: boolean;
   data?: T;
 }
-
-const normalizeMediaUrl = (raw: unknown): string | null => {
-  if (!raw || typeof raw !== 'string') {
-    return null;
-  }
-
-  const cleaned = raw.replace(/\\/g, '/');
-  let url: string;
-  
-  if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
-    url = cleaned;
-  } else {
-    url = buildFromApiOrigin(cleaned);
-  }
-  
-  // Always replace IP address with domain name (which has HTTPS via reverse proxy)
-  // This fixes Mixed Content issues both on client and server side
-  const ipPattern = /https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?/;
-  const ipMatch = url.match(ipPattern);
-  if (ipMatch) {
-    // Replace IP with api subdomain (which has HTTPS via reverse proxy)
-    // Don't include port because nginx reverse proxy handles it
-    url = url.replace(ipMatch[0], 'https://api.banyco-demo.pressup.vn');
-  }
-  
-  // Fix Mixed Content issues when page is loaded over HTTPS
-  // Convert HTTP to HTTPS for production domains
-  if (url.startsWith('http://')) {
-    const isProductionDomain = url.includes('banyco-demo.pressup.vn') || 
-                               url.includes('pressup.vn') ||
-                               url.includes('api.banyco-demo.pressup.vn');
-    const isLocalhost = url.includes('localhost') || url.includes('127.0.0.1');
-    
-    // Convert to HTTPS for production domains, or if page is loaded over HTTPS
-    if (isProductionDomain || (!isLocalhost && typeof window !== 'undefined' && window.location.protocol === 'https:')) {
-      url = url.replace('http://', 'https://');
-    }
-  }
-  
-  return url;
-};
 
 export const fetchBrands = async (options?: { featured_only?: boolean }): Promise<BrandSummaryDTO[]> => {
   const url = buildApiUrl(API_ENDPOINTS.BRANDS.LIST);

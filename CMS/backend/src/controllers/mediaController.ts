@@ -431,13 +431,42 @@ export const listMedia = async (req: Request, res: Response) => {
       const filePath = path.join(process.cwd(), 'storage', assetData.url);
       const fileSize = getFileSize(filePath);
       
+      // Extract thumbnail URL from sizes object
+      // sizes can be: { thumb: { url: '/path/to/thumb.webp' } } or { thumb: 'thumb.webp' }
+      let thumbUrl: string | null = null;
+      let mediumUrl: string | null = null;
+      let largeUrl: string | null = null;
+      
+      if (assetData.sizes) {
+        // If sizes.thumb is an object with url property
+        if (assetData.sizes.thumb?.url) {
+          thumbUrl = assetData.sizes.thumb.url;
+        } 
+        // If sizes.thumb is a string (filename)
+        else if (typeof assetData.sizes.thumb === 'string') {
+          thumbUrl = `${directory}/${assetData.sizes.thumb}`;
+        }
+        
+        if (assetData.sizes.medium?.url) {
+          mediumUrl = assetData.sizes.medium.url;
+        } else if (typeof assetData.sizes.medium === 'string') {
+          mediumUrl = `${directory}/${assetData.sizes.medium}`;
+        }
+        
+        if (assetData.sizes.large?.url) {
+          largeUrl = assetData.sizes.large.url;
+        } else if (typeof assetData.sizes.large === 'string') {
+          largeUrl = `${directory}/${assetData.sizes.large}`;
+        }
+      }
+      
       return {
         ...assetData,
         file_name: fileName.replace('original_', ''),
         file_size: fileSize,
-        thumb_url: assetData.sizes?.thumb ? `${directory}/${assetData.sizes.thumb}` : assetData.url,
-        medium_url: assetData.sizes?.medium ? `${directory}/${assetData.sizes.medium}` : assetData.url,
-        large_url: assetData.sizes?.large ? `${directory}/${assetData.sizes.large}` : assetData.url,
+        thumb_url: thumbUrl || assetData.url,
+        medium_url: mediumUrl || assetData.url,
+        large_url: largeUrl || assetData.url,
         original_url: assetData.url,
       };
     });

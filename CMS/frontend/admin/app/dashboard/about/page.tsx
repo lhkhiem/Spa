@@ -5,7 +5,7 @@ import { Save, Image as ImageIcon } from 'lucide-react';
 import MediaPicker from '@/components/MediaPicker';
 import RichTextEditor from '@/components/RichTextEditor';
 import axios from 'axios';
-import { getAssetUrl, API_BASE_URL } from '@/lib/api';
+import { getAssetUrl, buildApiUrl } from '@/lib/api';
 
 interface AboutSection {
   id: string;
@@ -49,7 +49,7 @@ export default function AboutPage() {
   const fetchSections = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get<{ data: AboutSection[] }>(`${API_BASE_URL}/api/about-sections`, {
+      const response = await axios.get<{ data: AboutSection[] }>(buildApiUrl('/api/about-sections'), {
         withCredentials: true,
       });
       const sections = response.data?.data || [];
@@ -62,7 +62,7 @@ export default function AboutPage() {
         creatingSectionsRef.current = true;
         try {
           const createRes = await axios.post(
-            `${API_BASE_URL}/api/about-sections`,
+            buildApiUrl('/api/about-sections'),
             {
               section_key: 'welcome',
               title: 'Chào mừng các chuyên gia Spa!',
@@ -89,7 +89,7 @@ export default function AboutPage() {
         creatingSectionsRef.current = true;
         try {
           const createRes = await axios.post(
-            `${API_BASE_URL}/api/about-sections`,
+            buildApiUrl('/api/about-sections'),
             {
               section_key: 'giving_back',
               title: 'Giá trị cộng đồng',
@@ -149,7 +149,7 @@ export default function AboutPage() {
     try {
       setSaving('welcome');
       await axios.put(
-        `${API_BASE_URL}/api/about-sections/${welcomeSection.id}`,
+        buildApiUrl(`/api/about-sections/${welcomeSection.id}`),
         {
           title: welcomeForm.title,
           content: welcomeForm.content,
@@ -175,7 +175,7 @@ export default function AboutPage() {
     try {
       setSaving('giving_back');
       await axios.put(
-        `${API_BASE_URL}/api/about-sections/${givingBackSection.id}`,
+        buildApiUrl(`/api/about-sections/${givingBackSection.id}`),
         {
           title: givingBackForm.title,
           content: givingBackForm.content,
@@ -217,7 +217,7 @@ export default function AboutPage() {
     if (showMediaPicker === 'welcome') {
       // Get asset URL from media picker
       // For now, we'll need to fetch the asset to get its URL
-      axios.get(`${API_BASE_URL}/api/assets/${id}`, { withCredentials: true })
+      axios.get(buildApiUrl(`/api/assets/${id}`), { withCredentials: true })
         .then(res => {
           const asset = res.data;
           const url = asset.cdn_url || asset.url || '';
@@ -225,7 +225,7 @@ export default function AboutPage() {
         })
         .catch(err => console.error('Failed to fetch asset:', err));
     } else if (showMediaPicker === 'giving_back') {
-      axios.get(`${API_BASE_URL}/api/assets/${id}`, { withCredentials: true })
+      axios.get(buildApiUrl(`/api/assets/${id}`), { withCredentials: true })
         .then(res => {
           const asset = res.data;
           const url = asset.cdn_url || asset.url || '';

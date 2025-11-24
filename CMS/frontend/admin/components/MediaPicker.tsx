@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { X, Upload, Trash2, Image as ImageIcon, Folder, Link2 } from 'lucide-react';
-import { BACKEND_URL, getAssetUrl } from '@/lib/api';
+import { buildApiUrl, getAssetUrl } from '@/lib/api';
 
 interface Asset {
   id: string;
@@ -126,7 +126,7 @@ export default function MediaPicker({
         console.log('Fetching assets for IDs:', ids);
         const promises = ids.map((id) =>
           axios
-            .get(`${BACKEND_URL}/api/assets/${id}`, {
+            .get(buildApiUrl(`/api/assets/${id}`), {
               withCredentials: true,
             })
             .then((res) => ({ status: 'fulfilled' as const, value: res.data as Asset }))
@@ -162,7 +162,7 @@ export default function MediaPicker({
 
   const fetchFolders = async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/media/folders`, {
+      const response = await axios.get(buildApiUrl('/api/media/folders'), {
         withCredentials: true
       });
       const raw = response.data as any;
@@ -191,7 +191,7 @@ export default function MediaPicker({
         params.append('search', searchQuery.trim());
       }
       
-      const response = await axios.get(`${BACKEND_URL}/api/media?${params}`, {
+      const response = await axios.get(buildApiUrl(`/api/media?${params}`), {
         withCredentials: true
       });
       const raw = response.data as any;
@@ -359,7 +359,7 @@ export default function MediaPicker({
         }
 
         try {
-          await axios.post(`${BACKEND_URL}/api/media/upload`, formData, {
+          await axios.post(buildApiUrl('/api/media/upload'), formData, {
             withCredentials: true,
             headers: {
               'Content-Type': 'multipart/form-data'
@@ -406,7 +406,7 @@ export default function MediaPicker({
     setUploading(true);
     try {
       const response = await axios.post(
-        `${BACKEND_URL}/api/media/upload/by-url`,
+        buildApiUrl('/api/media/upload/by-url'),
         {
           url: trimmedUrl,
           folder_id: selectedFolderId || null,
@@ -442,7 +442,7 @@ export default function MediaPicker({
 
     try {
       const response = await axios.post(
-        `${BACKEND_URL}/api/media/folders`,
+        buildApiUrl('/api/media/folders'),
         {
           name: newFolderName.trim(),
           parent_id: selectedFolderId || null,
@@ -496,7 +496,7 @@ export default function MediaPicker({
     }
     try {
       await axios.post(
-        `${BACKEND_URL}/api/media/${renameFileId}/rename`,
+        buildApiUrl(`/api/media/${renameFileId}/rename`),
         { newName: renameFileName.trim() },
         { withCredentials: true },
       );
@@ -517,7 +517,7 @@ export default function MediaPicker({
     try {
       await Promise.all(
         fileIds.map((id) =>
-          axios.delete(`${BACKEND_URL}/api/media/${id}`, {
+          axios.delete(buildApiUrl(`/api/media/${id}`), {
             withCredentials: true,
           }),
         ),
@@ -537,7 +537,7 @@ export default function MediaPicker({
       await Promise.all(
         Array.from(selectedFiles).map((id) =>
           axios.put(
-            `${BACKEND_URL}/api/media/${id}`,
+            buildApiUrl(`/api/media/${id}`),
             { folder_id: targetFolderId },
             { withCredentials: true },
           ),

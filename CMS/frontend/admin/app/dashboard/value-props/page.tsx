@@ -20,7 +20,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
-import { API_BASE_URL } from '@/lib/api';
+import { buildApiUrl } from '@/lib/api';
 
 interface ValueProp {
   id: string;
@@ -108,7 +108,7 @@ export default function ValuePropsPage() {
   const fetchValueProps = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<{ data: ValueProp[] }>(`${API_BASE_URL}/api/homepage/value-props`, {
+      const response = await axios.get<{ data: ValueProp[] }>(buildApiUrl('/api/homepage/value-props'), {
         withCredentials: true,
       });
       setValueProps(response.data?.data || []);
@@ -166,18 +166,18 @@ export default function ValuePropsPage() {
     setSaving(true);
     try {
       if (editing) {
-        await axios.put(`${API_BASE_URL}/api/homepage/value-props/${editing.id}`, payload, {
+        await axios.put(buildApiUrl(`/api/homepage/value-props/${editing.id}`), payload, {
           withCredentials: true,
         });
       } else {
-        await axios.post(`${API_BASE_URL}/api/homepage/value-props`, payload, {
+        await axios.post(buildApiUrl('/api/homepage/value-props'), payload, {
           withCredentials: true,
         });
       }
       resetDialog();
       fetchValueProps();
     } catch (error: any) {
-      console.error('[ValuePropsPage] Save failed:', error);
+      console.error(')[ValuePropsPage] Save failed:', error);
       const message = error.response?.data?.error || error.message || 'Failed to save value prop';
       alert(message);
     } finally {
@@ -188,12 +188,12 @@ export default function ValuePropsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this value prop?')) return;
     try {
-      await axios.delete(`${API_BASE_URL}/api/homepage/value-props/${id}`, {
+      await axios.delete(buildApiUrl(`/api/homepage/value-props/${id}`), {
         withCredentials: true,
       });
       fetchValueProps();
     } catch (error) {
-      console.error('[ValuePropsPage] Delete failed:', error);
+      console.error(')[ValuePropsPage] Delete failed:', error);
       alert('Failed to delete value prop');
     }
   };
@@ -201,7 +201,7 @@ export default function ValuePropsPage() {
   const handleToggleActive = async (item: ValueProp) => {
     try {
       await axios.put(
-        `${API_BASE_URL}/api/homepage/value-props/${item.id}`,
+        buildApiUrl(`/api/homepage/value-props/${item.id}`),
         buildPayload(item, { is_active: !item.is_active }),
         {
           withCredentials: true,
@@ -209,7 +209,7 @@ export default function ValuePropsPage() {
       );
       fetchValueProps();
     } catch (error) {
-      console.error('[ValuePropsPage] Toggle failed:', error);
+      console.error(')[ValuePropsPage] Toggle failed:', error);
       alert('Failed to update status');
     }
   };
@@ -225,10 +225,10 @@ export default function ValuePropsPage() {
 
     try {
       await Promise.all([
-        axios.put(`${API_BASE_URL}/api/homepage/value-props/${item.id}`, buildPayload(item, { sort_order: target.sort_order }), {
+        axios.put(buildApiUrl(`/api/homepage/value-props/${item.id}`), buildPayload(item, { sort_order: target.sort_order }), {
           withCredentials: true,
         }),
-        axios.put(`${API_BASE_URL}/api/homepage/value-props/${target.id}`, buildPayload(target, { sort_order: item.sort_order }), {
+        axios.put(buildApiUrl(`/api/homepage/value-props/${target.id}`), buildPayload(target, { sort_order: item.sort_order }), {
           withCredentials: true,
         }),
       ]);
@@ -356,10 +356,10 @@ export default function ValuePropsPage() {
           onClick={resetDialog}
         >
           <div
-            className="w-full max-w-xl rounded-lg bg-white p-6 shadow-xl"
+            className="w-full max-w-xl rounded-lg bg-card border border-border p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-4">{editing ? 'Edit Value Prop' : 'Create Value Prop'}</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Edit Value Prop' : 'Create Value Prop'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4">
                 <div>

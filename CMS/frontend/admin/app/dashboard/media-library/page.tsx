@@ -9,7 +9,7 @@ import {
   ChevronRight, ChevronDown, Check, SortAsc, SortDesc
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { API_BASE_URL } from '@/lib/api';
+import { buildApiUrl } from '@/lib/api';
 
 interface MediaFolder {
   id: string;
@@ -72,7 +72,7 @@ export default function MediaLibraryPage() {
 
   const fetchFolders = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/media/folders`, {
+      const response = await fetch(buildApiUrl('/api/media/folders'), {
         credentials: 'include',
       });
 
@@ -92,7 +92,7 @@ export default function MediaLibraryPage() {
       const params = new URLSearchParams();
       if (selectedFolder) params.append('folder_id', selectedFolder);
       
-      const response = await fetch(`${API_BASE_URL}/api/media?${params}`, {
+      const response = await fetch(buildApiUrl(`/api/media?${params}`), {
         credentials: 'include',
       });
 
@@ -153,8 +153,8 @@ export default function MediaLibraryPage() {
         formData.append('file', fileArray[i]);
         if (selectedFolder) formData.append('folder_id', selectedFolder);
 
-        const response = await fetch(`${API_BASE_URL}/api/media/upload`, {
-          method: 'POST',
+        const response = await fetch(buildApiUrl('/api/media/upload'), {
+          method: ')POST',
           credentials: 'include',
           body: formData,
         });
@@ -179,8 +179,8 @@ export default function MediaLibraryPage() {
     if (!newFolderName.trim()) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/media/folders`, {
-        method: 'POST',
+      const response = await fetch(buildApiUrl('/api/media/folders'), {
+        method: ')POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ name: newFolderName, parent_id: selectedFolder }),
@@ -201,8 +201,8 @@ export default function MediaLibraryPage() {
     if (!renameFolderName.trim()) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/media/folders/${folderId}`, {
-        method: 'PUT',
+      const response = await fetch(buildApiUrl('/api/media/folders/${folderId}'), {
+        method: ')PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ name: renameFolderName }),
@@ -223,8 +223,8 @@ export default function MediaLibraryPage() {
     if (!confirm('Delete this folder and all its contents?')) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/media/folders/${folderId}`, {
-        method: 'DELETE',
+      const response = await fetch(buildApiUrl('/api/media/folders/${folderId}'), {
+        method: ')DELETE',
         credentials: 'include',
       });
 
@@ -245,8 +245,8 @@ export default function MediaLibraryPage() {
     try {
       await Promise.all(
         fileIds.map(id =>
-          fetch(`${API_BASE_URL}/api/media/${id}`, {
-            method: 'DELETE',
+          fetch(buildApiUrl('/api/media/${id}'), {
+            method: ')DELETE',
             credentials: 'include',
           })
         )
@@ -264,8 +264,8 @@ export default function MediaLibraryPage() {
     try {
       await Promise.all(
         Array.from(selectedFiles).map(id =>
-          fetch(`${API_BASE_URL}/api/media/${id}`, {
-            method: 'PUT',
+          fetch(buildApiUrl('/api/media/${id}'), {
+            method: ')PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ folder_id: targetFolderId }),

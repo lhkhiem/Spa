@@ -59,13 +59,44 @@ export const getNormalizedBackendUrl = () => trimTrailingSlash(resolveBackendUrl
 export const buildApiUrl = (path = '') => {
   const base = getNormalizedApiBaseUrl();
   if (!path) return base;
-  return path.startsWith('/') ? `${base}${path}` : `${base}/${path}`;
+  
+  // If base already ends with /api and path starts with /api, remove duplicate
+  let normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  if (base.endsWith('/api') && normalizedPath.startsWith('/api')) {
+    normalizedPath = normalizedPath.substring(4); // Remove '/api' prefix
+  }
+  
+  return `${base}${normalizedPath}`;
+};
+
+/**
+ * Helper to build API URL from API_BASE_URL constant
+ * Handles duplicate /api/api/ automatically
+ */
+export const buildApiUrlFromBase = (baseUrl: string, path: string): string => {
+  if (!path) return baseUrl;
+  
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  // If baseUrl already ends with /api and path starts with /api, remove duplicate
+  if (baseUrl.endsWith('/api') && normalizedPath.startsWith('/api')) {
+    return `${baseUrl}${normalizedPath.substring(4)}`;
+  }
+  
+  return `${baseUrl}${normalizedPath}`;
 };
 
 export const buildBackendUrl = (path = '') => {
   const base = getNormalizedBackendUrl();
   if (!path) return base;
-  return path.startsWith('/') ? `${base}${path}` : `${base}/${path}`;
+  
+  // Remove /api from base if path starts with /uploads (static files)
+  // Static files should be served from root domain, not /api
+  let normalizedBase = base;
+  if (path.startsWith('/uploads') && base.endsWith('/api')) {
+    normalizedBase = base.slice(0, -4); // Remove '/api'
+  }
+  
+  return path.startsWith('/') ? `${normalizedBase}${path}` : `${normalizedBase}/${path}`;
 };
 
 export const getAssetUrl = (path: string | null | undefined): string => {
@@ -82,19 +113,28 @@ export const getAssetUrl = (path: string | null | undefined): string => {
 export const getThumbnailUrl = (asset: any): string => {
   if (!asset) return '';
   
-  // Priority: thumb from sizes > thumb_url > url
-  if (asset.thumbnail_sizes?.thumb?.url) {
-    return getAssetUrl(asset.thumbnail_sizes.thumb.url);
-  }
-  if (asset.sizes?.thumb?.url) {
-    return getAssetUrl(asset.sizes.thumb.url);
-  }
+  // Priority: thumb_url (from backend) > thumb from sizes object > thumb from sizes string > url
   if (asset.thumb_url) {
     return getAssetUrl(asset.thumb_url);
   }
   if (asset.thumbnail_url) {
     return getAssetUrl(asset.thumbnail_url);
   }
+  // Check if sizes.thumb is an object with url property
+  if (asset.sizes?.thumb?.url) {
+    return getAssetUrl(asset.sizes.thumb.url);
+  }
+  // Check if sizes.thumb is a string (filename) - need to construct path
+  if (asset.sizes?.thumb && typeof asset.sizes.thumb === 'string') {
+    // Extract directory from asset.url
+    const urlParts = asset.url?.split('/') || [];
+    const directory = urlParts.slice(0, -1).join('/');
+    return getAssetUrl(`${directory}/${asset.sizes.thumb}`);
+  }
+  if (asset.thumbnail_sizes?.thumb?.url) {
+    return getAssetUrl(asset.thumbnail_sizes.thumb.url);
+  }
+  // Fallback to original URL
   if (asset.url) {
     return getAssetUrl(asset.url);
   }

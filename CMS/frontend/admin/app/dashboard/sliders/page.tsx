@@ -5,7 +5,7 @@ import { Plus, Edit, Trash2, ChevronUp, ChevronDown, Image as ImageIcon, Eye, Ey
 import { EmptyState } from '@/components/empty-state';
 import MediaPicker from '@/components/MediaPicker';
 import axios from 'axios';
-import { getAssetUrl, API_BASE_URL } from '@/lib/api';
+import { getAssetUrl, buildApiUrl } from '@/lib/api';
 
 interface Slider {
   id: string;
@@ -52,12 +52,12 @@ export default function SlidersPage() {
   const fetchSliders = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<{ data: Slider[] }>(`${API_BASE_URL}/api/sliders`, {
+      const response = await axios.get<{ data: Slider[] }>(buildApiUrl('/api/sliders'), {
         withCredentials: true,
       });
       setSliders(response.data?.data || []);
     } catch (error: any) {
-      console.error('[fetchSliders] Error:', error);
+      console.error(')[fetchSliders] Error:', error);
       console.error('[fetchSliders] Error response:', error.response?.data);
       if (error.response?.status === 404) {
         console.error('[fetchSliders] API endpoint not found. Please ensure backend is running and routes are registered.');
@@ -80,11 +80,11 @@ export default function SlidersPage() {
     }
 
     // Fetch asset to get URL
-    axios.get(`${API_BASE_URL}/api/assets/${id}`, {
+    axios.get(buildApiUrl('/api/assets/${id}'), {
       withCredentials: true,
     }).then(response => {
       const asset = response.data;
-      const imageUrl = asset.cdn_url || asset.url || asset.sizes?.large?.url || asset.sizes?.medium?.url || '';
+      const imageUrl = asset.cdn_url || asset.url || asset.sizes?.large?.url || asset.sizes?.medium?.url || ')';
       setImagePreview(getAssetUrl(imageUrl));
       setForm({ ...form, image_id: id, image_url: imageUrl });
     }).catch(error => {
@@ -123,11 +123,11 @@ export default function SlidersPage() {
     if (slider.image_id && !imageUrl) {
       try {
         console.log('[openEdit] Fetching asset for image_id:', slider.image_id);
-        const assetResponse = await axios.get(`${API_BASE_URL}/api/assets/${slider.image_id}`, {
+        const assetResponse = await axios.get(buildApiUrl('/api/assets/${slider.image_id}'), {
           withCredentials: true,
         });
         const asset = assetResponse.data;
-        imageUrl = asset.cdn_url || asset.url || asset.sizes?.large?.url || asset.sizes?.medium?.url || '';
+        imageUrl = asset.cdn_url || asset.url || asset.sizes?.large?.url || asset.sizes?.medium?.url || ')';
         console.log('[openEdit] Fetched asset URL:', imageUrl);
       } catch (error) {
         console.error('[openEdit] Failed to fetch asset:', error);
@@ -172,16 +172,16 @@ export default function SlidersPage() {
     try {
       if (editing) {
         console.log('[SliderForm] Updating slider:', editing.id);
-        await axios.put(`${API_BASE_URL}/api/sliders/${editing.id}`, cleanedForm, {
+        await axios.put(buildApiUrl('/api/sliders/${editing.id}'), cleanedForm, {
           withCredentials: true,
         });
-        console.log('[SliderForm] Slider updated successfully');
+        console.log(')[SliderForm] Slider updated successfully');
       } else {
         console.log('[SliderForm] Creating new slider');
-        const response = await axios.post(`${API_BASE_URL}/api/sliders`, cleanedForm, {
+        const response = await axios.post(buildApiUrl('/api/sliders'), cleanedForm, {
           withCredentials: true,
         });
-        console.log('[SliderForm] Slider created successfully:', response.data);
+        console.log(')[SliderForm] Slider created successfully:', response.data);
       }
       setShowDialog(false);
       fetchSliders();
@@ -196,12 +196,12 @@ export default function SlidersPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this slider?')) return;
     try {
-      await axios.delete(`${API_BASE_URL}/api/sliders/${id}`, {
+      await axios.delete(buildApiUrl('/api/sliders/${id}'), {
         withCredentials: true,
       });
       fetchSliders();
     } catch (err) {
-      alert('Failed to delete slider');
+      alert(')Failed to delete slider');
       console.error(err);
     }
   };
@@ -209,13 +209,13 @@ export default function SlidersPage() {
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
       await axios.put(
-        `${API_BASE_URL}/api/sliders/${id}`,
+        buildApiUrl('/api/sliders/${id}'),
         { is_active: !currentStatus },
         { withCredentials: true }
       );
       fetchSliders();
     } catch (err) {
-      alert('Failed to update slider status');
+      alert(')Failed to update slider status');
       console.error(err);
     }
   };
@@ -233,12 +233,12 @@ export default function SlidersPage() {
     }));
 
     try {
-      await axios.post(`${API_BASE_URL}/api/sliders/reorder`, { items }, {
+      await axios.post(buildApiUrl('/api/sliders/reorder'), { items }, {
         withCredentials: true,
       });
       fetchSliders();
     } catch (err) {
-      alert('Failed to reorder sliders');
+      alert(')Failed to reorder sliders');
       console.error(err);
     }
   };
@@ -381,17 +381,17 @@ export default function SlidersPage() {
           onClick={() => setShowDialog(false)}
         >
           <div
-            className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-2xl rounded-lg bg-card border border-border p-6 shadow-xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-4">{editing ? 'Edit Slider' : 'Create Slider'}</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Edit Slider' : 'Create Slider'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-foreground">
                   Title <span className="text-red-500">*</span>
                 </label>
                 <input
-                  className="w-full rounded border px-3 py-2"
+                  className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                   required
@@ -399,9 +399,9 @@ export default function SlidersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Description</label>
                 <textarea
-                  className="w-full rounded border px-3 py-2"
+                  className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   rows={3}
@@ -410,18 +410,18 @@ export default function SlidersPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Button Text</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Button Text</label>
                   <input
-                    className="w-full rounded border px-3 py-2"
+                    className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                     value={form.button_text}
                     onChange={(e) => setForm({ ...form, button_text: e.target.value })}
                     placeholder="e.g., Explore Equipment"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Button Link</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Button Link</label>
                   <input
-                    className="w-full rounded border px-3 py-2"
+                    className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                     value={form.button_link}
                     onChange={(e) => setForm({ ...form, button_link: e.target.value })}
                     placeholder="/products or https://..."
@@ -472,17 +472,17 @@ export default function SlidersPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Order Index</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Order Index</label>
                   <input
                     type="number"
-                    className="w-full rounded border px-3 py-2"
+                    className="w-full rounded border border-input bg-background text-foreground px-3 py-2"
                     value={form.order_index}
                     onChange={(e) => setForm({ ...form, order_index: parseInt(e.target.value) || 0 })}
                     min="0"
                   />
                 </div>
                 <div>
-                  <label className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 text-foreground">
                     <input
                       type="checkbox"
                       checked={form.is_active}
@@ -497,11 +497,11 @@ export default function SlidersPage() {
                 <button
                   type="button"
                   onClick={() => setShowDialog(false)}
-                  className="rounded border px-4 py-2"
+                  className="rounded border border-input bg-background text-foreground hover:bg-accent px-4 py-2"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="rounded bg-primary text-primary-foreground px-4 py-2">
+                <button type="submit" className="rounded bg-primary text-primary-foreground px-4 py-2 hover:bg-primary/90">
                   Save
                 </button>
               </div>

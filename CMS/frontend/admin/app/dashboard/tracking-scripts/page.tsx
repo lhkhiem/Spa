@@ -308,30 +308,30 @@ export default function TrackingScriptsPage() {
       {/* Dialog */}
       {showDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">
+          <div className="bg-card border border-border rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4 text-foreground">
               {editing ? 'Edit' : 'Add'} Tracking Script
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Name</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg"
+                  className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Type</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Type</label>
                   <select
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-border rounded-lg"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg"
                   >
                     <option value="analytics">Analytics</option>
                     <option value="pixel">Pixel</option>
@@ -343,24 +343,24 @@ export default function TrackingScriptsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Provider</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Provider</label>
                   <input
                     type="text"
                     value={form.provider}
                     onChange={(e) => setForm({ ...form, provider: e.target.value })}
                     placeholder="e.g. Google Analytics"
-                    className="w-full px-3 py-2 border border-border rounded-lg"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Position</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Position</label>
                   <select
                     value={form.position}
                     onChange={(e) => setForm({ ...form, position: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-border rounded-lg"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg"
                   >
                     <option value="head">Head</option>
                     <option value="body">Body</option>
@@ -368,11 +368,11 @@ export default function TrackingScriptsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Load Strategy</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Load Strategy</label>
                   <select
                     value={form.load_strategy}
                     onChange={(e) => setForm({ ...form, load_strategy: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-border rounded-lg"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg"
                   >
                     <option value="sync">Sync</option>
                     <option value="async">Async</option>
@@ -382,24 +382,24 @@ export default function TrackingScriptsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Script Code</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Script Code</label>
                 <textarea
                   value={form.script_code}
                   onChange={(e) => setForm({ ...form, script_code: e.target.value })}
                   rows={8}
-                  className="w-full px-3 py-2 border border-border rounded-lg font-mono text-sm"
+                  className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg font-mono text-sm"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Priority</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Priority</label>
                   <input
                     type="number"
                     value={form.priority}
                     onChange={(e) => setForm({ ...form, priority: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-border rounded-lg"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg"
                     placeholder="0"
                     min="0"
                   />
@@ -407,7 +407,7 @@ export default function TrackingScriptsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Pages</label>
+                  <label className="block text-sm font-medium mb-1 text-foreground">Pages</label>
                   <input
                     type="text"
                     value={form.pages.join(', ')}
@@ -418,7 +418,7 @@ export default function TrackingScriptsPage() {
                         .filter(p => p.length > 0);
                       setForm({ ...form, pages: pages.length > 0 ? pages : ['all'] });
                     }}
-                    className="w-full px-3 py-2 border border-border rounded-lg"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg"
                     placeholder="all, home, products, cart"
                   />
                   <p className="text-xs text-muted-foreground mt-1">Comma-separated. Use "all" for all pages</p>
@@ -426,18 +426,18 @@ export default function TrackingScriptsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
+                <label className="block text-sm font-medium mb-1 text-foreground">Description</label>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 border border-border rounded-lg"
+                  className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg"
                   placeholder="Optional description"
                 />
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-2 text-foreground">
                   <input
                     type="checkbox"
                     checked={form.is_active}
@@ -451,7 +451,7 @@ export default function TrackingScriptsPage() {
                   <button
                     type="button"
                     onClick={() => setShowDialog(false)}
-                    className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
+                    className="px-4 py-2 border border-input bg-background text-foreground rounded-lg hover:bg-accent transition-colors"
                   >
                     Cancel
                   </button>

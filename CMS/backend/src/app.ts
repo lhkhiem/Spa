@@ -51,30 +51,80 @@ export const app = express();
 // Middleware
 // CORS with credentials to support cookie-based auth from Admin app and Website
 // CORS cấu hình cho cả Admin UI và Website khách
-const publicIp = process.env.PUBLIC_IP || '116.100.161.72';
+import { getFrontendDomain, getApiDomain, getAdminDomain } from './utils/domainUtils';
 
-const allowedOrigins = [
-  process.env.ADMIN_ORIGIN || 'http://localhost:3013', // Giao diện admin
-  process.env.WEBSITE_ORIGIN || 'http://localhost:3010', // Website khách (nếu chạy qua reverse proxy)
-  `http://${publicIp}:3013`, // Admin qua IP public
-  `http://${publicIp}:3010`, // Website khách qua IP public
-  `http://${publicIp}:3000`, // Website Next.js dev qua IP public
-  `http://${publicIp}:3011`, // Truy cập trực tiếp API qua IP public
-  'http://14.225.205.116:3013', // CMS Admin IP thực tế
-  'http://14.225.205.116:3000', // Ecommerce Frontend IP thực tế
-  'http://localhost:3000', // Website khách khi chạy Next.js dev trên máy
-  'http://127.0.0.1:3000', // Dự phòng khi truy cập bằng 127.0.0.1
-  'http://127.0.0.1:3010',
-  // Production domains
-  'http://banyco-demo.pressup.vn', // Production website
-  'https://banyco-demo.pressup.vn', // Production website (HTTPS)
-  'http://admin.banyco-demo.pressup.vn', // CMS Admin
-  'https://admin.banyco-demo.pressup.vn', // CMS Admin (HTTPS)
-  'http://admin.banyco-demo.pressup.vn', // CMS Admin subdomain
-  'https://admin.banyco-demo.pressup.vn', // CMS Admin subdomain (HTTPS)
-  'http://api.banyco-demo.pressup.vn', // API subdomain
-  'https://api.banyco-demo.pressup.vn', // API subdomain (HTTPS)
-];
+const publicIp = process.env.PUBLIC_IP || '14.225.205.116';
+
+// Build allowed origins from environment variables
+const buildAllowedOrigins = (): string[] => {
+  const origins: string[] = [];
+  
+  // Development origins (always include)
+  origins.push(
+    process.env.ADMIN_ORIGIN || 'http://localhost:3013',
+    process.env.WEBSITE_ORIGIN || 'http://localhost:3010',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3010',
+    'http://127.0.0.1:3013'
+  );
+  
+  // IP-based origins (for direct IP access)
+  origins.push(
+    `http://${publicIp}:3013`,
+    `http://${publicIp}:3010`,
+    `http://${publicIp}:3000`,
+    `http://${publicIp}:3011`
+  );
+  
+  // Production domains from environment variables
+  const frontendDomain = process.env.FRONTEND_DOMAIN;
+  const apiDomain = process.env.API_DOMAIN;
+  const adminDomain = process.env.ADMIN_DOMAIN;
+  
+  if (frontendDomain) {
+    origins.push(
+      `http://${frontendDomain}`,
+      `https://${frontendDomain}`,
+      `http://www.${frontendDomain}`,
+      `https://www.${frontendDomain}`
+    );
+  }
+  
+  if (apiDomain && apiDomain !== frontendDomain) {
+    origins.push(
+      `http://${apiDomain}`,
+      `https://${apiDomain}`
+    );
+  }
+  
+  if (adminDomain) {
+    origins.push(
+      `http://${adminDomain}`,
+      `https://${adminDomain}`
+    );
+  }
+  
+  // Legacy support: if using old env vars (ADMIN_ORIGIN, WEBSITE_ORIGIN with full URLs)
+  if (process.env.ADMIN_ORIGIN && process.env.ADMIN_ORIGIN.startsWith('http')) {
+    origins.push(process.env.ADMIN_ORIGIN);
+    if (process.env.ADMIN_ORIGIN.startsWith('http://')) {
+      origins.push(process.env.ADMIN_ORIGIN.replace('http://', 'https://'));
+    }
+  }
+  
+  if (process.env.WEBSITE_ORIGIN && process.env.WEBSITE_ORIGIN.startsWith('http')) {
+    origins.push(process.env.WEBSITE_ORIGIN);
+    if (process.env.WEBSITE_ORIGIN.startsWith('http://')) {
+      origins.push(process.env.WEBSITE_ORIGIN.replace('http://', 'https://'));
+    }
+  }
+  
+  // Remove duplicates
+  return [...new Set(origins)];
+};
+
+const allowedOrigins = buildAllowedOrigins();
 
 app.use(cors({
   origin: (origin, callback) => {

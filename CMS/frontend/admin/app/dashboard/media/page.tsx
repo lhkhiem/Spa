@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDropzone } from 'react-dropzone';
-import { API_BASE_URL } from '@/lib/api';
+import { API_BASE_URL, buildApiUrlFromBase, getAssetUrl, getThumbnailUrl } from '@/lib/api';
 
 interface MediaFolder {
   id: string;
@@ -99,7 +99,7 @@ export default function MediaLibraryPage() {
 
   const fetchFolders = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/media/folders`, {
+      const response = await fetch(buildApiUrlFromBase(API_BASE_URL, '/api/media/folders'), {
         credentials: 'include',
       });
 
@@ -138,7 +138,7 @@ export default function MediaLibraryPage() {
         console.log('[fetchMedia] Showing all files');
       }
       
-      const response = await fetch(`${API_BASE_URL}/api/media?${params}`, {
+      const response = await fetch(buildApiUrlFromBase(API_BASE_URL, `/api/media?${params}`), {
         credentials: 'include',
       });
 
@@ -214,7 +214,7 @@ export default function MediaLibraryPage() {
           console.log('[upload] Uploading to root (no folder)');
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/media/upload`, {
+        const response = await fetch(buildApiUrlFromBase(API_BASE_URL, '/api/media/upload'), {
           method: 'POST',
           credentials: 'include',
           body: formData,
@@ -265,7 +265,7 @@ export default function MediaLibraryPage() {
     setUrlUploading(true);
     setUploading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/media/upload/by-url`, {
+      const response = await fetch(buildApiUrlFromBase(API_BASE_URL, '/api/media/upload/by-url'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -305,7 +305,7 @@ export default function MediaLibraryPage() {
     if (!newFolderName.trim()) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/media/folders`, {
+      const response = await fetch(buildApiUrlFromBase(API_BASE_URL, '/api/media/folders'), {
       method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -327,7 +327,7 @@ export default function MediaLibraryPage() {
     if (!renameFolderName.trim()) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/media/folders/${folderId}`, {
+      const response = await fetch(buildApiUrlFromBase(API_BASE_URL, `/api/media/folders/${folderId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -354,7 +354,7 @@ export default function MediaLibraryPage() {
     const fileExt = currentFileName.substring(currentFileName.lastIndexOf('.'));
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/media/${fileId}/rename`, {
+      const response = await fetch(buildApiUrlFromBase(API_BASE_URL, `/api/media/${fileId}/rename`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -377,7 +377,7 @@ export default function MediaLibraryPage() {
     if (!confirm('Delete this folder and all its contents?')) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/media/folders/${folderId}`, {
+      const response = await fetch(buildApiUrlFromBase(API_BASE_URL, `/api/media/folders/${folderId}`), {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -399,7 +399,7 @@ export default function MediaLibraryPage() {
     try {
       await Promise.all(
         fileIds.map(id =>
-          fetch(`${API_BASE_URL}/api/media/${id}`, {
+          fetch(buildApiUrlFromBase(API_BASE_URL, `/api/media/${id}`), {
             method: 'DELETE',
             credentials: 'include',
           })
@@ -418,7 +418,7 @@ export default function MediaLibraryPage() {
     try {
       await Promise.all(
         Array.from(selectedFiles).map(id =>
-          fetch(`${API_BASE_URL}/api/media/${id}`, {
+          fetch(buildApiUrlFromBase(API_BASE_URL, `/api/media/${id}`), {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -707,9 +707,16 @@ export default function MediaLibraryPage() {
                           onClick={() => toggleFileSelection(asset.id)}
                         >
                           <img
-                            src={`${API_BASE_URL}${asset.thumb_url || asset.url}`}
+                            src={getThumbnailUrl(asset) || getAssetUrl(asset.url)}
                             alt={asset.file_name || 'Media'}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                            onError={(e) => {
+                              // Fallback to original URL if thumbnail fails
+                              const target = e.target as HTMLImageElement;
+                              if (target.src !== getAssetUrl(asset.url)) {
+                                target.src = getAssetUrl(asset.url);
+                              }
+                            }}
                           />
                         </div>
                         <div className="p-2 text-xs truncate bg-card">
@@ -821,7 +828,7 @@ export default function MediaLibraryPage() {
                                 onClick={() => toggleFileSelection(asset.id)}
                               >
                                 <img
-                                  src={`${API_BASE_URL}${asset.thumb_url || asset.url}`}
+                                  src={getThumbnailUrl(asset) || getAssetUrl(asset.url) || getAssetUrl(asset.thumb_url)}
                                   alt={asset.file_name || 'Media'}
                                   className={`h-10 w-10 object-cover rounded ${selectedFiles.has(asset.id) ? 'ring-2 ring-primary' : ''}`}
                                 />
@@ -984,7 +991,7 @@ export default function MediaLibraryPage() {
                         }
                         
                         const link = document.createElement('a');
-                        link.href = `${API_BASE_URL}${asset.url}`;
+                        link.href = getAssetUrl(asset.url);
                         link.download = asset.file_name || 'download';
                         link.style.display = 'none';
                         link.style.position = 'absolute';
@@ -1114,7 +1121,7 @@ export default function MediaLibraryPage() {
             <div className="p-6">
               <h3 className="text-xl font-bold mb-4">{previewFile.file_name || previewFile.url.split('/').pop()}</h3>
               <img
-                src={`${API_BASE_URL}${previewFile.original_url || previewFile.url}`}
+                src={getAssetUrl(previewFile.original_url) || getAssetUrl(previewFile.url)}
                 alt={previewFile.file_name || 'Preview'}
                 className="max-w-full h-auto mx-auto rounded-lg mb-4"
               />
@@ -1139,7 +1146,7 @@ export default function MediaLibraryPage() {
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(window.location.origin + previewFile.original_url);
+                    navigator.clipboard.writeText(getAssetUrl(previewFile.original_url) || getAssetUrl(previewFile.url));
                     toast.success('URL copied to clipboard!');
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"

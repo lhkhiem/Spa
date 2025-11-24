@@ -8,6 +8,9 @@ import EducationResources from '@/components/home/EducationResources/EducationRe
 import ValueProps from '@/components/home/ValueProps/ValueProps';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
 
+// Disable static generation (components fetch data client-side)
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Banyco - Thiết Bị & Vật Tư Spa, Salon Chuyên Nghiệp',
   description:

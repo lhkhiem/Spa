@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { Plus, Edit, Trash2, Star, StarOff } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
-import { API_BASE_URL } from '@/lib/api';
+import { buildApiUrl } from '@/lib/api';
 
 interface Testimonial {
   id: string;
@@ -101,12 +101,12 @@ export default function TestimonialsPage() {
   const fetchTestimonials = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<{ data: Testimonial[] }>(`${API_BASE_URL}/api/homepage/testimonials`, {
+      const response = await axios.get<{ data: Testimonial[] }>(buildApiUrl('/api/homepage/testimonials'), {
         withCredentials: true,
       });
       setTestimonials(response.data?.data || []);
     } catch (error) {
-      console.error('[Testimonials] fetch error:', error);
+      console.error(')[Testimonials] fetch error:', error);
       setTestimonials([]);
     } finally {
       setLoading(false);
@@ -167,11 +167,11 @@ export default function TestimonialsPage() {
     setSaving(true);
     try {
       if (editing) {
-        await axios.put(`${API_BASE_URL}/api/homepage/testimonials/${editing.id}`, payload, {
+        await axios.put(buildApiUrl(`/api/homepage/testimonials/${editing.id}`), payload, {
           withCredentials: true,
         });
       } else {
-        await axios.post(`${API_BASE_URL}/api/homepage/testimonials`, payload, {
+        await axios.post(buildApiUrl('/api/homepage/testimonials'), payload, {
           withCredentials: true,
         });
       }
@@ -189,12 +189,12 @@ export default function TestimonialsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this testimonial?')) return;
     try {
-      await axios.delete(`${API_BASE_URL}/api/homepage/testimonials/${id}`, {
+      await axios.delete(buildApiUrl(`/api/homepage/testimonials/${id}`), {
         withCredentials: true,
       });
       fetchTestimonials();
     } catch (error) {
-      console.error('[Testimonials] delete failed:', error);
+      console.error(')[Testimonials] delete failed:', error);
       alert('Failed to delete testimonial');
     }
   };
@@ -212,12 +212,12 @@ export default function TestimonialsPage() {
     );
 
     try {
-      await axios.put(`${API_BASE_URL}/api/homepage/testimonials/${item.id}`, payload, {
+      await axios.put(buildApiUrl(`/api/homepage/testimonials/${item.id}`), payload, {
         withCredentials: true,
       });
       fetchTestimonials();
     } catch (error) {
-      console.error('[Testimonials] toggle failed:', error);
+      console.error(')[Testimonials] toggle failed:', error);
       setTestimonials((prev) =>
         prev.map((t) =>
           t.id === item.id
@@ -241,12 +241,12 @@ export default function TestimonialsPage() {
     );
 
     try {
-      await axios.put(`${API_BASE_URL}/api/homepage/testimonials/${item.id}`, payload, {
+      await axios.put(buildApiUrl(`/api/homepage/testimonials/${item.id}`), payload, {
         withCredentials: true,
       });
       fetchTestimonials();
     } catch (error) {
-      console.error('[Testimonials] sort update failed:', error);
+      console.error(')[Testimonials] sort update failed:', error);
       alert('Failed to update sort order');
       fetchTestimonials();
     }
@@ -378,10 +378,10 @@ export default function TestimonialsPage() {
           onClick={resetDialog}
         >
           <div
-            className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl"
+            className="w-full max-w-2xl rounded-lg bg-card border border-border p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-4">{editing ? 'Edit Testimonial' : 'Create Testimonial'}</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{editing ? 'Edit Testimonial' : 'Create Testimonial'}</h3>
             <form onSubmit={handleSubmit} className="grid gap-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>

@@ -2,6 +2,9 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+
+// Disable static generation for this page (uses useSearchParams)
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import Button from '@/components/ui/Button/Button';
 import { FiCheckCircle, FiMail, FiPackage, FiPhone } from 'react-icons/fi';

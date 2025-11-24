@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+// Disable static generation for this page (requires authentication)
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FiPackage, FiCalendar, FiDollarSign, FiEye, FiTruck } from 'react-icons/fi';

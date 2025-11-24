@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+
+// Disable static generation for this page (uses useSearchParams)
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';

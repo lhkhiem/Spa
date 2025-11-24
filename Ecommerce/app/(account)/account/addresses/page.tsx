@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+// Disable static generation for this page (requires authentication)
+export const dynamic = 'force-dynamic';
 import { useForm } from 'react-hook-form';
 import { FiMapPin, FiPlus, FiEdit, FiTrash2, FiCheck } from 'react-icons/fi';
 import Button from '@/components/ui/Button/Button';

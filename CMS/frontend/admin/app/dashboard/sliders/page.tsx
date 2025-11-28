@@ -80,11 +80,11 @@ export default function SlidersPage() {
     }
 
     // Fetch asset to get URL
-    axios.get(buildApiUrl('/api/assets/${id}'), {
+    axios.get(buildApiUrl(`/api/assets/${id}`), {
       withCredentials: true,
     }).then(response => {
       const asset = response.data;
-      const imageUrl = asset.cdn_url || asset.url || asset.sizes?.large?.url || asset.sizes?.medium?.url || ')';
+      const imageUrl = asset.cdn_url || asset.url || asset.sizes?.large?.url || asset.sizes?.medium?.url || '';
       setImagePreview(getAssetUrl(imageUrl));
       setForm({ ...form, image_id: id, image_url: imageUrl });
     }).catch(error => {
@@ -123,11 +123,11 @@ export default function SlidersPage() {
     if (slider.image_id && !imageUrl) {
       try {
         console.log('[openEdit] Fetching asset for image_id:', slider.image_id);
-        const assetResponse = await axios.get(buildApiUrl('/api/assets/${slider.image_id}'), {
+        const assetResponse = await axios.get(buildApiUrl(`/api/assets/${slider.image_id}`), {
           withCredentials: true,
         });
         const asset = assetResponse.data;
-        imageUrl = asset.cdn_url || asset.url || asset.sizes?.large?.url || asset.sizes?.medium?.url || ')';
+        imageUrl = asset.cdn_url || asset.url || asset.sizes?.large?.url || asset.sizes?.medium?.url || '';
         console.log('[openEdit] Fetched asset URL:', imageUrl);
       } catch (error) {
         console.error('[openEdit] Failed to fetch asset:', error);
@@ -172,7 +172,7 @@ export default function SlidersPage() {
     try {
       if (editing) {
         console.log('[SliderForm] Updating slider:', editing.id);
-        await axios.put(buildApiUrl('/api/sliders/${editing.id}'), cleanedForm, {
+        await axios.put(buildApiUrl(`/api/sliders/${editing.id}`), cleanedForm, {
           withCredentials: true,
         });
         console.log(')[SliderForm] Slider updated successfully');
@@ -196,7 +196,7 @@ export default function SlidersPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Bạn có chắc chắn muốn xóa slider này?')) return;
     try {
-      await axios.delete(buildApiUrl('/api/sliders/${id}'), {
+      await axios.delete(buildApiUrl(`/api/sliders/${id}`), {
         withCredentials: true,
       });
       fetchSliders();
@@ -209,7 +209,7 @@ export default function SlidersPage() {
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
       await axios.put(
-        buildApiUrl('/api/sliders/${id}'),
+        buildApiUrl(`/api/sliders/${id}`),
         { is_active: !currentStatus },
         { withCredentials: true }
       );

@@ -1,6 +1,18 @@
+import { Metadata } from 'next';
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
 import { FiTruck, FiPackage, FiRotateCcw, FiClock } from 'react-icons/fi';
+import { getPageMetadataFromCMS, generatePageMetadata } from '@/lib/utils/pageMetadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const data = await getPageMetadataFromCMS('/shipping');
+  
+  return generatePageMetadata(data, '/shipping', {
+    title: 'Chính sách Vận chuyển & Đổi trả - Banyco',
+    description: 'Miễn phí vận chuyển cho đơn hàng trên 749.000₫+, vận chuyển giá rẻ 4.990₫ cho đơn hàng trên 199.000₫+. Chính sách đổi trả 30 ngày dễ dàng.',
+    ogImage: '/images/og-shipping.jpg',
+  });
+}
 
 export default function ShippingPage() {
   const breadcrumbItems = [

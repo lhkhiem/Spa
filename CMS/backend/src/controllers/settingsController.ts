@@ -46,7 +46,6 @@ const DEFAULTS: Record<string, any> = {
     cacheStrategy: 'memory',
   },
   seo: {
-    home: { title: 'Home - PressUp', description: '', headScript: '', bodyScript: '', slug: '/' },
     pages: [],
   },
   homepage_metrics: {
@@ -76,18 +75,91 @@ export const putNamespace = async (req: AuthRequest, res: Response) => {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     const { namespace } = req.params;
     const value = req.body;
-    await sequelize.query(
-      `INSERT INTO settings (namespace, value, updated_at)
-       VALUES (:ns, :val::jsonb, NOW())
-       ON CONFLICT (namespace) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
-      { type: 'INSERT' as any, replacements: { ns: namespace, val: JSON.stringify(value) } }
-    );
     
-    // Log activity
-    await logActivity(req, 'update', 'settings', namespace, namespace, `Updated settings: ${namespace}`);
+    // Log for SEO namespace to debug
+    if (namespace === 'seo') {
+      console.log('[putNamespace] Saving SEO settings:', JSON.stringify(value, null, 2));
+      if (value.pages && Array.isArray(value.pages)) {
+        console.log('[putNamespace] Pages count:', value.pages.length);
+        value.pages.forEach((p: any, i: number) => {
+          console.log(`[putNamespace] Page ${i}:`, { path: p.path, title: p.title?.substring(0, 30), enabled: p.enabled });
+        });
+      }
+    }
+    
+    const jsonValue = JSON.stringify(value);
+    console.log('[putNamespace] JSON value to save (first 500 chars):', jsonValue.substring(0, 500));
+    console.log('[putNamespace] Full JSON length:', jsonValue.length);
+    
+    try {
+      // Use raw query without RETURNING, then verify separately
+      await sequelize.query(
+        `INSERT INTO settings (namespace, value, updated_at)
+         VALUES (:ns, :val::jsonb, NOW())
+         ON CONFLICT (namespace) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+        { type: 'INSERT' as any, replacements: { ns: namespace, val: jsonValue } }
+      );
+      
+      console.log('[putNamespace] Insert/Update completed');
+      
+      // Verify the save by reading back
+      const verifyResult = await sequelize.query(
+        'SELECT value FROM settings WHERE namespace = :ns',
+        {
+          type: 'SELECT' as any,
+          replacements: { ns: namespace },
+        }
+      ) as any[];
+      
+      console.log('[putNamespace] Verify result type:', Array.isArray(verifyResult) ? 'array' : typeof verifyResult);
+      console.log('[putNamespace] Verify result length:', Array.isArray(verifyResult) ? verifyResult.length : 'N/A');
+      
+      if (Array.isArray(verifyResult) && verifyResult.length > 0) {
+        console.log('[putNamespace] Verify result[0]:', JSON.stringify(verifyResult[0], null, 2));
+        const savedValue = verifyResult[0]?.value;
+        console.log('[putNamespace] Saved value extracted:', savedValue ? 'exists' : 'null/undefined');
+        console.log('[putNamespace] Saved value type:', typeof savedValue);
+        
+        if (savedValue) {
+          console.log('[putNamespace] Verified saved value:', JSON.stringify(savedValue, null, 2));
+          
+          if (namespace === 'seo') {
+            if (savedValue?.pages) {
+              console.log('[putNamespace] Verified pages count:', savedValue.pages.length);
+              savedValue.pages.forEach((p: any, i: number) => {
+                console.log(`[putNamespace] Verified page ${i}:`, { path: p.path, title: p.title?.substring(0, 30) });
+              });
+            } else {
+              console.error('[putNamespace] ERROR: Saved value has no pages!', savedValue);
+            }
+          }
+        } else {
+          console.error('[putNamespace] ERROR: Could not extract value from verify result!', verifyResult);
+        }
+      } else {
+        console.error('[putNamespace] ERROR: Verify result is empty or invalid!', verifyResult);
+      }
+    } catch (dbError: any) {
+      console.error('[putNamespace] Database error:', dbError);
+      console.error('[putNamespace] Database error message:', dbError.message);
+      console.error('[putNamespace] Database error stack:', dbError.stack);
+      throw dbError; // Re-throw to be caught by outer catch
+    }
+    
+    // Log activity (don't let this fail the save)
+    try {
+      await logActivity(req, 'update', 'settings', namespace, namespace, `Updated settings: ${namespace}`);
+    } catch (activityError) {
+      console.warn('[putNamespace] Failed to create activity log (non-critical):', activityError);
+    }
     
     res.json({ ok: true });
   } catch (err) {
+    console.error('[putNamespace] Error:', err);
+    if (err instanceof Error) {
+      console.error('[putNamespace] Error message:', err.message);
+      console.error('[putNamespace] Error stack:', err.stack);
+    }
     res.status(500).json({ error: 'Failed to save settings' });
   }
 };

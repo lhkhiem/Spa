@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Save, Globe, Palette, Mail, Bell, Lock, Database, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Save, Globe, Palette, Mail, Bell, Lock, Database, Image as ImageIcon, Plus, Edit, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
@@ -27,7 +27,6 @@ export default function SettingsPage() {
   const [notifications, setNotifications] = useState<any>({ newPost: true, newUser: true, newComment: true, systemUpdates: true });
   const [security, setSecurity] = useState<any>({ twoFactorEnabled: false, sessionTimeout: 60, passwordPolicy: { minLength: 8, uppercase: true, numbers: true, special: false } });
   const [advanced, setAdvanced] = useState<any>({ apiBaseUrl: apiBase, cacheStrategy: 'memory' });
-  const [seo, setSeo] = useState<any>({ home: { title: '', description: '', headScript: '', bodyScript: '', slug: '/' }, pages: [] });
   const [homepageMetrics, setHomepageMetrics] = useState<any>({
     activeCustomers: '',
     countriesServed: '',
@@ -63,7 +62,6 @@ export default function SettingsPage() {
     fetchNs('notifications', setNotifications);
     fetchNs('security', setSecurity);
     fetchNs('advanced', setAdvanced);
-    fetchNs('seo', setSeo);
     fetchNs('homepage_metrics', setHomepageMetrics);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -118,7 +116,6 @@ export default function SettingsPage() {
           notifications: { state: notifications, setter: setNotifications },
           security: { state: security, setter: setSecurity },
           advanced: { state: advanced, setter: setAdvanced },
-          seo: { state: seo, setter: setSeo },
         };
 
         const target = map[ns];
@@ -160,7 +157,6 @@ export default function SettingsPage() {
       if (activeTab === 'notifications') setNotifications(defaults);
       if (activeTab === 'security') setSecurity(defaults);
       if (activeTab === 'advanced') setAdvanced(defaults);
-      if (activeTab === 'seo') setSeo(defaults);
       toast.success('Reset to default');
     } catch (e: any) {
       toast.error('Failed to reset');
@@ -529,38 +525,6 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* SEO (Home & Pages) placed under General additions per blueprint */}
-          {activeTab === 'general' && (
-            <div className="rounded-lg border border-border bg-card p-6 space-y-6">
-              <div>
-                <h3 className="text-lg font-medium text-card-foreground mb-4">SEO & Meta</h3>
-                <p className="text-sm text-muted-foreground mb-4">Configure Home page meta, scripts and slugs. Sub-pages will be added later.</p>
-              </div>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Home Title</label>
-                  <input type="text" value={seo.home?.title || ''} onChange={(e)=>setSeo({ ...seo, home: { ...seo.home, title: e.target.value } })} className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Slug</label>
-                  <input type="text" value={seo.home?.slug || '/'} onChange={(e)=>setSeo({ ...seo, home: { ...seo.home, slug: e.target.value } })} className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm" />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-foreground mb-2">Meta Description</label>
-                  <textarea rows={3} value={seo.home?.description || ''} onChange={(e)=>setSeo({ ...seo, home: { ...seo.home, description: e.target.value } })} className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Head Script</label>
-                  <textarea rows={3} value={seo.home?.headScript || ''} onChange={(e)=>setSeo({ ...seo, home: { ...seo.home, headScript: e.target.value } })} className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Body Script</label>
-                  <textarea rows={3} value={seo.home?.bodyScript || ''} onChange={(e)=>setSeo({ ...seo, home: { ...seo.home, bodyScript: e.target.value } })} className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm" />
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground">Scripts will be sandboxed with a nonce at render time.</div>
-            </div>
-          )}
 
           {activeTab === 'email' && (
             <div className="rounded-lg border border-border bg-card p-6 space-y-6">

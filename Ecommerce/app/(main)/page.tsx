@@ -1,21 +1,26 @@
 import { Metadata } from 'next';
 import HeroSlider from '@/components/home/HeroSlider/HeroSlider';
 import CategoryGrid from '@/components/home/CategoryGrid/CategoryGrid';
-import BrandShowcase from '@/components/home/BrandShowcase/BrandShowcase';
 import BestSellers from '@/components/home/BestSellers/BestSellers';
 import Testimonials from '@/components/home/Testimonials/Testimonials';
 import EducationResources from '@/components/home/EducationResources/EducationResources';
 import ValueProps from '@/components/home/ValueProps/ValueProps';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
+import { getPageMetadataFromCMS, generatePageMetadata } from '@/lib/utils/pageMetadata';
 
 // Disable static generation (components fetch data client-side)
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Banyco - Thiết Bị & Vật Tư Spa, Salon Chuyên Nghiệp',
-  description:
-    'Mua sắm thiết bị spa, salon và vật tư làm đẹp chuyên nghiệp. Được tin dùng bởi các chuyên gia hơn 40 năm. Miễn phí vận chuyển cho đơn hàng trên $749+.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const data = await getPageMetadataFromCMS('/');
+  
+  return generatePageMetadata(data, '/', {
+    title: 'Banyco - Thiết Bị & Vật Tư Spa, Salon Chuyên Nghiệp',
+    description:
+      'Mua sắm thiết bị spa, salon và vật tư làm đẹp chuyên nghiệp. Được tin dùng bởi các chuyên gia hơn 40 năm. Miễn phí vận chuyển cho đơn hàng trên $749+.',
+    ogImage: '/images/og-default.jpg',
+  });
+}
 
 export default function HomePage() {
   return (
@@ -39,9 +44,9 @@ export default function HomePage() {
       </FadeInSection>
 
       {/* Brand Showcase */}
-      <FadeInSection delay={100}>
+      {/* <FadeInSection delay={100}>
         <BrandShowcase />
-      </FadeInSection>
+      </FadeInSection> */}
 
       {/* Testimonials */}
       <FadeInSection delay={200}>

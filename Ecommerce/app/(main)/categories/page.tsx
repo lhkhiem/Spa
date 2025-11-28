@@ -1,6 +1,24 @@
+import { Metadata } from 'next';
+import { getPageMetadataFromCMS, generatePageMetadata } from '@/lib/utils/pageMetadata';
 import Image from 'next/image';
 import Link from 'next/link';
 import { fetchProductCategories } from '@/lib/api/categories';
+
+export async function generateMetadata(): Promise<Metadata> {
+  console.log('[Categories Page] generateMetadata called');
+  const data = await getPageMetadataFromCMS('/categories');
+  console.log('[Categories Page] CMS data:', data ? 'Found' : 'Not found');
+  
+  return generatePageMetadata(data, '/categories', {
+    title: 'Danh Mục Sản Phẩm - Banyco',
+    description: 'Khám phá các danh mục sản phẩm spa, salon chuyên nghiệp. Thiết bị massage, chăm sóc da, mỹ phẩm và vật tư làm đẹp.',
+    ogImage: '/images/og-categories.jpg',
+  });
+}
+
+// Force dynamic rendering to ensure metadata is always fresh from CMS
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // No caching for metadata
 
 const getInitials = (name: string) =>
   name

@@ -14,6 +14,7 @@ import Asset from '../models/Asset';
 import sequelize from '../config/database';
 import { generateSlug, generateUniqueSlug } from '../utils/slug';
 import { logActivity } from './activityLogController';
+import { syncPostMetadataToCMS } from '../utils/postMetadataSync';
 
 // Lấy danh sách bài viết có phân trang
 // Query params:
@@ -280,6 +281,9 @@ export const createPost = async (req: Request, res: Response) => {
 
     console.log('[createPost] Post created successfully:', post.id);
     
+    // Auto-sync metadata to CMS Settings
+    await syncPostMetadataToCMS(post);
+    
     // Log activity
     await logActivity(req, 'create', 'post', (post as any).id, title, `Created post "${title}"`);
     
@@ -395,6 +399,9 @@ export const updatePost = async (req: Request, res: Response) => {
 
     console.log('[updatePost] Post updated successfully');
     
+    // Auto-sync metadata to CMS Settings
+    await syncPostMetadataToCMS(post);
+    
     // Log activity
     const postTitle = title || (post as any).title;
     await logActivity(req, 'update', 'post', id, postTitle, `Updated post "${postTitle}"`);
@@ -419,7 +426,18 @@ export const deletePost = async (req: Request, res: Response) => {
     }
 
     const postTitle = (post as any).title;
+    const postSlug = (post as any).slug;
+    
     await post.destroy();
+    
+    // Remove metadata from CMS Settings
+    try {
+      const { removeMetadataFromCMS } = await import('../utils/removeMetadataFromCMS');
+      await removeMetadataFromCMS(`/posts/${postSlug}`);
+    } catch (metaError) {
+      console.error('[deletePost] Failed to remove metadata:', metaError);
+      // Continue anyway - post is already deleted
+    }
     
     // Log activity
     await logActivity(req, 'delete', 'post', id, postTitle, `Deleted post "${postTitle}"`);

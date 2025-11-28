@@ -10,6 +10,9 @@ import { submitContactForm } from '@/lib/api/contacts';
 import { handleApiError } from '@/lib/api/client';
 import toast from 'react-hot-toast';
 
+// Disable static generation for this page (client component with dynamic content)
+export const dynamic = 'force-dynamic';
+
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     firstName: '',
@@ -278,11 +281,11 @@ export default function ContactPage() {
                     <div>
                       <p className="font-semibold text-gray-900">Địa chỉ</p>
                       <p className="text-gray-600">
-                        123 Spa Boulevard
+                        Tầng 5, Toà nhà Thể thao Mai Thế Hệ
                         <br />
-                        Suite 100
+                        Số 142, đường Nam Thành
                         <br />
-                        New York, NY 10001
+                        Phường Hoa Lư, Tỉnh Ninh Bình, Việt Nam
                       </p>
                     </div>
                   </div>
@@ -310,9 +313,10 @@ export default function ContactPage() {
               <div className="rounded-2xl bg-white shadow-lg overflow-hidden h-full">
                 <iframe
                   title="Vị trí trên Google Maps"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d24156.741970260586!2d-74.0059415!3d40.7127837!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zTmfDtSB5w7RuZyBOWXJr!5e0!3m2!1svi!2s!4v1699999999999"
+                  src="https://www.google.com/maps?q=Tầng+5,+Toà+nhà+Thể+thao+Mai+Thế+Hệ,+số+142,+đường+Nam+Thành,+Phường+Hoa+Lư,+Tỉnh+Ninh+Bình,+Việt+Nam&output=embed"
                   loading="lazy"
                   allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
                   className="w-full h-full border-0"
                 ></iframe>
               </div>

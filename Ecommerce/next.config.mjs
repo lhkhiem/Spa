@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Disable static export to allow dynamic pages
-  output: 'standalone',
   images: {
     remotePatterns: [
       {

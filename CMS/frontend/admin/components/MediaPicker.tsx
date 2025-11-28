@@ -35,10 +35,10 @@ interface MediaPickerProps {
   maxFiles?: number;
   previewSize?: number; // Size in pixels for preview thumbnails (default: 150)
   modalOnly?: boolean;
-  // For CKEditor integration
+  // For CKEditor integration or SEO page (can return string URL or Asset object)
   isOpen?: boolean;
   onClose?: () => void;
-  onSelect?: (imageUrl: string) => void;
+  onSelect?: (imageUrl: string | Asset) => void;
 }
 
 export default function MediaPicker({
@@ -275,6 +275,13 @@ export default function MediaPicker({
     if (isCKEditorMode && externalOnSelect) {
       const imageUrl = getAssetUrl(asset.sizes?.medium?.url || asset.url);
       externalOnSelect(imageUrl);
+      if (externalOnClose) externalOnClose();
+      return;
+    }
+    
+    // If onSelect is provided (e.g., from SEO page), call it with asset object
+    if (externalOnSelect) {
+      externalOnSelect(asset);
       if (externalOnClose) externalOnClose();
       return;
     }
@@ -1609,6 +1616,49 @@ export default function MediaPicker({
                 className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Đổi tên
+              </button>
+            </div>
+          </div>
+        </div>
+        , portalTarget)
+        : null}
+
+      {portalTarget && showNewFolderModal
+        ? createPortal(
+        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-card rounded-lg border border-border shadow-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">Thư mục mới</h3>
+            <input
+              type="text"
+              value={newFolderName}
+              onChange={(event) => setNewFolderName(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  handleCreateFolder();
+                }
+              }}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-ring"
+              placeholder="Tên thư mục"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowNewFolderModal(false);
+                  setNewFolderName('');
+                }}
+                className="px-4 py-2 rounded-md border border-input hover:bg-accent"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateFolder}
+                disabled={!newFolderName.trim()}
+                className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Create
               </button>
             </div>
           </div>

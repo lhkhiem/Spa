@@ -9,6 +9,7 @@ import * as XLSX from 'xlsx';
 import sequelize from '../config/database';
 import { generateSlug } from '../utils/slug';
 import { logActivity } from './activityLogController';
+import { syncProductMetadataToCMS } from '../utils/productMetadataSync';
 
 // Get all products with filters and pagination
 export const getProducts = async (req: Request, res: Response) => {
@@ -329,6 +330,28 @@ export const createProduct = async (req: Request, res: Response) => {
       }
     }
 
+    // Fetch full product data with brand and category for metadata sync
+    const fullProductQuery = `
+      SELECT 
+        p.*,
+        b.name as brand_name,
+        (SELECT string_agg(pc.name, ', ') 
+         FROM product_categories pc
+         JOIN product_product_categories ppc ON pc.id = ppc.category_id
+         WHERE ppc.product_id = p.id) as category_name
+      FROM products p
+      LEFT JOIN brands b ON p.brand_id = b.id
+      WHERE p.id = :id
+    `;
+    const fullProductResult: any = await sequelize.query(fullProductQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+    const fullProduct = fullProductResult[0] || product;
+
+    // Auto-sync metadata to CMS Settings
+    await syncProductMetadataToCMS(fullProduct);
+
     // Log activity
     await logActivity(req, 'create', 'product', id, name, `Created product "${name}"`);
 
@@ -545,6 +568,28 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     const updatedProduct = result[0][0];
     
+    // Fetch full product data with brand and category for metadata sync
+    const fullProductQuery = `
+      SELECT 
+        p.*,
+        b.name as brand_name,
+        (SELECT string_agg(pc.name, ', ') 
+         FROM product_categories pc
+         JOIN product_product_categories ppc ON pc.id = ppc.category_id
+         WHERE ppc.product_id = p.id) as category_name
+      FROM products p
+      LEFT JOIN brands b ON p.brand_id = b.id
+      WHERE p.id = :id
+    `;
+    const fullProductResult: any = await sequelize.query(fullProductQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+    const fullProduct = fullProductResult[0] || updatedProduct;
+
+    // Auto-sync metadata to CMS Settings
+    await syncProductMetadataToCMS(fullProduct);
+    
     // Log activity
     await logActivity(req, 'update', 'product', id, updatedProduct.name, `Updated product "${updatedProduct.name}"`);
 
@@ -573,6 +618,16 @@ export const deleteProduct = async (req: Request, res: Response) => {
     }
 
     const deletedProduct = result[0][0];
+    const productSlug = deletedProduct.slug;
+    
+    // Remove metadata from CMS Settings
+    try {
+      const { removeMetadataFromCMS } = await import('../utils/removeMetadataFromCMS');
+      await removeMetadataFromCMS(`/products/${productSlug}`);
+    } catch (metaError) {
+      console.error('[deleteProduct] Failed to remove metadata:', metaError);
+      // Continue anyway - product is already deleted
+    }
     
     // Log activity (don't fail if logging fails)
     try {

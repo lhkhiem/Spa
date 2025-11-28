@@ -34,12 +34,15 @@ import aboutSectionRoutes from './routes/aboutSections';
 import publicPostsRoutes from './routes/publicPosts';
 import publicHomepageRoutes from './routes/publicHomepage';
 import publicProductsRoutes from './routes/publicProducts';
+import publicPageMetadataRoutes from './routes/publicPageMetadata';
 import contactRoutes from './routes/contacts';
 import consultationRoutes from './routes/consultations';
 import emailRoutes from './routes/email';
 import publicAuthRoutes from './routes/publicAuth'; // Customer authentication
 import inventoryRoutes from './routes/inventory'; // Inventory management
 import activityLogRoutes from './routes/activityLogs'; // Activity tracking
+import syncMetadataRoutes from './routes/syncMetadata'; // Metadata sync
+import debugSeoRoutes from './routes/debugSeo'; // Debug SEO
 // import publicUserRoutes from './routes/publicUser'; // Disabled: Customer user management not needed
 // import publicOrdersRoutes from './routes/publicOrders'; // Disabled: Customer orders not needed
 // import publicCartRoutes from './routes/publicCart'; // Disabled: Customer cart not needed
@@ -163,10 +166,12 @@ app.use('/api/health', healthRoutes);
 app.use('/api/public/posts', publicPostsRoutes);
 app.use('/api/public/homepage', publicHomepageRoutes);
 app.use('/api/public/products', publicProductsRoutes);
+app.use('/api/public/page-metadata', publicPageMetadataRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/consultations', consultationRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/sync-metadata', syncMetadataRoutes);
 app.use('/api/public/auth', publicAuthRoutes); // Customer authentication
 // app.use('/api/public/user', publicUserRoutes); // Disabled: Customer user management not needed
 // app.use('/api/public/orders', publicOrdersRoutes); // Disabled: Customer orders not needed
@@ -184,6 +189,7 @@ app.use('/api/homepage', homepageRoutes);
 app.use('/api/sliders', sliderRoutes);
 app.use('/api/about-sections', aboutSectionRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
+app.use('/api/debug', debugSeoRoutes);
 
 // Ensure upload and temp dirs on boot and serve uploads
 (async () => {

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToasterProvider } from '@/components/providers/ToasterProvider';
 import Script from 'next/script';
+import { Suspense } from 'react';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 
 const inter = Inter({ 
@@ -61,7 +62,9 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={inter.className}>
-        <AnalyticsTracker />
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+        </Suspense>
         <ToasterProvider />
         {children}
       </body>

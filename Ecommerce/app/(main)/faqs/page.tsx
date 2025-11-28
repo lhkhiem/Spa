@@ -3,6 +3,10 @@ import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
 import ParallaxSection from '@/components/ui/ParallaxSection/ParallaxSection';
 import { FiChevronDown } from 'react-icons/fi';
 
+// Force dynamic rendering to ensure metadata is always fresh from CMS
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // No caching for metadata
+
 const faqCategories = [
   {
     id: 'orders',

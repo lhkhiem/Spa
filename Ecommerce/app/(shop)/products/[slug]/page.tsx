@@ -1,8 +1,27 @@
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import ProductDetailClient from './ProductDetailClient';
 import { fetchProductDetail, ProductDetailDTO } from '@/lib/api/products';
+import { getPageMetadataFromCMS } from '@/lib/utils/pageMetadata';
 
 const FALLBACK_IMAGE = '/images/placeholder-product.jpg';
+
+// Normalize slug to handle various formats (same as post page)
+const normalizeSlug = (slug: string): string => {
+  // Decode URL-encoded characters first
+  try {
+    slug = decodeURIComponent(slug);
+  } catch (e) {
+    // If decode fails, use original slug
+  }
+  
+  return slug
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]/g, '-') // Replace special chars with dash
+    .replace(/-+/g, '-') // Replace multiple dashes with single dash
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing dashes
+};
 
 const extractDescription = (product: ProductDetailDTO): string | null => {
   if (product.description) {
@@ -19,8 +38,93 @@ const extractDescription = (product: ProductDetailDTO): string | null => {
   return null;
 };
 
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: { slug: string } 
+}): Promise<Metadata> {
+  // Normalize slug to match backend normalization
+  const normalizedSlug = normalizeSlug(params.slug);
+  const path = `/products/${normalizedSlug}`;
+  
+  // 1. Try to get metadata from CMS first
+  const cmsMetadata = await getPageMetadataFromCMS(path);
+  
+  if (cmsMetadata) {
+    // CMS has custom metadata → use it
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://banyco.vn';
+    const fullUrl = `${siteUrl}${path}`;
+    const imageUrl = cmsMetadata.ogImage?.startsWith('http') 
+      ? cmsMetadata.ogImage 
+      : `${siteUrl}${cmsMetadata.ogImage}`;
+    
+    return {
+      title: cmsMetadata.title,
+      description: cmsMetadata.description,
+      openGraph: {
+        title: cmsMetadata.title,
+        description: cmsMetadata.description,
+        images: cmsMetadata.ogImage ? [imageUrl] : [],
+        type: 'website',
+        url: fullUrl,
+        siteName: 'Banyco',
+        locale: 'vi_VN',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: cmsMetadata.title,
+        description: cmsMetadata.description,
+        images: cmsMetadata.ogImage ? [imageUrl] : [],
+      },
+    };
+  }
+  
+  // 2. CMS doesn't have metadata → fallback to product data
+  const product = await fetchProductDetail(params.slug);
+  
+  if (!product) {
+    return { title: 'Product Not Found' };
+  }
+  
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://banyco.vn';
+  const fullUrl = `${siteUrl}${path}`;
+  const productImageUrl = product.images?.[0]?.url 
+    ? (product.images[0].url.startsWith('http') 
+        ? product.images[0].url 
+        : `${siteUrl}${product.images[0].url}`)
+    : '';
+  
+  const description = extractDescription(product) || product.name;
+  
+  return {
+    title: `${product.name} - Banyco`,
+    description: description,
+    openGraph: {
+      title: `${product.name} - Banyco`,
+      description: description,
+      images: productImageUrl ? [productImageUrl] : [],
+      url: fullUrl,
+      type: 'website',
+      siteName: 'Banyco',
+      locale: 'vi_VN',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${product.name} - Banyco`,
+      description: description,
+      images: productImageUrl ? [productImageUrl] : [],
+    },
+  };
+}
+
+// Force dynamic rendering to ensure metadata is always fresh from CMS
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // No caching for metadata
+
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const detail = await fetchProductDetail(params.slug);
+  // Normalize slug for fetching product
+  const normalizedSlug = normalizeSlug(params.slug);
+  const detail = await fetchProductDetail(normalizedSlug);
 
   if (!detail) {
     notFound();

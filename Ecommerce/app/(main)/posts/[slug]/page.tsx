@@ -6,8 +6,8 @@ import { fetchPostBySlug, fetchRelatedPosts, PostDetailDTO, PostSummaryDTO } fro
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import Button from '@/components/ui/Button/Button';
 import ShareButton from './ShareButton';
-import ContactFormSection from '@/components/layout/ContactFormSection/ContactFormSection';
 import { FiClock, FiUser, FiTag, FiArrowLeft } from 'react-icons/fi';
+import { getPageMetadataFromCMS } from '@/lib/utils/pageMetadata';
 
 interface PostDetailPageProps {
   params: { slug: string };
@@ -32,6 +32,41 @@ const normalizeSlug = (slug: string): string => {
 
 export async function generateMetadata({ params }: PostDetailPageProps): Promise<Metadata> {
   const normalizedSlug = normalizeSlug(params.slug);
+  const path = `/posts/${normalizedSlug}`;
+  
+  // 1. Try to get metadata from CMS first
+  const cmsMetadata = await getPageMetadataFromCMS(path);
+  
+  if (cmsMetadata) {
+    // CMS has custom metadata → use it
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://banyco.vn';
+    const fullUrl = `${siteUrl}${path}`;
+    const imageUrl = cmsMetadata.ogImage?.startsWith('http') 
+      ? cmsMetadata.ogImage 
+      : `${siteUrl}${cmsMetadata.ogImage}`;
+    
+    return {
+      title: cmsMetadata.title,
+      description: cmsMetadata.description,
+      openGraph: {
+        title: cmsMetadata.title,
+        description: cmsMetadata.description,
+        images: cmsMetadata.ogImage ? [imageUrl] : [],
+        type: 'article',
+        url: fullUrl,
+        siteName: 'Banyco',
+        locale: 'vi_VN',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: cmsMetadata.title,
+        description: cmsMetadata.description,
+        images: cmsMetadata.ogImage ? [imageUrl] : [],
+      },
+    };
+  }
+  
+  // 2. CMS doesn't have metadata → fallback to post data
   const post = await fetchPostBySlug(normalizedSlug);
 
   if (!post) {
@@ -40,22 +75,33 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
     };
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://banyco.vn';
+  const fullUrl = `${siteUrl}${path}`;
+  const postImageUrl = post.imageUrl?.startsWith('http') 
+    ? post.imageUrl 
+    : post.imageUrl 
+      ? `${siteUrl}${post.imageUrl}`
+      : '';
+
   return {
     title: post.title,
     description: post.excerpt || post.title,
     openGraph: {
       title: post.title,
       description: post.excerpt || post.title,
-      images: post.imageUrl ? [post.imageUrl] : [],
+      images: postImageUrl ? [postImageUrl] : [],
       type: 'article',
+      url: fullUrl,
       publishedTime: post.publishedAt || undefined,
       authors: post.author ? [post.author.name] : undefined,
+      siteName: 'Banyco',
+      locale: 'vi_VN',
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.excerpt || post.title,
-      images: post.imageUrl ? [post.imageUrl] : [],
+      images: postImageUrl ? [postImageUrl] : [],
     },
   };
 }
@@ -381,9 +427,6 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
 
         </div>
       </div>
-
-      {/* Contact Form Section */}
-      <ContactFormSection />
     </div>
   );
 }

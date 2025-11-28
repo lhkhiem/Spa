@@ -234,6 +234,16 @@ const navigation = [
     ],
   },
   {
+    title: 'SEO',
+    items: [
+      {
+        title: 'Quản lý SEO',
+        href: '/dashboard/seo',
+        icon: Code,
+      },
+    ],
+  },
+  {
     title: 'System',
     items: [
       {

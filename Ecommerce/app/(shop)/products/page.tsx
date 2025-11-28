@@ -1,8 +1,10 @@
 import type { SortOption } from '@/components/product/ProductSort/ProductSort';
+import { Metadata } from 'next';
 import ProductsPageClient from './ProductsPageClient';
 import { fetchProducts } from '@/lib/api/products';
 import { fetchProductCategories } from '@/lib/api/categories';
 import { fetchBrands } from '@/lib/api/brands';
+import { getPageMetadataFromCMS, generatePageMetadata } from '@/lib/utils/pageMetadata';
 
 interface ProductsPageProps {
   searchParams: {
@@ -53,6 +55,19 @@ const parsePage = (value?: string | null): number => {
   }
   return Math.floor(parsed);
 };
+
+export async function generateMetadata({ 
+  searchParams 
+}: ProductsPageProps): Promise<Metadata> {
+  // Fetch metadata from CMS (ignore query params for metadata)
+  const data = await getPageMetadataFromCMS('/products');
+  
+  return generatePageMetadata(data, '/products', {
+    title: 'Sản Phẩm - Banyco',
+    description: 'Khám phá các sản phẩm spa, salon chuyên nghiệp. Thiết bị massage, chăm sóc da, mỹ phẩm và vật tư làm đẹp.',
+    ogImage: '/images/og-products.jpg',
+  });
+}
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const initialFilters: Record<string, string[]> = {};

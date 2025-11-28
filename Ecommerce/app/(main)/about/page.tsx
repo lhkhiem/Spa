@@ -1,18 +1,27 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { Metadata } from 'next';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
 import Button from '@/components/ui/Button/Button';
 import ParallaxSection from '@/components/ui/ParallaxSection/ParallaxSection';
 import { getApiUrl } from '@/config/site';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
+import { getPageMetadataFromCMS, generatePageMetadata } from '@/lib/utils/pageMetadata';
 
-export const metadata = {
-  title: 'Về Chúng Tôi - Banyco Spa Solutions',
-  description: 'Giới thiệu Banyco – đối tác cung cấp giải pháp & thiết bị spa chuyên nghiệp, đồng hành phát triển vận hành và tối ưu hoá lợi nhuận.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const data = await getPageMetadataFromCMS('/about');
+  console.log('[About Page] CMS metadata:', data ? 'Found' : 'Not found, using fallback');
+  
+  return generatePageMetadata(data, '/about', {
+    title: 'Về Chúng Tôi - Banyco Spa Solutions',
+    description: 'Giới thiệu Banyco – đối tác cung cấp giải pháp & thiết bị spa chuyên nghiệp, đồng hành phát triển vận hành và tối ưu hoá lợi nhuận.',
+    ogImage: '/images/banyco-logo.jpg', // Use logo as fallback OG image
+  });
+}
 
-// Use short revalidation for faster updates
-export const revalidate = 10; // Revalidate every 10 seconds
+// Force dynamic rendering to ensure metadata is always fresh from CMS
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // No caching for metadata
 
 interface AboutSection {
   id: string;

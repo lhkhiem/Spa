@@ -62,7 +62,28 @@ export async function createZaloPayOrder(params: CreateOrderParams): Promise<{
   }
 
   const app_time = Date.now();
-  const app_trans_id = `${vnYYMMDD()}_${params.orderId}`;
+  
+  // ZaloPay app_trans_id format: yymmdd_<orderId>
+  // orderId should be short (max 40 chars total), use order number or truncated UUID
+  // If orderId is UUID, use last 8 chars, otherwise use as is
+  let orderIdShort = params.orderId;
+  if (orderIdShort.length > 32) {
+    // If UUID, use last 8 chars
+    orderIdShort = orderIdShort.substring(orderIdShort.length - 8);
+  }
+  // Remove any special characters, keep only alphanumeric
+  orderIdShort = orderIdShort.replace(/[^a-zA-Z0-9]/g, '');
+  
+  let app_trans_id = `${vnYYMMDD()}_${orderIdShort}`;
+  
+  // ZaloPay requires app_trans_id max 40 chars
+  if (app_trans_id.length > 40) {
+    const datePrefix = vnYYMMDD();
+    const maxOrderIdLength = 40 - datePrefix.length - 1; // -1 for underscore
+    orderIdShort = orderIdShort.substring(0, maxOrderIdLength);
+    app_trans_id = `${datePrefix}_${orderIdShort}`;
+    console.warn('[ZaloPay] app_trans_id truncated to:', app_trans_id);
+  }
 
   // Embed data includes redirect URL for after payment
   const embed_data = JSON.stringify({
@@ -85,18 +106,43 @@ export async function createZaloPayOrder(params: CreateOrderParams): Promise<{
 
   const mac = hmacSHA256Hex(key1, macInput);
 
+  // Ensure amount is integer (ZaloPay requires integer VND)
+  const amountInt = Math.round(params.amount);
+  
+  // Validate app_user length (ZaloPay has limit, use phone or email if available, otherwise truncate UUID)
+  let app_user = params.appUser;
+  if (app_user.length > 50) {
+    // If too long, use first 50 chars or extract phone/email
+    app_user = app_user.substring(0, 50);
+  }
+
   const body = {
     app_id,
-    app_user: params.appUser,
+    app_user: app_user,
     app_trans_id,
     app_time,
-    amount: params.amount,
+    amount: amountInt,
     description: params.description,
     embed_data,
     item,
     callback_url,
     mac,
   };
+
+  // Log request body for debugging (without sensitive data)
+  console.log('[ZaloPay] Creating order request:', {
+    app_id,
+    app_user,
+    app_trans_id,
+    app_time,
+    amount: amountInt,
+    description: params.description,
+    callback_url,
+    mac: mac.substring(0, 20) + '...',
+    embed_data,
+    item,
+    mac_input: macInput.substring(0, 100) + '...',
+  });
 
   const base = (process.env.ZP_API_BASE || 'https://sb-openapi.zalopay.vn/v2').replace(/\/+$/, '');
   const path = process.env.ZP_ORDER_CREATE_PATH || '/create';

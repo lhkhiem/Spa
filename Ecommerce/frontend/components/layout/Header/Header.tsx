@@ -25,7 +25,12 @@ interface NavigationItem {
 }
 
 // Get menu identifier from environment variable (required, no hardcode fallback)
-const MENU_IDENTIFIER = process.env.NEXT_PUBLIC_MAIN_MENU_ID || process.env.NEXT_PUBLIC_CMS_MAIN_MENU_ID;
+// Note: In client components, process.env is only available at build time
+// We'll pass undefined to getMenuItems() and let it handle env var lookup internally
+const getMenuIdentifier = (): string | undefined => {
+  // Try to get from env vars (available at build time)
+  return process.env.NEXT_PUBLIC_MAIN_MENU_ID || process.env.NEXT_PUBLIC_CMS_MAIN_MENU_ID;
+};
 
 const FALLBACK_NAVIGATION: NavigationItem[] = [
   {
@@ -228,7 +233,10 @@ export default function Header() {
 
     const loadMenu = async () => {
       try {
-        const items = await getMenuItems(MENU_IDENTIFIER);
+        // Pass undefined to let getMenuItems() handle env var lookup internally
+        // This ensures env vars are read correctly in both server and client contexts
+        const menuIdentifier = getMenuIdentifier();
+        const items = await getMenuItems(menuIdentifier);
         if (isCancelled) {
           return;
         }

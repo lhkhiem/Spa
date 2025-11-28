@@ -253,13 +253,19 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
   try {
     // Use Ecommerce Backend API instead of CMS Backend
     const apiUrl = getApiUrl();
-    const response = await fetch(`${apiUrl}${MENU_LOCATIONS_ENDPOINT}`, {
+    const fetchOptions: RequestInit = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      next: { revalidate: 3600 }, // Cache for 1 hour
-    });
+    };
+    
+    // Only add next option in server-side (Next.js)
+    if (typeof window === 'undefined') {
+      (fetchOptions as any).next = { revalidate: 3600 }; // Cache for 1 hour
+    }
+    
+    const response = await fetch(`${apiUrl}${MENU_LOCATIONS_ENDPOINT}`, fetchOptions);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch menu locations: ${response.statusText}`);
@@ -300,13 +306,19 @@ export async function getMenuItems(menuIdentifier?: string): Promise<CMSMenuItem
   try {
     // Use Ecommerce Backend API instead of CMS Backend
     const apiUrl = getApiUrl();
-    const response = await fetch(`${apiUrl}/api/menu-items?location_id=${encodeURIComponent(locationId)}`, {
+    const fetchOptions: RequestInit = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      next: { revalidate: 3600 }, // Cache for 1 hour
-    });
+    };
+    
+    // Only add next option in server-side (Next.js)
+    if (typeof window === 'undefined') {
+      (fetchOptions as any).next = { revalidate: 3600 }; // Cache for 1 hour
+    }
+    
+    const response = await fetch(`${apiUrl}/api/menu-items?location_id=${encodeURIComponent(locationId)}`, fetchOptions);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch menu items: ${response.statusText}`);
@@ -386,3 +398,4 @@ export async function checkCMSConnection(): Promise<boolean> {
  * Export utility to check if CMS is configured
  */
 export { isCMSConfigured };
+

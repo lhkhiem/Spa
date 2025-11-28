@@ -82,6 +82,7 @@ export const getMenuItems = async (req: Request, res: Response) => {
     const query = `
       SELECT * FROM menu_items
       WHERE menu_location_id = :location_id
+        AND is_active = TRUE
       ORDER BY sort_order ASC, created_at ASC
     `;
 

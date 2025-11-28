@@ -46,7 +46,7 @@ module.exports = {
       name: 'ecommerce-frontend',
       script: 'npm',
       args: 'start',
-      cwd: '/var/www/Spa/Ecommerce',
+      cwd: '/var/www/Spa/Ecommerce/frontend',
       instances: 1,
       exec_mode: 'fork',
       env: {

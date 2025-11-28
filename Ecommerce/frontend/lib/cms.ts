@@ -253,11 +253,14 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
   try {
     // Use Ecommerce Backend API instead of CMS Backend
     const apiUrl = getApiUrl();
+    const url = `${apiUrl}${MENU_LOCATIONS_ENDPOINT}`;
+    
     const fetchOptions: RequestInit = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Include cookies for CORS
     };
     
     // Only add next option in server-side (Next.js)
@@ -265,14 +268,20 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
       (fetchOptions as any).next = { revalidate: 3600 }; // Cache for 1 hour
     }
     
-    const response = await fetch(`${apiUrl}${MENU_LOCATIONS_ENDPOINT}`, fetchOptions);
+    const response = await fetch(url, fetchOptions);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch menu locations: ${response.statusText}`);
+      const errorText = await response.text().catch(() => response.statusText);
+      throw new Error(`Failed to fetch menu locations: ${response.status} ${errorText}`);
     }
 
     const data: { data?: CMSMenuLocation[] } = await response.json();
     const locations = data.data || [];
+
+    if (locations.length === 0) {
+      console.warn('[CMS] No menu locations found in API response');
+      return null;
+    }
 
     locations.forEach((location) => {
       if (location?.id) {
@@ -280,7 +289,11 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
       }
     });
 
-    return menuLocationCache.get(toCacheKey(trimmed)) ?? null;
+    const resolvedId = menuLocationCache.get(toCacheKey(trimmed));
+    if (!resolvedId) {
+      console.warn(`[CMS] Menu location "${trimmed}" not found in API response. Available locations:`, locations.map(l => l.slug || l.name));
+    }
+    return resolvedId ?? null;
   } catch (error) {
     console.error('[CMS] Failed to resolve menu location id', error);
     return null;

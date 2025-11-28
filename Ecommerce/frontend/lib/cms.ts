@@ -322,12 +322,19 @@ export async function getMenuItems(menuIdentifier?: string): Promise<CMSMenuItem
     return [];
   }
 
+  console.log(`[CMS] Resolving menu location for identifier: "${identifier}"`);
   const locationId = await resolveMenuLocationId(identifier);
 
   if (!locationId) {
     console.warn(`[CMS] Menu location not found for identifier: "${identifier}"`);
+    console.warn(`[CMS] Troubleshooting:`);
+    console.warn(`  1. Check Network tab for request to /api/menu-locations`);
+    console.warn(`  2. Verify the API URL is correct`);
+    console.warn(`  3. Check if fetch succeeded and response was parsed correctly`);
     return [];
   }
+
+  console.log(`[CMS] Found menu location ID: ${locationId} for identifier: "${identifier}"`);
 
   try {
     // Use Ecommerce Backend API instead of CMS Backend

@@ -22,6 +22,27 @@ module.exports = {
       max_memory_restart: '500M'
     },
     {
+      name: 'ecommerce-backend',
+      script: 'npm',
+      args: 'start',
+      cwd: '/var/www/Spa/Ecommerce/backend',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3012
+      },
+      error_file: '/home/pressup-cms/.pm2/logs/ecommerce-backend-error.log',
+      out_file: '/home/pressup-cms/.pm2/logs/ecommerce-backend-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+      merge_logs: true,
+      autorestart: true,
+      max_restarts: 10,
+      min_uptime: '10s',
+      watch: false,
+      max_memory_restart: '500M'
+    },
+    {
       name: 'ecommerce-frontend',
       script: 'npm',
       args: 'start',

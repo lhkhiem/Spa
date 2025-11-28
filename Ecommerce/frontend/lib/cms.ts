@@ -255,6 +255,11 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
     const apiUrl = getApiUrl();
     const url = `${apiUrl}${MENU_LOCATIONS_ENDPOINT}`;
     
+    // Debug logging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[CMS] Fetching menu locations from:', url);
+    }
+    
     const fetchOptions: RequestInit = {
       method: 'GET',
       headers: {

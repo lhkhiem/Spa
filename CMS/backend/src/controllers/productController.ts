@@ -602,9 +602,27 @@ export const updateProduct = async (req: Request, res: Response) => {
 
 // Delete product
 export const deleteProduct = async (req: Request, res: Response) => {
+  let deletedProduct: any = null;
+  let productSlug: string | null = null;
+  
   try {
     const { id } = req.params;
 
+    // First, get the product info before deleting (for metadata removal and logging)
+    const getProductQuery = 'SELECT id, name, slug FROM products WHERE id = :id';
+    const getProductResult: any = await sequelize.query(getProductQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+
+    if (!getProductResult || getProductResult.length === 0 || !getProductResult[0]) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    deletedProduct = getProductResult[0];
+    productSlug = deletedProduct?.slug || null;
+
+    // Delete the product
     const result: any = await sequelize.query(
       'DELETE FROM products WHERE id = :id RETURNING *',
       {
@@ -614,33 +632,54 @@ export const deleteProduct = async (req: Request, res: Response) => {
     );
 
     if (!result[0] || result[0].length === 0) {
+      // Product was already deleted or doesn't exist
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    const deletedProduct = result[0][0];
-    const productSlug = deletedProduct.slug;
+    // Product deleted successfully - now do cleanup (but don't fail if these fail)
     
     // Remove metadata from CMS Settings
-    try {
-      const { removeMetadataFromCMS } = await import('../utils/removeMetadataFromCMS');
-      await removeMetadataFromCMS(`/products/${productSlug}`);
-    } catch (metaError) {
-      console.error('[deleteProduct] Failed to remove metadata:', metaError);
-      // Continue anyway - product is already deleted
+    if (productSlug) {
+      try {
+        const { removeMetadataFromCMS } = await import('../utils/removeMetadataFromCMS');
+        // Normalize slug to match how it's stored in metadata
+        // The removeMetadataFromCMS function will also normalize, but doing it here ensures consistency
+        const normalizedSlug = productSlug
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9-]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-+|-+$/g, '');
+        await removeMetadataFromCMS(`/products/${normalizedSlug}`);
+      } catch (metaError) {
+        console.error('[deleteProduct] Failed to remove metadata:', metaError);
+        // Continue anyway - product is already deleted
+      }
     }
     
     // Log activity (don't fail if logging fails)
-    try {
-      await logActivity(req, 'delete', 'product', id, deletedProduct.name, `Deleted product "${deletedProduct.name}"`);
-    } catch (logError) {
-      console.error('Failed to log activity for product deletion:', logError);
-      // Continue anyway - product is already deleted
+    if (deletedProduct) {
+      try {
+        await logActivity(req, 'delete', 'product', id, deletedProduct.name, `Deleted product "${deletedProduct.name}"`);
+      } catch (logError) {
+        console.error('Failed to log activity for product deletion:', logError);
+        // Continue anyway - product is already deleted
+      }
     }
 
+    // Always return success if product was deleted
     res.json({ message: 'Product deleted successfully' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to delete product:', error);
-    res.status(500).json({ error: 'Failed to delete product' });
+    
+    // If product was already deleted, return success
+    if (deletedProduct) {
+      console.log('Product was deleted but cleanup operations failed, returning success');
+      return res.json({ message: 'Product deleted successfully' });
+    }
+    
+    // Otherwise return error
+    res.status(500).json({ error: 'Failed to delete product', message: error.message });
   }
 };
 
@@ -677,6 +716,8 @@ export const duplicateProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
+    console.log(`[duplicateProduct] Starting duplicate for product ID: ${id}`);
+
     // Get original product with all related data
     const productQuery = `
       SELECT * FROM products WHERE id = :id
@@ -687,10 +728,31 @@ export const duplicateProduct = async (req: Request, res: Response) => {
     });
 
     if (productResult.length === 0) {
+      console.error(`[duplicateProduct] Product not found: ${id}`);
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    const originalProduct = productResult[0];
+    const originalProductRaw = productResult[0];
+    
+    // Immediately normalize all JSON/object fields from database
+    // PostgreSQL returns JSONB as objects, we need to stringify them
+    const originalProduct: any = {};
+    for (const [key, value] of Object.entries(originalProductRaw)) {
+      if (value !== null && value !== undefined && typeof value === 'object' && !(value instanceof Date) && !Buffer.isBuffer(value)) {
+        // It's an object (likely JSONB from PostgreSQL), stringify it
+        try {
+          originalProduct[key] = JSON.stringify(value);
+          console.log(`[duplicateProduct] Normalized ${key} from object to JSON string`);
+        } catch (err) {
+          console.warn(`[duplicateProduct] Failed to stringify ${key}, keeping as is:`, err);
+          originalProduct[key] = value;
+        }
+      } else {
+        originalProduct[key] = value;
+      }
+    }
+    
+    console.log(`[duplicateProduct] Original product: ${originalProduct.name}, SKU: ${originalProduct.sku || 'N/A'}`);
 
     // Generate new name and slug
     const baseName = originalProduct.name;
@@ -698,9 +760,10 @@ export const duplicateProduct = async (req: Request, res: Response) => {
     let baseSlug = generateSlug(baseName) || `product-${Date.now()}`;
     let newSlug = `${baseSlug}-copy`;
 
-    // Ensure unique slug
+    // Ensure unique slug (with max retries to prevent infinite loop)
     let counter = 1;
-    while (true) {
+    const maxSlugRetries = 100;
+    while (counter <= maxSlugRetries) {
       const existing = await sequelize.query(
         'SELECT id FROM products WHERE slug = :slug LIMIT 1',
         { replacements: { slug: newSlug }, type: QueryTypes.SELECT }
@@ -709,14 +772,24 @@ export const duplicateProduct = async (req: Request, res: Response) => {
       newSlug = `${baseSlug}-copy-${counter++}`;
       newName = `${baseName} (Copy ${counter > 1 ? counter : ''})`.trim();
     }
+    
+    if (counter > maxSlugRetries) {
+      throw new Error(`Failed to generate unique slug after ${maxSlugRetries} attempts`);
+    }
+
+    console.log(`[duplicateProduct] Generated slug: ${newSlug}`);
 
     // Generate new SKU (if original has SKU)
     let newSku: string | null = null;
     if (originalProduct.sku) {
-      const skuBase = originalProduct.sku;
+      // Clean SKU: remove extra spaces and normalize
+      const skuBase = String(originalProduct.sku).trim().replace(/\s+/g, ' ');
       let skuCounter = 1;
       newSku = `${skuBase}-COPY`;
-      while (true) {
+      
+      // Ensure unique SKU (with max retries to prevent infinite loop)
+      const maxSkuRetries = 100;
+      while (skuCounter <= maxSkuRetries) {
         const existing = await sequelize.query(
           'SELECT id FROM products WHERE sku = :sku LIMIT 1',
           { replacements: { sku: newSku }, type: QueryTypes.SELECT }
@@ -724,6 +797,14 @@ export const duplicateProduct = async (req: Request, res: Response) => {
         if ((existing as any[]).length === 0) break;
         newSku = `${skuBase}-COPY${skuCounter++}`;
       }
+      
+      if (skuCounter > maxSkuRetries) {
+        // If can't generate unique SKU, use timestamp-based SKU
+        console.warn(`[duplicateProduct] Could not generate unique SKU after ${maxSkuRetries} attempts, using timestamp-based SKU`);
+        newSku = `${skuBase}-COPY-${Date.now()}`;
+      }
+      
+      console.log(`[duplicateProduct] Generated SKU: ${newSku}`);
     }
 
     // Create new product
@@ -742,29 +823,114 @@ export const duplicateProduct = async (req: Request, res: Response) => {
       RETURNING *
     `;
 
-    const insertResult: any = await sequelize.query(insertQuery, {
-      replacements: {
-        id: newId,
-        name: newName,
-        slug: newSlug,
-        description: originalProduct.description,
-        content: originalProduct.content,
-        brand_id: originalProduct.brand_id,
-        sku: newSku,
-        price: originalProduct.price,
-        compare_price: originalProduct.compare_price,
-        cost_price: originalProduct.cost_price,
-        stock: originalProduct.stock || 0,
-        status: 'draft', // Always set to draft for copied products
-        is_featured: false, // Reset flags
-        is_best_seller: false,
-        thumbnail_id: originalProduct.thumbnail_id,
-        seo: originalProduct.seo
-      },
-      type: QueryTypes.INSERT
-    });
+    // Helper function to stringify JSON/object values
+    const stringifyIfObject = (value: any): any => {
+      if (value === null || value === undefined) {
+        return null;
+      }
+      
+      // If it's already a string, return as is (even if it's JSON string)
+      if (typeof value === 'string') {
+        return value;
+      }
+      
+      // If it's a number, boolean, or other primitive, return as is
+      if (typeof value !== 'object') {
+        return value;
+      }
+      
+      // If it's an object or array, stringify it
+      // This includes: {}, [], Date objects, etc.
+      try {
+        return JSON.stringify(value);
+      } catch (stringifyError) {
+        console.warn(`[duplicateProduct] Failed to stringify value:`, stringifyError);
+        // If stringify fails, try toString() or return null
+        return value?.toString() || null;
+      }
+    };
+
+    // Stringify ALL values that might be objects - be very aggressive
+    const contentValue = stringifyIfObject(originalProduct.content);
+    const seoValue = stringifyIfObject(originalProduct.seo);
+    const descriptionValue = stringifyIfObject(originalProduct.description);
+
+    // Build insert params and stringify ALL values that are objects
+    const insertParamsRaw: any = {
+      id: newId,
+      name: newName,
+      slug: newSlug,
+      description: descriptionValue,
+      content: contentValue,
+      brand_id: originalProduct.brand_id || null,
+      sku: newSku,
+      price: originalProduct.price || 0,
+      compare_price: originalProduct.compare_price || null,
+      cost_price: originalProduct.cost_price || null,
+      stock: originalProduct.stock || 0,
+      status: 'draft',
+      is_featured: false,
+      is_best_seller: false,
+      thumbnail_id: originalProduct.thumbnail_id || null,
+      seo: seoValue
+    };
+
+    // Final pass: stringify ANY remaining objects in insertParams
+    // Use a more aggressive check - check for ANY object-like value
+    const insertParams: any = {};
+    for (const [key, value] of Object.entries(insertParamsRaw)) {
+      // More aggressive check: if it's not a primitive, stringify it
+      if (value === null || value === undefined) {
+        insertParams[key] = value;
+      } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        // Primitives are safe
+        insertParams[key] = value;
+      } else {
+        // Anything else (object, array, Date, etc.) - stringify it
+        try {
+          insertParams[key] = JSON.stringify(value);
+          console.warn(`[duplicateProduct] Stringified ${key} (type: ${typeof value}, constructor: ${value?.constructor?.name})`);
+        } catch (stringifyErr) {
+          console.error(`[duplicateProduct] Failed to stringify ${key}:`, stringifyErr);
+          insertParams[key] = String(value);
+        }
+      }
+    }
+    
+    // Double-check: log any remaining objects
+    for (const [key, value] of Object.entries(insertParams)) {
+      if (value !== null && value !== undefined && typeof value === 'object') {
+        console.error(`[duplicateProduct] ERROR: Still found object in ${key} after stringify!`, value);
+      }
+    }
+
+    console.log(`[duplicateProduct] Inserting new product with ID: ${newId}, name: ${newName}, slug: ${newSlug}, SKU: ${newSku || 'N/A'}`);
+
+    let insertResult: any;
+    try {
+      insertResult = await sequelize.query(insertQuery, {
+        replacements: insertParams,
+        type: QueryTypes.INSERT
+      });
+    } catch (insertError: any) {
+      console.error(`[duplicateProduct] Failed to insert product:`, insertError);
+      // Check for specific constraint violations
+      if (insertError.message && insertError.message.includes('duplicate key')) {
+        if (insertError.message.includes('slug')) {
+          throw new Error(`Slug "${newSlug}" already exists. Please try again.`);
+        } else if (insertError.message.includes('sku')) {
+          throw new Error(`SKU "${newSku}" already exists. Please try again.`);
+        }
+      }
+      throw insertError;
+    }
+
+    if (!insertResult || !insertResult[0] || insertResult[0].length === 0) {
+      throw new Error('Failed to create duplicated product - no data returned');
+    }
 
     const newProduct = insertResult[0][0];
+    console.log(`[duplicateProduct] Product created successfully: ${newProduct.id}`);
 
     // Copy categories (n-n relationship)
     const categoriesQuery = `
@@ -828,32 +994,45 @@ export const duplicateProduct = async (req: Request, res: Response) => {
 
     if (attributesResult.length > 0) {
       for (const attr of attributesResult) {
-        await sequelize.query(
-          'INSERT INTO product_attributes (id, product_id, name, value) VALUES (:attr_id, :product_id, :name, :value)',
-          {
-            replacements: {
-              attr_id: uuidv4(),
-              product_id: newId,
-              name: attr.name,
-              value: attr.value
-            },
-            type: QueryTypes.INSERT
-          }
-        );
+        // Stringify value and name if they are objects
+        const attrName = stringifyIfObject(attr.name);
+        const attrValue = stringifyIfObject(attr.value);
+        
+        console.log(`[duplicateProduct] Copying attribute: name=${attrName}, value type=${typeof attr.value}`);
+        
+        try {
+          await sequelize.query(
+            'INSERT INTO product_attributes (id, product_id, name, value) VALUES (:attr_id, :product_id, :name, :value)',
+            {
+              replacements: {
+                attr_id: uuidv4(),
+                product_id: newId,
+                name: attrName,
+                value: attrValue
+              },
+              type: QueryTypes.INSERT
+            }
+          );
+        } catch (attrError: any) {
+          console.error(`[duplicateProduct] Failed to copy attribute:`, {
+            name: attrName,
+            valueType: typeof attr.value,
+            error: attrError.message
+          });
+          // Continue with other attributes even if one fails
+        }
       }
     }
 
     // Return the new product with related data (similar to getProductById)
+    // Don't use deprecated category_id join - use many-to-many relationship instead
     const fullProductQuery = `
       SELECT 
         p.*,
-        c.name as category_name,
-        c.slug as category_slug,
         b.name as brand_name,
         b.slug as brand_slug,
         a.url as thumbnail_url
       FROM products p
-      LEFT JOIN product_categories c ON p.category_id = c.id
       LEFT JOIN brands b ON p.brand_id = b.id
       LEFT JOIN assets a ON p.thumbnail_id = a.id
       WHERE p.id = :id
@@ -863,12 +1042,13 @@ export const duplicateProduct = async (req: Request, res: Response) => {
       type: QueryTypes.SELECT
     });
 
+    if (!fullProductResult || fullProductResult.length === 0) {
+      throw new Error('Failed to retrieve duplicated product');
+    }
+
     const fullProduct = fullProductResult[0];
 
-    // Log activity
-    await logActivity(req, 'duplicate', 'product', newId, newName, `Duplicated product from "${originalProduct.name}"`);
-
-    // Load categories
+    // Load categories (many-to-many relationship)
     const newCategoriesQuery = `
       SELECT c.id, c.name, c.slug
       FROM product_categories c
@@ -880,7 +1060,7 @@ export const duplicateProduct = async (req: Request, res: Response) => {
       replacements: { id: newId },
       type: QueryTypes.SELECT
     });
-    fullProduct.categories = newCategoriesResult;
+    fullProduct.categories = newCategoriesResult || [];
 
     // Load images
     const newImagesQuery = `
@@ -894,7 +1074,7 @@ export const duplicateProduct = async (req: Request, res: Response) => {
       replacements: { id: newId },
       type: QueryTypes.SELECT
     });
-    fullProduct.images = newImagesResult;
+    fullProduct.images = newImagesResult || [];
 
     // Load attributes
     const newAttributesQuery = `
@@ -906,12 +1086,54 @@ export const duplicateProduct = async (req: Request, res: Response) => {
       replacements: { id: newId },
       type: QueryTypes.SELECT
     });
-    fullProduct.attributes = newAttributesResult;
+    fullProduct.attributes = newAttributesResult || [];
 
+    // Log activity (don't fail if logging fails)
+    try {
+      await logActivity(req, 'duplicate', 'product', newId, newName, `Duplicated product from "${originalProduct.name}"`);
+    } catch (logError) {
+      console.error('Failed to log activity for product duplication:', logError);
+      // Continue anyway - product is already duplicated
+    }
+
+    // Sync metadata to CMS (don't fail if sync fails)
+    try {
+      const fullProductForMetadata = {
+        ...fullProduct,
+        brand_name: fullProduct.brand_name || null,
+        category_name: fullProduct.categories?.map((c: any) => c.name).join(', ') || null
+      };
+      await syncProductMetadataToCMS(fullProductForMetadata);
+    } catch (metaError) {
+      console.error('Failed to sync metadata for duplicated product:', metaError);
+      // Continue anyway - product is already duplicated
+    }
+
+    console.log(`[duplicateProduct] Duplicate completed successfully for product: ${newId}`);
     res.status(201).json(fullProduct);
   } catch (error: any) {
-    console.error('Failed to duplicate product:', error);
-    res.status(500).json({ error: 'Failed to duplicate product', message: error.message });
+    console.error(`[duplicateProduct] Error duplicating product ${req.params.id}:`, {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    
+    // Provide more specific error messages
+    let errorMessage = 'Failed to duplicate product';
+    if (error.message) {
+      errorMessage = error.message;
+    } else if (error.code === '23505') { // PostgreSQL unique violation
+      errorMessage = 'A product with the same slug or SKU already exists';
+    } else if (error.code === '23503') { // PostgreSQL foreign key violation
+      errorMessage = 'Invalid reference data (brand, category, etc.)';
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to duplicate product', 
+      message: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

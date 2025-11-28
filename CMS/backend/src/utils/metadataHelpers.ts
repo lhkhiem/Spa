@@ -86,3 +86,25 @@ export function stripHtmlAndDecode(text: string): string {
   return cleaned;
 }
 
+/**
+ * Normalize slug to match frontend normalization
+ * This ensures the path matches what the frontend generates when querying metadata
+ */
+export function normalizeSlug(slug: string): string {
+  if (!slug) return '';
+  
+  // Decode URL-encoded characters first
+  try {
+    slug = decodeURIComponent(slug);
+  } catch (e) {
+    // If decode fails, use original slug
+  }
+  
+  return slug
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]/g, '-') // Replace special chars with dash
+    .replace(/-+/g, '-') // Replace multiple dashes with single dash
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing dashes
+}
+

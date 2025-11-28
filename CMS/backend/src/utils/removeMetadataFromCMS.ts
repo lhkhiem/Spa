@@ -1,54 +1,49 @@
-import sequelize from '../config/database';
-
-const DEFAULTS = {
-  seo: {
-    pages: [],
-  },
-};
+import PageMetadata from '../models/PageMetadata';
+import { normalizeSlug } from './metadataHelpers';
 
 /**
- * Remove metadata from CMS Settings when post/product is deleted
+ * Normalize path to match how it's stored in database
+ */
+function normalizePath(path: string): string {
+  if (!path) return '';
+  
+  // Extract slug from path if it's a product/post path
+  if (path.startsWith('/products/')) {
+    const slug = path.replace('/products/', '');
+    return `/products/${normalizeSlug(slug)}`;
+  }
+  
+  if (path.startsWith('/posts/')) {
+    const slug = path.replace('/posts/', '');
+    return `/posts/${normalizeSlug(slug)}`;
+  }
+  
+  // For other paths, return as-is
+  return path;
+}
+
+/**
+ * Remove metadata from page_metadata table when post/product is deleted
+ * CRITICAL: Only removes the specific path, preserves all other metadata
  */
 export async function removeMetadataFromCMS(path: string) {
   try {
-    // 1. Fetch current SEO settings
-    const [seoRow] = await sequelize.query(
-      'SELECT value FROM settings WHERE namespace = :ns',
-      {
-        type: 'SELECT' as any,
-        replacements: { ns: 'seo' },
-      }
-    ) as any[];
+    // Normalize path to match how it's stored
+    const normalizedPath = normalizePath(path);
+    console.log(`[removeMetadataFromCMS] Removing metadata for path: ${path} (normalized: ${normalizedPath})`);
+    
+    // Find and delete the specific page metadata
+    const deleted = await PageMetadata.destroy({
+      where: { path: normalizedPath },
+    });
 
-    const seoSettings = seoRow?.[0]?.value ?? DEFAULTS.seo;
-    const existingPages = seoSettings.pages || [];
-
-    // 2. Remove metadata for this path
-    const filteredPages = existingPages.filter((p: any) => p.path !== path);
-
-    // 3. Save updated settings
-    await sequelize.query(
-      `INSERT INTO settings (namespace, value, updated_at)
-       VALUES (:ns, :val::jsonb, NOW())
-       ON CONFLICT (namespace) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
-      {
-        type: 'INSERT' as any,
-        replacements: {
-          ns: 'seo',
-          val: JSON.stringify({
-            ...seoSettings,
-            pages: filteredPages,
-          }),
-        },
-      }
-    );
-
-    console.log(`[removeMetadataFromCMS] Removed metadata for ${path}`);
-  } catch (error) {
+    if (deleted > 0) {
+      console.log(`[removeMetadataFromCMS] Successfully removed metadata for ${normalizedPath}`);
+    } else {
+      console.warn(`[removeMetadataFromCMS] No metadata found to remove for path: ${normalizedPath}`);
+    }
+  } catch (error: any) {
     console.error('[removeMetadataFromCMS] Error:', error);
     // Don't throw error to avoid breaking deletion
   }
 }
-
-
-

@@ -21,6 +21,14 @@ interface ZaloPayCreateOrderResponse {
   order_token?: string;
 }
 
+interface ZaloPayResponse {
+  return_code?: number;
+  return_message?: string;
+  sub_return_code?: number;
+  sub_return_message?: string;
+  [key: string]: any;
+}
+
 interface ZaloPayCallbackData {
   app_id: number;
   app_trans_id: string;
@@ -327,13 +335,14 @@ export async function refundZaloPayTransaction(
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as AxiosError<ZaloPayResponse>;
       console.error('[ZaloPay] Refund error:', {
         status: axiosError.response?.status,
         data: axiosError.response?.data,
         message: axiosError.message,
       });
-      throw new Error(`ZaloPay refund error: ${axiosError.response?.data?.return_message || axiosError.message}`);
+      const errorData = axiosError.response?.data;
+      throw new Error(`ZaloPay refund error: ${errorData?.return_message || axiosError.message}`);
     }
     throw error;
   }

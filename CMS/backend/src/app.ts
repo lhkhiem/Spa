@@ -43,6 +43,7 @@ import inventoryRoutes from './routes/inventory'; // Inventory management
 import activityLogRoutes from './routes/activityLogs'; // Activity tracking
 import syncMetadataRoutes from './routes/syncMetadata'; // Metadata sync
 import debugSeoRoutes from './routes/debugSeo'; // Debug SEO
+import pageMetadataRoutes from './routes/pageMetadata'; // Page metadata CRUD
 // import publicUserRoutes from './routes/publicUser'; // Disabled: Customer user management not needed
 // import publicOrdersRoutes from './routes/publicOrders'; // Disabled: Customer orders not needed
 // import publicCartRoutes from './routes/publicCart'; // Disabled: Customer cart not needed
@@ -190,6 +191,7 @@ app.use('/api/sliders', sliderRoutes);
 app.use('/api/about-sections', aboutSectionRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/debug', debugSeoRoutes);
+app.use('/api/page-metadata', pageMetadataRoutes);
 
 // Ensure upload and temp dirs on boot and serve uploads
 (async () => {

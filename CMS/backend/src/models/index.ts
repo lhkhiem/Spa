@@ -20,6 +20,7 @@ import Address from './Address';
 import ContactMessage from './ContactMessage';
 import ConsultationSubmission from './ConsultationSubmission';
 import AboutSection from './AboutSection';
+import PageMetadata from './PageMetadata';
 
 // Define all associations here
 // Define explicit through models (no timestamps) for many-to-many junctions
@@ -171,5 +172,6 @@ export {
   ContactMessage,
   ConsultationSubmission,
   AboutSection,
+  PageMetadata,
 };
 

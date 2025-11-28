@@ -23,7 +23,8 @@ import menuLocationRoutes from './routes/menuLocations';
 import menuItemRoutes from './routes/menuItems';
 // import cartRoutes from './routes/cart'; // Disabled: Customer cart management not needed
 import orderRoutes from './routes/orders'; // Admin order management (not customer management)
-import paymentRoutes from './routes/payments'; // Payment gateway (ZaloPay)
+// Ecommerce routes - COMMENTED (moved to Ecommerce Backend)
+// import paymentRoutes from './routes/payments'; // Moved to Ecommerce Backend
 // import wishlistRoutes from './routes/wishlist'; // Disabled: Customer wishlist management not needed
 // import reviewRoutes from './routes/reviews'; // Disabled: Customer review management not needed
 import trackingScriptRoutes from './routes/trackingScripts';
@@ -33,18 +34,20 @@ import sliderRoutes from './routes/sliders';
 import aboutSectionRoutes from './routes/aboutSections';
 import publicPostsRoutes from './routes/publicPosts';
 import publicHomepageRoutes from './routes/publicHomepage';
-import publicProductsRoutes from './routes/publicProducts';
 import publicPageMetadataRoutes from './routes/publicPageMetadata';
 import contactRoutes from './routes/contacts';
 import consultationRoutes from './routes/consultations';
 import emailRoutes from './routes/email';
-import publicAuthRoutes from './routes/publicAuth'; // Customer authentication
+// Ecommerce routes - COMMENTED (moved to Ecommerce Backend)
+// import publicProductsRoutes from './routes/publicProducts'; // Moved to Ecommerce Backend
+// import publicAuthRoutes from './routes/publicAuth'; // Moved to Ecommerce Backend
 import inventoryRoutes from './routes/inventory'; // Inventory management
 import activityLogRoutes from './routes/activityLogs'; // Activity tracking
 import syncMetadataRoutes from './routes/syncMetadata'; // Metadata sync
 import debugSeoRoutes from './routes/debugSeo'; // Debug SEO
 import pageMetadataRoutes from './routes/pageMetadata'; // Page metadata CRUD
-import newsletterRoutes from './routes/newsletter'; // Newsletter subscriptions
+// Ecommerce routes - COMMENTED (moved to Ecommerce Backend)
+// import newsletterRoutes from './routes/newsletter'; // Moved to Ecommerce Backend
 // import publicUserRoutes from './routes/publicUser'; // Disabled: Customer user management not needed
 // import publicOrdersRoutes from './routes/publicOrders'; // Disabled: Customer orders not needed
 // import publicCartRoutes from './routes/publicCart'; // Disabled: Customer cart not needed
@@ -167,24 +170,14 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/public/posts', publicPostsRoutes);
 app.use('/api/public/homepage', publicHomepageRoutes);
-app.use('/api/public/products', publicProductsRoutes);
 app.use('/api/public/page-metadata', publicPageMetadataRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/consultations', consultationRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/sync-metadata', syncMetadataRoutes);
-app.use('/api/public/auth', publicAuthRoutes); // Customer authentication
-// app.use('/api/public/user', publicUserRoutes); // Disabled: Customer user management not needed
-// app.use('/api/public/orders', publicOrdersRoutes); // Disabled: Customer orders not needed
-// app.use('/api/public/cart', publicCartRoutes); // Disabled: Customer cart not needed
 app.use('/api/menu-locations', menuLocationRoutes);
 app.use('/api/menu-items', menuItemRoutes);
-// app.use('/api/cart', cartRoutes); // Disabled: Customer cart management not needed
-app.use('/api/orders', orderRoutes); // Admin order management (not customer management)
-app.use('/api/payments', paymentRoutes); // Payment gateway (ZaloPay)
-// app.use('/api/wishlist', wishlistRoutes); // Disabled: Customer wishlist management not needed
-// app.use('/api/reviews', reviewRoutes); // Disabled: Customer review management not needed
 app.use('/api/tracking-scripts', trackingScriptRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/homepage', homepageRoutes);
@@ -193,7 +186,18 @@ app.use('/api/about-sections', aboutSectionRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/debug', debugSeoRoutes);
 app.use('/api/page-metadata', pageMetadataRoutes);
-app.use('/api/newsletter', newsletterRoutes);
+
+// Ecommerce routes - COMMENTED (moved to Ecommerce Backend)
+// These routes are now handled by Ecommerce Backend (port 3012)
+// app.use('/api/public/products', publicProductsRoutes); // Moved to Ecommerce Backend
+// app.use('/api/public/auth', publicAuthRoutes); // Moved to Ecommerce Backend
+// app.use('/api/payments', paymentRoutes); // Moved to Ecommerce Backend (or keep if CMS needs to manage payments)
+// app.use('/api/newsletter', newsletterRoutes); // Moved to Ecommerce Backend (or keep if CMS needs to manage newsletter)
+
+// Orders: Admin management only (public routes moved to Ecommerce Backend)
+// Note: orderRoutes contains both public (POST, GET lookup) and admin (GET, PUT, DELETE) routes
+// Public routes are handled by Ecommerce Backend, admin routes remain here
+app.use('/api/orders', orderRoutes); // Admin order management (public routes handled by Ecommerce Backend)
 
 // Ensure upload and temp dirs on boot and serve uploads
 (async () => {

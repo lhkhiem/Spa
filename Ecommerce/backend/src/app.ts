@@ -14,10 +14,12 @@ import './models';
 import publicProductsRoutes from './routes/publicProducts';
 import publicAuthRoutes from './routes/publicAuth'; // Customer authentication
 import publicHomepageRoutes from './routes/publicHomepage'; // Homepage data (hero, testimonials, etc.)
+import publicPostsRoutes from './routes/publicPosts'; // Public blog posts
 import orderRoutes from './routes/orders'; // Create order + lookup
 import paymentRoutes from './routes/payments'; // Payment gateway (ZaloPay)
 import newsletterRoutes from './routes/newsletter'; // Newsletter subscriptions
 import trackingScriptRoutes from './routes/trackingScripts'; // Tracking scripts (analytics)
+import menuLocationRoutes from './routes/menuLocations'; // Menu locations (public GET only)
 import healthRoutes from './routes/health';
 
 // Public read routes (modify to remove admin CRUD)
@@ -123,6 +125,8 @@ app.use('/api/products', publicProductsRoutes); // Public product listing & deta
 app.use('/api/product-categories', productCategoryRoutes); // Public category listing (GET only)
 app.use('/api/brands', brandRoutes); // Public brand listing (GET only)
 app.use('/api/public/homepage', publicHomepageRoutes); // Homepage data (hero, testimonials, etc.)
+app.use('/api/public/posts', publicPostsRoutes); // Public blog posts
+app.use('/api/menu-locations', menuLocationRoutes); // Menu locations (public GET only)
 app.use('/api/orders', orderRoutes); // Create order + lookup (POST, GET)
 app.use('/api/payments', paymentRoutes); // Payment gateway (ZaloPay)
 app.use('/api/auth', publicAuthRoutes); // Customer authentication

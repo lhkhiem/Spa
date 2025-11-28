@@ -4,6 +4,7 @@ import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import Button from '@/components/ui/Button/Button';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
 import ProductCard from '@/components/product/ProductCard/ProductCard';
+import NewsletterForm from '@/components/newsletter/NewsletterForm';
 import { fetchProducts } from '@/lib/api/products';
 import { buildFromApiOrigin } from '@/config/site';
 import type { ProductDTO } from '@/lib/api/products';
@@ -264,14 +265,14 @@ export default async function DealsPage() {
             <p className="mb-6 text-gray-600">
               Đăng ký nhận bản tin để cập nhật ưu đãi độc quyền, flash sale và sản phẩm mới.
             </p>
-            <div className="mx-auto flex max-w-md gap-2">
-              <input
-                type="email"
-                placeholder="Nhập email của bạn"
-                className="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:border-brand-purple-500 focus:outline-none focus:ring-2 focus:ring-brand-purple-500/20"
-              />
-              <Button size="lg">Đăng ký</Button>
-            </div>
+            <NewsletterForm
+              source="deals-page"
+              className="mx-auto flex max-w-md gap-2"
+              inputClassName="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:border-brand-purple-500 focus:outline-none focus:ring-2 focus:ring-brand-purple-500/20"
+              buttonClassName="px-6 py-3 bg-brand-purple-600 text-white rounded-lg hover:bg-brand-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              placeholder="Nhập email của bạn"
+              buttonText="Đăng ký"
+            />
             <p className="mt-4 text-sm text-gray-500">
               Bằng việc đăng ký, bạn đồng ý nhận email marketing. Có thể hủy bất kỳ lúc nào.
             </p>

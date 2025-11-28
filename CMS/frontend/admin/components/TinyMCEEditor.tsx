@@ -51,11 +51,16 @@ const WORD_LIKE_PLUGINS = [
 ];
 
 const WORD_LIKE_TOOLBAR = [
-  'undo redo | save preview fullscreen | code | visualblocks',
-  'blocks formatselect | bold italic underline strikethrough | forecolor backcolor | superscript subscript  | removeformat',
-  'alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist',
-  'link image media customMediaLibrary | table tabledelete | blockquote | hr pagebreak insertdatetime',
-  'charmap emoticons | searchreplace | ltr rtl',
+  // Hàng 1: Định dạng (formatting) - gom thành group liền kề
+  'blocks formatselect fontfamily fontsize bold italic underline strikethrough forecolor backcolor superscript subscript removeformat',
+  // Hàng 2: Căn chỉnh và danh sách - gom thành group
+  'alignleft aligncenter alignright alignjustify outdent indent bullist numlist',
+  // Hàng 3: Chèn nội dung - gom thành group
+  'link image media customMediaLibrary table tabledelete blockquote hr pagebreak insertdatetime',
+  // Hàng 4: Các công cụ khác - gom thành group
+  'charmap emoticons searchreplace ltr rtl visualblocks',
+  // Hàng 5 (cuối): Undo, redo, save, preview, fullscreen, source code - gom thành group
+  'undo redo save preview fullscreen code',
 ].join('\n');
 
 export default function TinyMCEEditor({
@@ -246,7 +251,7 @@ export default function TinyMCEEditor({
           `,
           font_family_formats:
             'Inter=Inter,sans-serif;Arial=arial,helvetica,sans-serif;Georgia=georgia,palatino;Times New Roman=times new roman,times;Courier New=courier new,courier;Roboto=Roboto,sans-serif;Lora=Lora,serif;Open Sans=Open Sans,sans-serif;Montserrat=Montserrat,sans-serif',
-          font_size_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 24pt 28pt 32pt 36pt 48pt',
+          fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 24pt 28pt 32pt 36pt 48pt',
           line_height_formats: '1 1.2 1.4 1.5 1.7 2',
           block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6; Preformatted=pre',
           image_advtab: true,

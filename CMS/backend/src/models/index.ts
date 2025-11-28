@@ -21,6 +21,7 @@ import ContactMessage from './ContactMessage';
 import ConsultationSubmission from './ConsultationSubmission';
 import AboutSection from './AboutSection';
 import PageMetadata from './PageMetadata';
+import NewsletterSubscription from './NewsletterSubscription';
 
 // Define all associations here
 // Define explicit through models (no timestamps) for many-to-many junctions
@@ -173,5 +174,6 @@ export {
   ConsultationSubmission,
   AboutSection,
   PageMetadata,
+  NewsletterSubscription,
 };
 

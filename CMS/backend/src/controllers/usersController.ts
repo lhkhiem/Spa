@@ -91,9 +91,9 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Prevent editing owner role (safety)
-    if ((user as any).role === 'owner' && role && role !== 'owner') {
-      return res.status(400).json({ error: 'Cannot change owner role' });
+    // Prevent editing owner user completely (safety)
+    if ((user as any).role === 'owner') {
+      return res.status(403).json({ error: 'Cannot update owner user' });
     }
 
     // Update fields

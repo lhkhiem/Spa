@@ -175,6 +175,11 @@ const navigation = [
         href: '/dashboard/consultations',
         icon: PhoneCall,
       },
+      {
+        title: 'Newsletter',
+        href: '/dashboard/newsletter',
+        icon: Mail,
+      },
       // Disabled: Customer management features not needed
       // {
       //   title: 'Shopping Cart',

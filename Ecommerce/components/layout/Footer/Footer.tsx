@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { FiFacebook, FiInstagram, FiTwitter, FiYoutube, FiLinkedin } from 'react-icons/fi';
+import NewsletterForm from '@/components/newsletter/NewsletterForm';
 
 export default function Footer() {
   return (
@@ -131,20 +132,18 @@ export default function Footer() {
             </div>
 
             {/* Right Column - Newsletter Form + Social Icons */}
-            <div>
+            <div style={{ position: 'relative', zIndex: 1 }}>
               <h3 className="mb-3 text-lg font-semibold text-white">
                 Đăng Ký Nhận Bản Tin Miễn Phí!
               </h3>
-              <div className="flex flex-col sm:flex-row mb-4">
-                <input
-                  type="email"
-                  placeholder="Nhập email của bạn"
-                  className="flex-1 rounded-t-md sm:rounded-l-md sm:rounded-tr-none border-0 px-4 py-3 text-gray-900"
-                />
-                <button className="rounded-b-md sm:rounded-r-md sm:rounded-bl-none bg-brand-purple-600 px-6 py-3 text-white hover:bg-brand-purple-700">
-                  Đăng Ký
-                </button>
-              </div>
+              <NewsletterForm
+                source="footer"
+                className="flex flex-col sm:flex-row mb-4"
+                inputClassName="flex-1 rounded-t-md sm:rounded-l-md sm:rounded-tr-none border-0 px-4 py-3 text-gray-900"
+                buttonClassName="rounded-b-md sm:rounded-r-md sm:rounded-bl-none bg-brand-purple-600 px-6 py-3 text-white hover:bg-brand-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                placeholder="Nhập email của bạn"
+                buttonText="Đăng Ký"
+              />
 
               {/* Social Links */}
               <div className="flex space-x-4">

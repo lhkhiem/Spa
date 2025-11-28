@@ -231,6 +231,11 @@ export default function UsersPage() {
   };
 
   const onDeleteUser = async (user: User) => {
+    // Prevent deleting owner user
+    if (user.role === 'owner') {
+      toast.error('Owner account cannot be deleted');
+      return;
+    }
     if (!confirm(`Are you sure you want to delete user "${user.name}"? This action cannot be undone.`)) {
       return;
     }
@@ -247,6 +252,11 @@ export default function UsersPage() {
   };
 
   const handleEdit = (user: User) => {
+    // Prevent editing owner user
+    if (user.role === 'owner') {
+      toast.error('Owner account cannot be modified');
+      return;
+    }
     setEditingUser(user);
     setForm({
       name: user.name,
@@ -391,7 +401,7 @@ export default function UsersPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-3">
-                      {isOwner ? (
+                      {isOwner && user.role !== 'owner' ? (
                         <>
                           <button
                             type="button"
@@ -410,6 +420,8 @@ export default function UsersPage() {
                             <span>Delete</span>
                           </button>
                         </>
+                      ) : user.role === 'owner' ? (
+                        <span className="text-muted-foreground text-xs">Owner account cannot be modified</span>
                       ) : (
                         <span className="text-muted-foreground text-xs">No permission</span>
                       )}

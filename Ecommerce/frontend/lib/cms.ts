@@ -37,7 +37,8 @@ const CMS_BASE_URL = normalizeCmsBaseUrl(process.env.NEXT_PUBLIC_CMS_BASE_URL ||
 const CMS_API_TOKEN = process.env.CMS_API_TOKEN || '';
 
 const menuLocationCache = new Map<string, string>();
-const MENU_LOCATIONS_ENDPOINT = '/api/menu-locations';
+// Note: getApiUrl() already includes /api, so endpoint should not have /api prefix
+const MENU_LOCATIONS_ENDPOINT = '/menu-locations';
 
 const isUuid = (value: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim());

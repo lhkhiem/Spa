@@ -281,6 +281,17 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
     }
 
     const data: { data?: CMSMenuLocation[] } = await response.json();
+    
+    // Debug: log response structure
+    if (typeof window !== 'undefined') {
+      console.log('[CMS] Menu locations API response:', {
+        hasData: 'data' in data,
+        dataType: Array.isArray(data.data) ? 'array' : typeof data.data,
+        dataLength: Array.isArray(data.data) ? data.data.length : 'N/A',
+        rawData: data,
+      });
+    }
+    
     const locations = data.data || [];
 
     if (locations.length === 0) {

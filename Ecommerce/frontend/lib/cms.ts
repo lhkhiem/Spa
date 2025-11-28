@@ -17,6 +17,7 @@ import {
   CMSQueryParams,
   CMSError,
 } from '@/lib/types/cms';
+import { getApiUrl } from '@/config/site'; // For Ecommerce Backend API calls
 
 const normalizeCmsBaseUrl = (value: string): string => {
   if (!value) {

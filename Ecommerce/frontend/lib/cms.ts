@@ -307,8 +307,21 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
     }
     
     return resolvedId ?? null;
-  } catch (error) {
+  } catch (error: any) {
     console.error('[CMS] Failed to resolve menu location id', error);
+    console.error('[CMS] Error details:', {
+      message: error?.message,
+      name: error?.name,
+      stack: error?.stack,
+      cause: error?.cause,
+    });
+    // If it's a network error, provide more helpful message
+    if (error?.message?.includes('Failed to fetch') || error?.name === 'TypeError') {
+      console.error('[CMS] This appears to be a network/CORS error. Check:');
+      console.error('  1. Is the API URL correct?', url);
+      console.error('  2. Are CORS headers set correctly on the backend?');
+      console.error('  3. Is the API server running and accessible?');
+    }
     return null;
   }
 };

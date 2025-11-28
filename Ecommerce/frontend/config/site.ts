@@ -31,10 +31,21 @@ const resolveSiteUrl = (): string => {
 
 const resolveApiUrl = (): string => {
   const envUrl = trimTrailingSlash(process.env.NEXT_PUBLIC_API_URL);
-  if (envUrl) return envUrl;
+  if (envUrl) {
+    // If env URL already includes /api, use as is, otherwise append /api
+    if (envUrl.endsWith('/api')) {
+      return envUrl;
+    }
+    return buildUrl(envUrl, DEFAULT_API_PATH);
+  }
 
   if (typeof window !== 'undefined') {
     const { protocol, hostname } = window.location;
+    // Production: use ecommerce-api.banyco.vn subdomain
+    if (hostname === 'banyco.vn' || hostname === 'www.banyco.vn') {
+      return `${protocol}//ecommerce-api.banyco.vn${DEFAULT_API_PATH}`;
+    }
+    // Development: use localhost with port
     const apiPort = process.env.NEXT_PUBLIC_API_PORT || `${DEFAULT_API_PORT}`;
     return buildUrl(`${protocol}//${hostname}${apiPort ? `:${apiPort}` : ''}`, DEFAULT_API_PATH);
   }

@@ -288,16 +288,24 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
       return null;
     }
 
+    // Cache all locations
     locations.forEach((location) => {
       if (location?.id) {
         cacheMenuLocation(location);
       }
     });
 
+    // Try to resolve the identifier
     const resolvedId = menuLocationCache.get(toCacheKey(trimmed));
+    
     if (!resolvedId) {
-      console.warn(`[CMS] Menu location "${trimmed}" not found in API response. Available locations:`, locations.map(l => l.slug || l.name));
+      // Debug: log cache state
+      console.warn(`[CMS] Menu location "${trimmed}" not found in API response.`);
+      console.warn(`[CMS] Available locations:`, locations.map(l => ({ id: l.id, slug: l.slug, name: l.name })));
+      console.warn(`[CMS] Cache keys:`, Array.from(menuLocationCache.keys()));
+      console.warn(`[CMS] Looking for key:`, toCacheKey(trimmed));
     }
+    
     return resolvedId ?? null;
   } catch (error) {
     console.error('[CMS] Failed to resolve menu location id', error);

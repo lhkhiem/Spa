@@ -376,7 +376,8 @@ export async function getMenuItems(menuIdentifier?: string): Promise<CMSMenuItem
       (fetchOptions as any).next = { revalidate: 3600 }; // Cache for 1 hour
     }
     
-    const response = await fetch(`${apiUrl}/api/menu-items?location_id=${encodeURIComponent(locationId)}`, fetchOptions);
+    // Note: apiUrl already includes /api, so use /menu-items (not /api/menu-items)
+    const response = await fetch(`${apiUrl}/menu-items?location_id=${encodeURIComponent(locationId)}`, fetchOptions);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch menu items: ${response.statusText}`);

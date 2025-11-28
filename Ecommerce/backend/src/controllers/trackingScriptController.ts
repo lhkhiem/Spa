@@ -34,6 +34,9 @@ export const getActiveScripts = async (req: Request, res: Response) => {
   }
 };
 
+// Admin CRUD functions removed - Ecommerce Backend only provides public endpoint
+// The following functions are not exported/used:
+/*
 // Get tracking script by ID
 export const getTrackingScriptById = async (req: Request, res: Response) => {
   try {

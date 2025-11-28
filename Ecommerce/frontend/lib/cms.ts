@@ -329,8 +329,10 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
     });
     // If it's a network error, provide more helpful message
     if (error?.message?.includes('Failed to fetch') || error?.name === 'TypeError') {
+      const apiUrl = getApiUrl();
+      const attemptedUrl = `${apiUrl}${MENU_LOCATIONS_ENDPOINT}`;
       console.error('[CMS] This appears to be a network/CORS error. Check:');
-      console.error('  1. Is the API URL correct?', url);
+      console.error('  1. Is the API URL correct?', attemptedUrl);
       console.error('  2. Are CORS headers set correctly on the backend?');
       console.error('  3. Is the API server running and accessible?');
     }

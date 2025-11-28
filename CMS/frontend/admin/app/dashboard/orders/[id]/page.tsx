@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
-import { ArrowLeft, Package } from 'lucide-react';
+import { ArrowLeft, Package, Save, X, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { buildApiUrl } from '@/lib/api';
 import { Order, OrderItem } from '@/types';
@@ -87,6 +87,11 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingStatus, setEditingStatus] = useState<string>('');
+  const [editingPaymentStatus, setEditingPaymentStatus] = useState<string>('');
+  const [editingTrackingNumber, setEditingTrackingNumber] = useState<string>('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const ensureAuthAndFetch = async () => {
@@ -124,13 +129,11 @@ export default function OrderDetailPage() {
         withCredentials: true,
       });
       const normalized = normalizeOrder(response.data);
-      // Debug: Check if customer_phone is present
-      console.log('Order data:', {
-        customer_phone: normalized.customer_phone,
-        customer_email: normalized.customer_email,
-        customer_name: normalized.customer_name,
-      });
       setOrder(normalized);
+      // Initialize editing values
+      setEditingStatus(normalized.status);
+      setEditingPaymentStatus(normalized.payment_status);
+      setEditingTrackingNumber(normalized.tracking_number || '');
     } catch (err: any) {
       console.error('Failed to fetch order detail:', err);
       const message =
@@ -141,6 +144,88 @@ export default function OrderDetailPage() {
       toast.error(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!order) return;
+    
+    setSaving(true);
+    try {
+      const updateData: any = {};
+      if (editingStatus !== order.status) {
+        updateData.status = editingStatus;
+      }
+      if (editingPaymentStatus !== order.payment_status) {
+        updateData.payment_status = editingPaymentStatus;
+      }
+      if (editingTrackingNumber !== (order.tracking_number || '')) {
+        updateData.tracking_number = editingTrackingNumber || null;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        setIsEditing(false);
+        setSaving(false);
+        return;
+      }
+
+      const response = await axios.put(
+        buildApiUrl(`/api/orders/${order.id}`),
+        updateData,
+        { withCredentials: true }
+      );
+
+      const updated = normalizeOrder(response.data);
+      setOrder(updated);
+      setIsEditing(false);
+      toast.success('Cập nhật đơn hàng thành công');
+    } catch (err: any) {
+      console.error('Failed to update order:', err);
+      const message =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        'Không thể cập nhật đơn hàng';
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!order) return;
+    
+    if (!confirm(
+      `Bạn có chắc chắn muốn hủy đơn hàng ${order.order_number}?\n\n` +
+      `Hành động này sẽ:\n` +
+      `- Đặt trạng thái đơn hàng thành "cancelled"\n` +
+      `- Restore stock cho tất cả sản phẩm trong đơn\n\n` +
+      `Hành động này không thể hoàn tác.`
+    )) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await axios.put(
+        buildApiUrl(`/api/orders/${order.id}`),
+        { status: 'cancelled' },
+        { withCredentials: true }
+      );
+
+      const updated = normalizeOrder(response.data);
+      setOrder(updated);
+      setEditingStatus('cancelled');
+      setIsEditing(false);
+      toast.success('Đã hủy đơn hàng và restore stock');
+    } catch (err: any) {
+      console.error('Failed to cancel order:', err);
+      const message =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        'Không thể hủy đơn hàng';
+      toast.error(message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -202,13 +287,59 @@ export default function OrderDetailPage() {
             Placed on {formatDateTime(order.created_at)}
           </p>
         </div>
-        <Link
-          href="/dashboard/orders"
-          className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to orders
-        </Link>
+        <div className="flex items-center gap-2">
+          {isEditing ? (
+            <>
+              <button
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditingStatus(order.status);
+                  setEditingPaymentStatus(order.payment_status);
+                  setEditingTrackingNumber(order.tracking_number || '');
+                }}
+                className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent transition-colors"
+                disabled={saving}
+              >
+                <X className="h-4 w-4" />
+                Hủy
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+                {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+            </>
+          ) : (
+            <>
+              {order.status !== 'cancelled' && (
+                <button
+                  onClick={handleCancel}
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 rounded-lg border border-destructive text-destructive px-3 py-2 text-sm hover:bg-destructive/10 transition-colors disabled:opacity-50"
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  Hủy đơn
+                </button>
+              )}
+              <button
+                onClick={() => setIsEditing(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm hover:bg-primary/90 transition-colors"
+              >
+                Chỉnh sửa
+              </button>
+              <Link
+                href="/dashboard/orders"
+                className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-accent transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to orders
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -332,21 +463,69 @@ export default function OrderDetailPage() {
             </h2>
             <div className="space-y-3 text-sm">
               <div>
+                <span className="text-muted-foreground">Order Status:</span>
+                {isEditing ? (
+                  <select
+                    value={editingStatus}
+                    onChange={(e) => setEditingStatus(e.target.value)}
+                    className="mt-1 w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm"
+                  >
+                    <option value="pending">Chờ xử lý</option>
+                    <option value="processing">Đang xử lý</option>
+                    <option value="shipped">Đã gửi hàng</option>
+                    <option value="delivered">Đã giao hàng</option>
+                    <option value="cancelled">Đã hủy</option>
+                  </select>
+                ) : (
+                  <div className="mt-1">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                      order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                      order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                      order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {order.status === 'pending' ? 'Chờ xử lý' :
+                       order.status === 'processing' ? 'Đang xử lý' :
+                       order.status === 'shipped' ? 'Đã gửi hàng' :
+                       order.status === 'delivered' ? 'Đã giao hàng' :
+                       order.status === 'cancelled' ? 'Đã hủy' :
+                       order.status}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div>
                 <span className="text-muted-foreground">Payment Status:</span>
-                <div className="mt-1">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    order.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
-                    order.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    order.payment_status === 'failed' ? 'bg-red-100 text-red-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {order.payment_status === 'paid' ? 'Đã thanh toán' :
-                     order.payment_status === 'pending' ? 'Chờ thanh toán' :
-                     order.payment_status === 'failed' ? 'Thanh toán thất bại' :
-                     order.payment_status === 'refunded' ? 'Đã hoàn tiền' :
-                     order.payment_status}
-                  </span>
-                </div>
+                {isEditing ? (
+                  <select
+                    value={editingPaymentStatus}
+                    onChange={(e) => setEditingPaymentStatus(e.target.value)}
+                    className="mt-1 w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm"
+                  >
+                    <option value="pending">Chờ thanh toán</option>
+                    <option value="paid">Đã thanh toán</option>
+                    <option value="failed">Thanh toán thất bại</option>
+                    <option value="refunded">Đã hoàn tiền</option>
+                  </select>
+                ) : (
+                  <div className="mt-1">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      order.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
+                      order.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      order.payment_status === 'failed' ? 'bg-red-100 text-red-800' :
+                      order.payment_status === 'refunded' ? 'bg-orange-100 text-orange-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {order.payment_status === 'paid' ? 'Đã thanh toán' :
+                       order.payment_status === 'pending' ? 'Chờ thanh toán' :
+                       order.payment_status === 'failed' ? 'Thanh toán thất bại' :
+                       order.payment_status === 'refunded' ? 'Đã hoàn tiền' :
+                       order.payment_status}
+                    </span>
+                  </div>
+                )}
               </div>
               {order.payment_method && (
                 <div>
@@ -375,12 +554,22 @@ export default function OrderDetailPage() {
                   {order.shipping_cost === 0 ? 'Miễn phí' : toCurrency(order.shipping_cost)}
                 </p>
               </div>
-              {order.tracking_number && (
-                <div>
-                  <span className="text-muted-foreground">Tracking Number:</span>
-                  <p className="mt-1 font-medium text-foreground">{order.tracking_number}</p>
-                </div>
-              )}
+              <div>
+                <span className="text-muted-foreground">Tracking Number:</span>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editingTrackingNumber}
+                    onChange={(e) => setEditingTrackingNumber(e.target.value)}
+                    placeholder="Nhập mã vận đơn"
+                    className="mt-1 w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm"
+                  />
+                ) : (
+                  <p className="mt-1 font-medium text-foreground">
+                    {order.tracking_number || 'Chưa có mã vận đơn'}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 

@@ -402,6 +402,13 @@ router.post('/zalopay/callback', async (req: Request, res: Response) => {
         payment_status: isSuccess ? 'paid' : 'failed',
         rows_affected: rowsAffected,
       });
+      
+      // NOTE: Payment failed does NOT restore stock automatically
+      // Stock will only be restored when order is cancelled (by admin or timeout)
+      // This allows users to retry payment without losing their reserved stock
+      if (!isSuccess) {
+        console.log('[ZaloPay Callback] Payment failed for order:', order.order_number, '- Stock remains reserved until order is cancelled');
+      }
     } catch (dbError: any) {
       updateError = dbError;
       console.error('[ZaloPay Callback] CRITICAL: Payment succeeded but order update failed:', {

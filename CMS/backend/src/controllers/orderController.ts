@@ -118,6 +118,13 @@ export const getOrders = async (req: Request, res: Response) => {
       replacements.status = status;
     }
 
+    // Only show non-deleted orders by default
+    // To show deleted orders, pass ?include_deleted=true
+    const includeDeleted = req.query.include_deleted === 'true';
+    if (!includeDeleted) {
+      whereConditions.push('o.deleted_at IS NULL');
+    }
+
     const whereClause = whereConditions.length > 0 
       ? `WHERE ${whereConditions.join(' AND ')}`
       : '';
@@ -192,7 +199,7 @@ export const getOrderById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const orderQuery = `
-      SELECT * FROM orders WHERE id = :id
+      SELECT * FROM orders WHERE id = :id AND deleted_at IS NULL
     `;
     const orders: any = await sequelize.query(orderQuery, {
       replacements: { id },
@@ -241,7 +248,7 @@ export const getOrderByNumber = async (req: Request, res: Response) => {
     const { order_number } = req.params;
 
     const orderQuery = `
-      SELECT * FROM orders WHERE order_number = :order_number
+      SELECT * FROM orders WHERE order_number = :order_number AND deleted_at IS NULL
     `;
     const orders: any = await sequelize.query(orderQuery, {
       replacements: { order_number },
@@ -479,9 +486,8 @@ export const createOrder = async (req: Request, res: Response) => {
           transaction
         });
 
-        // Update product stock using StockService (with tracking)
-        // Note: StockService uses its own transaction, so we need to handle this carefully
-        // For now, we'll update stock within the existing transaction and record movement separately
+        // Update product stock within transaction
+        // CRITICAL: Only update stock once here, StockService will only record movement (not update stock again)
         const stockUpdateQuery = `
           UPDATE products
           SET stock = stock - :quantity,
@@ -496,29 +502,53 @@ export const createOrder = async (req: Request, res: Response) => {
           type: QueryTypes.UPDATE,
           transaction
         });
-        
-        // Record stock movement after transaction commits
-        // We'll do this after commit to avoid nested transaction issues
       }
 
       await transaction.commit();
 
       // Record stock movements after transaction commits (to track inventory changes)
-      const { StockService } = await import('../services/stockService');
+      // NOTE: StockService.updateStock will try to update stock again, so we need to use a method that only records movement
+      // For now, we'll manually insert stock movement record without updating stock again
       const userId = (req as any).user?.id;
       
       for (const item of items) {
         try {
-          await StockService.updateStock(
-            item.product_id,
-            item.variant_info?.variantId || null,
-            -item.quantity, // negative for sale
-            'sale',
-            'order',
-            orderId,
-            `Order ${orderNumber} - Sale`,
-            userId
-          );
+          // Get current stock after the update
+          const currentStockQuery = `
+            SELECT stock FROM products WHERE id = :product_id
+          `;
+          const currentStockResult: any = await sequelize.query(currentStockQuery, {
+            replacements: { product_id: item.product_id },
+            type: QueryTypes.SELECT
+          });
+          const currentStock = currentStockResult[0]?.stock || 0;
+          const previousStock = currentStock + item.quantity; // Stock before deduction
+          
+          // Record stock movement without updating stock (stock already updated in transaction)
+          const movementQuery = `
+            INSERT INTO stock_movements (
+              id, product_id, variant_id, quantity, previous_stock, new_stock,
+              reference_type, reference_id, notes, user_id, created_at
+            )
+            VALUES (
+              gen_random_uuid(), :product_id, :variant_id, :quantity, :previous_stock, :new_stock,
+              :reference_type, :reference_id, :notes, :user_id, CURRENT_TIMESTAMP
+            )
+          `;
+          await sequelize.query(movementQuery, {
+            replacements: {
+              product_id: item.product_id,
+              variant_id: item.variant_info?.variantId || null,
+              quantity: -item.quantity, // negative for sale
+              previous_stock: previousStock,
+              new_stock: currentStock,
+              reference_type: 'order',
+              reference_id: orderId,
+              notes: `Order ${orderNumber} - Sale`,
+              user_id: userId || null
+            },
+            type: QueryTypes.INSERT
+          });
         } catch (error: any) {
           // Log error but don't fail the order creation
           console.error(`[createOrder] Failed to record stock movement for product ${item.product_id}:`, error.message);
@@ -527,7 +557,7 @@ export const createOrder = async (req: Request, res: Response) => {
 
       // Get full order with items
       const fullOrderQuery = `
-        SELECT * FROM orders WHERE id = :order_id
+        SELECT * FROM orders WHERE id = :order_id AND deleted_at IS NULL
       `;
       const fullOrders: any = await sequelize.query(fullOrderQuery, {
         replacements: { order_id: orderId },
@@ -648,6 +678,7 @@ export const getOrdersByPhone = async (req: Request, res: Response) => {
         o.delivered_at
       FROM orders o
       WHERE o.customer_phone IS NOT NULL
+        AND o.deleted_at IS NULL
         AND (
           o.customer_phone = :phone 
           OR o.customer_phone LIKE :phone_like
@@ -778,36 +809,7 @@ export const updateOrder = async (req: Request, res: Response) => {
         updates.push('delivered_at = CURRENT_TIMESTAMP');
       } else if (status === 'cancelled') {
         updates.push('cancelled_at = CURRENT_TIMESTAMP');
-        
-        // Restore stock when order is cancelled
-        // Get order items first
-        const itemsQuery = `SELECT product_id, quantity, variant_info FROM order_items WHERE order_id = :id`;
-        const orderItems: any[] = await sequelize.query(itemsQuery, {
-          replacements: { id },
-          type: QueryTypes.SELECT
-        });
-        
-        // Restore stock for each item
-        const { StockService } = await import('../services/stockService');
-        const userId = (req as any).user?.id;
-        
-        for (const item of orderItems) {
-          try {
-            const variantInfo = item.variant_info ? JSON.parse(item.variant_info) : null;
-            await StockService.updateStock(
-              item.product_id,
-              variantInfo?.variantId || null,
-              item.quantity, // positive to restore stock
-              'return',
-              'order',
-              id,
-              `Order cancelled - Stock restored`,
-              userId
-            );
-          } catch (error: any) {
-            console.error(`[updateOrder] Failed to restore stock for product ${item.product_id}:`, error.message);
-          }
-        }
+        // Note: Stock restoration will happen AFTER order update succeeds
       }
     }
 
@@ -819,6 +821,13 @@ export const updateOrder = async (req: Request, res: Response) => {
     if (payment_status) {
       updates.push('payment_status = :payment_status');
       replacements.payment_status = payment_status;
+      
+      // NOTE: Payment failed does NOT restore stock automatically
+      // Stock will only be restored when order status is set to 'cancelled'
+      // This allows users to retry payment without losing their reserved stock
+      if (payment_status === 'failed') {
+        console.log('[updateOrder] Payment status set to failed for order:', id, '- Stock remains reserved until order is cancelled');
+      }
     }
 
     if (admin_notes) {
@@ -846,6 +855,91 @@ export const updateOrder = async (req: Request, res: Response) => {
     const normalized = Array.isArray(updated) ? updated[0] : updated;
     normalizeOrderRow(normalized);
     
+    // CRITICAL: Restore stock AFTER order update succeeds (if order was cancelled)
+    if (status === 'cancelled') {
+      console.log('[updateOrder] Order cancelled, restoring stock for order:', id);
+      
+      try {
+        // Get order items
+        const itemsQuery = `SELECT product_id, quantity, variant_info FROM order_items WHERE order_id = :id`;
+        const orderItems: any[] = await sequelize.query(itemsQuery, {
+          replacements: { id },
+          type: QueryTypes.SELECT
+        });
+        
+        // Restore stock for each item
+        const { StockService } = await import('../services/stockService');
+        const userId = (req as any).user?.id;
+        
+        for (const item of orderItems) {
+          try {
+            const variantInfo = item.variant_info ? (typeof item.variant_info === 'string' ? JSON.parse(item.variant_info) : item.variant_info) : null;
+            
+            // Get current stock
+            const currentStockQuery = variantInfo?.variantId
+              ? `SELECT stock FROM product_variants WHERE id = :id`
+              : `SELECT stock FROM products WHERE id = :id`;
+            const currentStockResult: any = await sequelize.query(currentStockQuery, {
+              replacements: { id: variantInfo?.variantId || item.product_id },
+              type: QueryTypes.SELECT
+            });
+            const currentStock = currentStockResult[0]?.stock || 0;
+            const previousStock = currentStock - item.quantity; // Stock before restoration
+            
+            // Update stock directly
+            const stockUpdateQuery = variantInfo?.variantId
+              ? `UPDATE product_variants SET stock = stock + :quantity, updated_at = CURRENT_TIMESTAMP WHERE id = :id`
+              : `UPDATE products SET stock = stock + :quantity, updated_at = CURRENT_TIMESTAMP WHERE id = :id`;
+            await sequelize.query(stockUpdateQuery, {
+              replacements: {
+                id: variantInfo?.variantId || item.product_id,
+                quantity: item.quantity
+              },
+              type: QueryTypes.UPDATE
+            });
+            
+            // Record stock movement
+            const movementQuery = `
+              INSERT INTO stock_movements (
+                id, product_id, variant_id, movement_type, quantity, previous_stock, new_stock,
+                reference_type, reference_id, notes, created_by, created_at
+              )
+              VALUES (
+                gen_random_uuid(), :product_id, :variant_id, :movement_type, :quantity, :previous_stock, :new_stock,
+                :reference_type, :reference_id, :notes, :user_id, CURRENT_TIMESTAMP
+              )
+            `;
+            await sequelize.query(movementQuery, {
+              replacements: {
+                product_id: item.product_id,
+                variant_id: variantInfo?.variantId || null,
+                movement_type: 'return',
+                quantity: item.quantity, // positive to restore
+                previous_stock: previousStock,
+                new_stock: currentStock + item.quantity,
+                reference_type: 'order',
+                reference_id: id,
+                notes: `Order cancelled - Stock restored`,
+                user_id: userId || null
+              },
+              type: QueryTypes.INSERT
+            });
+            
+            console.log(`[updateOrder] Restored ${item.quantity} units for product ${item.product_id} (variant: ${variantInfo?.variantId || 'none'})`);
+          } catch (error: any) {
+            console.error(`[updateOrder] Failed to restore stock for product ${item.product_id}:`, error.message);
+            // Continue with other items even if one fails
+          }
+        }
+        
+        console.log('[updateOrder] Stock restoration completed for order:', id);
+      } catch (error: any) {
+        console.error('[updateOrder] Failed to restore stock:', error);
+        // Don't fail the order update if stock restoration fails
+        // Log error but continue
+      }
+    }
+    
     // Log activity
     const orderNumber = normalized.order_number || id;
     const statusChange = status ? `Status changed to "${status}"` : '';
@@ -860,39 +954,58 @@ export const updateOrder = async (req: Request, res: Response) => {
   }
 };
 
-// Delete order (admin only, usually not allowed)
+// Soft delete order (admin only) - sets deleted_at timestamp instead of hard delete
+// This preserves order data for accounting, reporting, and audit purposes
 export const deleteOrder = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Get order number before deleting
-    const getOrderQuery = 'SELECT order_number FROM orders WHERE id = :id';
+    // Get order info before soft deleting
+    const getOrderQuery = 'SELECT order_number, deleted_at FROM orders WHERE id = :id';
     const orderResult: any = await sequelize.query(getOrderQuery, {
       replacements: { id },
       type: QueryTypes.SELECT
     });
     
-    const orderNumber = orderResult[0]?.order_number || id;
-    
-    const query = `
-      DELETE FROM orders WHERE id = :id RETURNING id
-    `;
-    const deleted: any = await sequelize.query(query, {
-      replacements: { id },
-      type: QueryTypes.DELETE
-    });
-
-    if (!deleted || deleted.length === 0) {
+    if (!orderResult || orderResult.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Log activity
-    await logActivity(req, 'delete', 'order', id, orderNumber, `Deleted order #${orderNumber}`);
+    const order = orderResult[0];
+    const orderNumber = order.order_number || id;
 
-    res.json({ success: true, message: 'Order deleted' });
+    // Check if already deleted
+    if (order.deleted_at) {
+      return res.status(400).json({ error: 'Order is already deleted (archived)' });
+    }
+    
+    // Soft delete: set deleted_at timestamp instead of hard delete
+    const query = `
+      UPDATE orders 
+      SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+      WHERE id = :id AND deleted_at IS NULL
+      RETURNING id, deleted_at
+    `;
+    const updated: any = await sequelize.query(query, {
+      replacements: { id },
+      type: QueryTypes.UPDATE
+    });
+
+    if (!updated || updated.length === 0 || !updated[0]) {
+      return res.status(404).json({ error: 'Order not found or already deleted' });
+    }
+
+    // Log activity
+    await logActivity(req, 'delete', 'order', id, orderNumber, `Archived (soft deleted) order #${orderNumber}`);
+
+    res.json({ 
+      success: true, 
+      message: 'Order archived successfully',
+      deleted_at: updated[0].deleted_at
+    });
   } catch (error) {
-    console.error('Failed to delete order:', error);
-    res.status(500).json({ error: 'Failed to delete order' });
+    console.error('Failed to archive order:', error);
+    res.status(500).json({ error: 'Failed to archive order' });
   }
 };
 

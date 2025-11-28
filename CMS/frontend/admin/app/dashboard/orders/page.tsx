@@ -81,7 +81,14 @@ export default function OrdersPage() {
   };
 
   const handleDelete = async (orderId: string, orderNumber: string) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa đơn hàng ${orderNumber}? Hành động này không thể hoàn tác.`)) {
+    if (!confirm(
+      `Bạn có chắc chắn muốn ẩn đơn hàng ${orderNumber}?\n\n` +
+      `Đơn hàng sẽ được ẩn khỏi danh sách nhưng dữ liệu vẫn được lưu lại cho:\n` +
+      `- Báo cáo và thống kê\n` +
+      `- Kế toán và audit\n` +
+      `- Tra cứu sau này\n\n` +
+      `Bạn có thể khôi phục đơn hàng sau nếu cần.`
+    )) {
       return;
     }
 
@@ -90,13 +97,13 @@ export default function OrdersPage() {
         withCredentials: true,
       });
       
-      toast.success('Xóa đơn hàng thành công');
+      toast.success('Đã ẩn đơn hàng thành công');
       // Update state without full reload
       setOrders(prevOrders => prevOrders.filter(o => o.id !== orderId));
       setTotal(prevTotal => prevTotal - 1);
     } catch (error) {
-      console.error('Failed to delete order:', error);
-      toast.error('Không thể xóa đơn hàng');
+      console.error('Failed to archive order:', error);
+      toast.error('Không thể ẩn đơn hàng');
     }
   };
 
@@ -268,7 +275,7 @@ export default function OrdersPage() {
                       <button
                         onClick={() => handleDelete(order.id, order.order_number)}
                         className="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-700 dark:hover:text-red-400 hover:underline"
-                        title="Xóa đơn hàng"
+                        title="Ẩn đơn hàng"
                       >
                         <Trash2 className="h-4 w-4" />
                         Xóa

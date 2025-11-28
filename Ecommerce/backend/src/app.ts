@@ -13,9 +13,11 @@ import './models';
 // Public routes only
 import publicProductsRoutes from './routes/publicProducts';
 import publicAuthRoutes from './routes/publicAuth'; // Customer authentication
+import publicHomepageRoutes from './routes/publicHomepage'; // Homepage data (hero, testimonials, etc.)
 import orderRoutes from './routes/orders'; // Create order + lookup
 import paymentRoutes from './routes/payments'; // Payment gateway (ZaloPay)
 import newsletterRoutes from './routes/newsletter'; // Newsletter subscriptions
+import trackingScriptRoutes from './routes/trackingScripts'; // Tracking scripts (analytics)
 import healthRoutes from './routes/health';
 
 // Public read routes (modify to remove admin CRUD)
@@ -120,10 +122,12 @@ app.use(cookieParser());
 app.use('/api/products', publicProductsRoutes); // Public product listing & detail
 app.use('/api/product-categories', productCategoryRoutes); // Public category listing (GET only)
 app.use('/api/brands', brandRoutes); // Public brand listing (GET only)
+app.use('/api/public/homepage', publicHomepageRoutes); // Homepage data (hero, testimonials, etc.)
 app.use('/api/orders', orderRoutes); // Create order + lookup (POST, GET)
 app.use('/api/payments', paymentRoutes); // Payment gateway (ZaloPay)
 app.use('/api/auth', publicAuthRoutes); // Customer authentication
 app.use('/api/newsletter', newsletterRoutes); // Newsletter subscriptions
+app.use('/api/tracking-scripts', trackingScriptRoutes); // Tracking scripts (analytics) - public endpoint only
 app.use('/api/health', healthRoutes); // Health check
 
 // Ensure upload and temp dirs on boot and serve uploads

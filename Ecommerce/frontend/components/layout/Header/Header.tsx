@@ -24,7 +24,8 @@ interface NavigationItem {
   megaMenu?: MegaMenuData;
 }
 
-const MENU_IDENTIFIER = process.env.NEXT_PUBLIC_CMS_MAIN_MENU_ID || 'main-menu';
+// Get menu identifier from environment variable (required, no hardcode fallback)
+const MENU_IDENTIFIER = process.env.NEXT_PUBLIC_MAIN_MENU_ID || process.env.NEXT_PUBLIC_CMS_MAIN_MENU_ID;
 
 const FALLBACK_NAVIGATION: NavigationItem[] = [
   {

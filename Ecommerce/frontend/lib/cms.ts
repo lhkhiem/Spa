@@ -250,9 +250,24 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
   }
 
   try {
-    const response = await cmsFetch<{ data: CMSMenuLocation[] }>(MENU_LOCATIONS_ENDPOINT);
+    // Use Ecommerce Backend API instead of CMS Backend
+    const apiUrl = getApiUrl();
+    const response = await fetch(`${apiUrl}${MENU_LOCATIONS_ENDPOINT}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    });
 
-    response.data?.forEach?.((location) => {
+    if (!response.ok) {
+      throw new Error(`Failed to fetch menu locations: ${response.statusText}`);
+    }
+
+    const data: { data?: CMSMenuLocation[] } = await response.json();
+    const locations = data.data || [];
+
+    locations.forEach((location) => {
       if (location?.id) {
         cacheMenuLocation(location);
       }
@@ -266,21 +281,43 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
 };
 
 export async function getMenuItems(menuIdentifier?: string): Promise<CMSMenuItem[]> {
-  const locationId = await resolveMenuLocationId(menuIdentifier);
-
-  if (!locationId) {
-    if (menuIdentifier) {
-      console.warn(`[CMS] Menu location not found for identifier: "${menuIdentifier}"`);
-    }
+  // If no identifier provided, try to get from environment variable
+  const identifier = menuIdentifier || process.env.NEXT_PUBLIC_MAIN_MENU_ID || process.env.NEXT_PUBLIC_CMS_MAIN_MENU_ID;
+  
+  if (!identifier) {
+    console.warn('[CMS] Menu identifier not configured. Set NEXT_PUBLIC_MAIN_MENU_ID or NEXT_PUBLIC_CMS_MAIN_MENU_ID environment variable.');
     return [];
   }
 
-  const response = await cmsFetch<{ data?: CMSMenuItem[]; flat?: CMSMenuItem[] }>('/api/menu-items', {
-    params: { location_id: locationId },
-  });
+  const locationId = await resolveMenuLocationId(identifier);
 
-  const items = Array.isArray(response?.data) && response.data.length ? response.data : response.flat ?? [];
-  return items ?? [];
+  if (!locationId) {
+    console.warn(`[CMS] Menu location not found for identifier: "${identifier}"`);
+    return [];
+  }
+
+  try {
+    // Use Ecommerce Backend API instead of CMS Backend
+    const apiUrl = getApiUrl();
+    const response = await fetch(`${apiUrl}/api/menu-items?location_id=${encodeURIComponent(locationId)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch menu items: ${response.statusText}`);
+    }
+
+    const data: { data?: CMSMenuItem[]; flat?: CMSMenuItem[] } = await response.json();
+    const items = Array.isArray(data?.data) && data.data.length ? data.data : data.flat ?? [];
+    return items ?? [];
+  } catch (error) {
+    console.error('[CMS] Failed to fetch menu items', error);
+    return [];
+  }
 }
 
 /**

@@ -78,6 +78,14 @@ const buildAllowedOrigins = (): string[] => {
     );
   }
   
+  // Explicitly add banyco.vn domains
+  origins.push(
+    'https://banyco.vn',
+    'http://banyco.vn',
+    'https://www.banyco.vn',
+    'http://www.banyco.vn'
+  );
+  
   // Legacy support
   if (process.env.WEBSITE_ORIGIN && process.env.WEBSITE_ORIGIN.startsWith('http')) {
     origins.push(process.env.WEBSITE_ORIGIN);

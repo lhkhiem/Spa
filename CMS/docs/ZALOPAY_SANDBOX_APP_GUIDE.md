@@ -33,10 +33,11 @@
    - Dùng tài khoản Zalo đã đăng ký với ZaloPay Developer
    - Tài khoản phải là tài khoản đã đăng ký trên https://developers.zalopay.vn/
 
-3. **Định danh (KYC):**
+3. **Định danh (KYC) và Liên kết Ngân hàng:**
    - Sau khi đăng nhập, app sẽ yêu cầu định danh
-   - Thực hiện các bước định danh theo hướng dẫn
-   - Cần định danh để sử dụng chức năng thanh toán test
+   - **ZaloPay Sandbox yêu cầu liên kết tài khoản ngân hàng** để có thể quét QR và thanh toán test
+   - Đây là yêu cầu bắt buộc của ZaloPay để mô phỏng giao dịch thực tế
+   - **Lưu ý:** Nếu không muốn liên kết ngân hàng, có thể test callback trực tiếp (xem [ZALOPAY_TEST_WITHOUT_BANK.md](./ZALOPAY_TEST_WITHOUT_BANK.md))
 
 ## 🧪 Sử dụng App để Test Thanh toán
 
@@ -122,6 +123,22 @@
 - Đảm bảo đang dùng **app ZaloPay Sandbox**
 - Tạo đơn hàng mới để có QR code mới
 - Kiểm tra bạn đang test với Sandbox (không phải Production)
+
+### Yêu cầu liên kết ngân hàng khi quét QR
+
+**Nguyên nhân:**
+- ZaloPay Sandbox yêu cầu liên kết tài khoản ngân hàng để có thể thanh toán test
+- Đây là yêu cầu bắt buộc của ZaloPay
+
+**Giải pháp:**
+1. **Liên kết ngân hàng trong app Sandbox:**
+   - Thực hiện các bước liên kết ngân hàng theo hướng dẫn trong app
+   - Có thể dùng thông tin thẻ test do ZaloPay cung cấp (nếu có)
+
+2. **Test callback trực tiếp (không cần quét QR):**
+   - Xem hướng dẫn chi tiết: [ZALOPAY_TEST_WITHOUT_BANK.md](./ZALOPAY_TEST_WITHOUT_BANK.md)
+   - Dùng script `testZaloPayCallback.ts` để test callback mà không cần quét QR
+   - Test query order status endpoint
 
 ## 📚 Tài liệu liên quan
 

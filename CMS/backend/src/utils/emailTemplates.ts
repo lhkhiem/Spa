@@ -310,6 +310,7 @@ interface OrderConfirmationData {
  */
 export function getOrderConfirmationTemplate(data: OrderConfirmationData): string {
   const formattedDate = new Date(data.orderDate).toLocaleString('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh', // UTC+7
     year: 'numeric',
     month: 'long',
     day: 'numeric',

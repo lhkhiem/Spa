@@ -178,7 +178,8 @@ export default function ConsultationsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh', // UTC+7
       year: 'numeric',
       month: 'short',
       day: 'numeric',

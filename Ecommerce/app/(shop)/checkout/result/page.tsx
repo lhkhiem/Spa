@@ -10,10 +10,19 @@ import Button from '@/components/ui/Button/Button';
 import { FiCheckCircle, FiXCircle, FiLoader, FiPackage, FiPhone } from 'react-icons/fi';
 import { queryZaloPayOrder } from '@/lib/api/payments';
 import { buildApiUrl } from '@/config/site';
+import { useCartStore } from '@/lib/stores/cartStore';
 
 function CheckoutResultContent() {
+  // Log immediately - even before hooks
+  if (typeof window !== 'undefined') {
+    console.log('[Checkout Result] ===== COMPONENT RENDERED =====');
+    console.log('[Checkout Result] Window location:', window.location.href);
+    console.log('[Checkout Result] URL search:', window.location.search);
+  }
+  
   const searchParams = useSearchParams();
   const router = useRouter();
+  const clearCart = useCartStore((state) => state.clearCart);
   const [status, setStatus] = useState<'loading' | 'success' | 'failed' | 'pending'>('loading');
   const [orderNumber, setOrderNumber] = useState<string>('');
   const [appTransId, setAppTransId] = useState<string>('');
@@ -22,28 +31,45 @@ function CheckoutResultContent() {
   const statusRef = useRef<'loading' | 'success' | 'failed' | 'pending'>('loading');
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const cartClearedRef = useRef(false); // Track if cart has been cleared
 
   // Update refs when state changes
   useEffect(() => {
     statusRef.current = status;
+    console.log('[Checkout Result] Status changed to:', status);
   }, [status]);
 
   useEffect(() => {
+    console.log('[Checkout Result] Page loaded, checking URL params...');
+    
     // Get app_trans_id from URL params or sessionStorage
-    const appTransIdParam = searchParams?.get('app_trans_id');
+    // ZaloPay redirects with 'apptransid' (no underscore), but we also check 'app_trans_id'
+    const appTransIdParam = searchParams?.get('apptransid') || searchParams?.get('app_trans_id');
+    const statusParam = searchParams?.get('status'); // ZaloPay redirects with status=1 for success
+    
+    console.log('[Checkout Result] URL params:', {
+      apptransid: searchParams?.get('apptransid'),
+      app_trans_id: searchParams?.get('app_trans_id'),
+      status: statusParam,
+      allParams: Object.fromEntries(searchParams?.entries() || []),
+    });
+    
     let transId = appTransIdParam || '';
 
     if (!transId && typeof window !== 'undefined') {
       transId = sessionStorage.getItem('zalopayAppTransId') || '';
+      console.log('[Checkout Result] Got app_trans_id from sessionStorage:', transId);
     }
 
     if (!transId) {
+      console.error('[Checkout Result] No app_trans_id found in URL or sessionStorage');
       setStatus('failed');
       setMessage('Không tìm thấy thông tin giao dịch. Vui lòng liên hệ hỗ trợ.');
       pollingRef.current = false;
       return;
     }
 
+    console.log('[Checkout Result] Using app_trans_id:', transId);
     setAppTransId(transId);
 
     // Get order info from sessionStorage
@@ -65,24 +91,38 @@ function CheckoutResultContent() {
     const queryOrderStatus = async () => {
       // Don't query if already stopped polling
       if (!pollingRef.current) {
+        console.log('[Checkout Result] Polling stopped, skipping query');
         return;
       }
 
+      console.log('[Checkout Result] Querying ZaloPay order status for:', transId);
+
       try {
         const response = await queryZaloPayOrder(transId);
+        console.log('[Checkout Result] Query response:', response);
         
         if (response.success && response.data) {
           const returnCode = response.data.return_code;
+          console.log('[Checkout Result] Return code:', returnCode);
           
           if (returnCode === 1) {
             // Success
+            console.log('[Checkout Result] Payment successful!');
             pollingRef.current = false;
             setStatus('success');
             setMessage('Thanh toán thành công! Cảm ơn bạn đã mua sắm.');
             
+            // Clear cart (only once)
+            if (!cartClearedRef.current) {
+              console.log('[Checkout Result] Clearing cart...');
+              clearCart();
+              cartClearedRef.current = true;
+            }
+            
             // Clear session storage
             if (typeof window !== 'undefined') {
               sessionStorage.removeItem('zalopayAppTransId');
+              sessionStorage.removeItem('lastOrder'); // Also clear lastOrder after successful payment
             }
 
             // Clear intervals
@@ -96,7 +136,9 @@ function CheckoutResultContent() {
             }
           } else {
             // Failed or pending
+            console.log('[Checkout Result] Payment not successful, return_code:', returnCode);
             if (response.data.sub_return_code === -1 || returnCode !== 1) {
+              console.log('[Checkout Result] Setting status to failed');
               pollingRef.current = false;
               setStatus('failed');
               setMessage(response.data.return_message || response.data.sub_return_message || 'Thanh toán thất bại. Vui lòng thử lại.');
@@ -112,17 +154,24 @@ function CheckoutResultContent() {
               }
             } else {
               // Still pending, continue polling
+              console.log('[Checkout Result] Still pending, continue polling');
               setStatus('pending');
               setMessage('Đang chờ xác nhận thanh toán...');
             }
           }
         } else {
           // Keep polling if query failed
+          console.log('[Checkout Result] Query response invalid, keep polling');
           setStatus('pending');
           setMessage('Đang kiểm tra trạng thái thanh toán...');
         }
       } catch (error: any) {
         console.error('[Checkout Result] Query error:', error);
+        console.error('[Checkout Result] Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
         // Keep polling on error
         setStatus('pending');
         setMessage('Đang kiểm tra trạng thái thanh toán...');
@@ -292,6 +341,12 @@ function CheckoutResultContent() {
 }
 
 export default function CheckoutResultPage() {
+  // Log when page component loads
+  if (typeof window !== 'undefined') {
+    console.log('[Checkout Result Page] Page component loaded');
+    console.log('[Checkout Result Page] URL:', window.location.href);
+  }
+  
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 py-16">

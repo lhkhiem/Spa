@@ -27,12 +27,13 @@ const formatDateTime = (value: string | Date | null | undefined) => {
   if (!value) return '—';
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleString('en-US', {
+  return date.toLocaleString('vi-VN', {
     year: 'numeric',
-    month: 'short',
+    month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'Asia/Ho_Chi_Minh', // UTC+7
   });
 };
 

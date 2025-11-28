@@ -199,15 +199,177 @@ export async function queryZaloPayOrder(app_trans_id: string): Promise<any> {
   }
 
   const time = Date.now();
-  const mac = hmacSHA256Hex(key1, [app_id, app_trans_id, time].join('|'));
+  // ZaloPay query MAC format: app_id|app_trans_id|time (all as strings)
+  const macInput = [String(app_id), String(app_trans_id), String(time)].join('|');
+  const mac = hmacSHA256Hex(key1, macInput);
 
   const base = (process.env.ZP_API_BASE || 'https://sb-openapi.zalopay.vn/v2').replace(/\/+$/, '');
   const path = process.env.ZP_ORDER_QUERY_PATH || '/query';
 
+  const requestBody = { app_id, app_trans_id, time, mac };
+
+  // Log request for debugging
+  console.log('[ZaloPay] Query order request:', {
+    app_id,
+    app_trans_id,
+    time,
+    mac: mac.substring(0, 20) + '...',
+    mac_input: macInput,
+    url: `${base}${path}`,
+  });
+
   try {
     const { data } = await axios.post(
       `${base}${path}`,
-      { app_id, app_trans_id, time, mac },
+      requestBody,
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 30000,
+      }
+    );
+
+    console.log('[ZaloPay] Query order response:', {
+      return_code: data.return_code,
+      return_message: data.return_message,
+      sub_return_code: data.sub_return_code,
+      sub_return_message: data.sub_return_message,
+    });
+
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('[ZaloPay] Query order error:', {
+        status: axiosError.response?.status,
+        data: axiosError.response?.data,
+        message: axiosError.message,
+        request_body: requestBody,
+      });
+      throw new Error(`ZaloPay query error: ${axiosError.message}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Refund ZaloPay transaction
+ * @param zp_trans_id ZaloPay transaction ID (from callback)
+ * @param amount Refund amount in VND (must be <= original amount)
+ * @param description Refund description
+ * @returns Refund result with m_refund_id
+ */
+export async function refundZaloPayTransaction(
+  zp_trans_id: number | string,
+  amount: number,
+  description: string = 'Hoàn tiền đơn hàng'
+): Promise<any> {
+  const app_id = Number(process.env.ZP_APP_ID);
+  const key1 = process.env.ZP_KEY1;
+
+  if (!app_id || !key1) {
+    throw new Error('ZaloPay configuration missing: ZP_APP_ID or ZP_KEY1');
+  }
+
+  const timestamp = Date.now();
+  const m_refund_id = `REFUND_${timestamp}_${Math.random().toString(36).substring(2, 9)}`;
+  
+  // MAC format: app_id|zp_trans_id|amount|description|timestamp
+  const macInput = [
+    String(app_id),
+    String(zp_trans_id),
+    String(Math.round(amount)),
+    description,
+    String(timestamp),
+  ].join('|');
+  
+  const mac = hmacSHA256Hex(key1, macInput);
+
+  const base = (process.env.ZP_API_BASE || 'https://sb-openapi.zalopay.vn/v2').replace(/\/+$/, '');
+  const path = process.env.ZP_REFUND_PATH || '/refund';
+
+  const requestBody = {
+    app_id,
+    zp_trans_id: String(zp_trans_id),
+    amount: Math.round(amount),
+    description,
+    timestamp,
+    m_refund_id,
+    mac,
+  };
+
+  console.log('[ZaloPay] Refund request:', {
+    app_id,
+    zp_trans_id,
+    amount: Math.round(amount),
+    m_refund_id,
+    mac: mac.substring(0, 20) + '...',
+    mac_input: macInput,
+  });
+
+  try {
+    const { data } = await axios.post(
+      `${base}${path}`,
+      requestBody,
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 30000,
+      }
+    );
+
+    console.log('[ZaloPay] Refund response:', {
+      return_code: data.return_code,
+      return_message: data.return_message,
+      sub_return_code: data.sub_return_code,
+      sub_return_message: data.sub_return_message,
+      m_refund_id: data.m_refund_id,
+    });
+
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('[ZaloPay] Refund error:', {
+        status: axiosError.response?.status,
+        data: axiosError.response?.data,
+        message: axiosError.message,
+      });
+      throw new Error(`ZaloPay refund error: ${axiosError.response?.data?.return_message || axiosError.message}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Query ZaloPay refund status
+ * @param m_refund_id Refund ID from refund response
+ * @returns Refund status
+ */
+export async function queryZaloPayRefund(m_refund_id: string): Promise<any> {
+  const app_id = Number(process.env.ZP_APP_ID);
+  const key1 = process.env.ZP_KEY1;
+
+  if (!app_id || !key1) {
+    throw new Error('ZaloPay configuration missing: ZP_APP_ID or ZP_KEY1');
+  }
+
+  const timestamp = Date.now();
+  const macInput = [String(app_id), m_refund_id, String(timestamp)].join('|');
+  const mac = hmacSHA256Hex(key1, macInput);
+
+  const base = (process.env.ZP_API_BASE || 'https://sb-openapi.zalopay.vn/v2').replace(/\/+$/, '');
+  const path = process.env.ZP_REFUND_QUERY_PATH || '/refund/query';
+
+  const requestBody = {
+    app_id,
+    m_refund_id,
+    timestamp,
+    mac,
+  };
+
+  try {
+    const { data } = await axios.post(
+      `${base}${path}`,
+      requestBody,
       {
         headers: { 'Content-Type': 'application/json' },
         timeout: 30000,
@@ -218,12 +380,12 @@ export async function queryZaloPayOrder(app_trans_id: string): Promise<any> {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
-      console.error('[ZaloPay] Query order error:', {
+      console.error('[ZaloPay] Query refund error:', {
         status: axiosError.response?.status,
         data: axiosError.response?.data,
         message: axiosError.message,
       });
-      throw new Error(`ZaloPay query error: ${axiosError.message}`);
+      throw new Error(`ZaloPay query refund error: ${axiosError.message}`);
     }
     throw error;
   }

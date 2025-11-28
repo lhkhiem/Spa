@@ -7,8 +7,8 @@ import sequelize from '../config/database';
 import { Product } from './Product';
 import { ProductCategory } from './ProductCategory';
 import { Brand } from './Brand';
-import Order from './Order';
-import OrderItem from './OrderItem';
+import { Order } from './Order';
+import { OrderItem } from './OrderItem';
 import User from './User';
 import Address from './Address';
 import NewsletterSubscription from './NewsletterSubscription';
@@ -44,15 +44,16 @@ import { ProductAttribute } from './ProductAttribute';
 // import ProductReview from './ProductReview';
 
 // Define associations (only for Ecommerce models)
-Order.hasMany(OrderItem, {
-  foreignKey: 'order_id',
-  as: 'items',
-});
-
-OrderItem.belongsTo(Order, {
-  foreignKey: 'order_id',
-  as: 'order',
-});
+// Note: Order and OrderItem are interfaces, not Sequelize models
+// Associations are not needed as we use raw SQL queries
+// Order.hasMany(OrderItem, {
+//   foreignKey: 'order_id',
+//   as: 'items',
+// });
+// OrderItem.belongsTo(Order, {
+//   foreignKey: 'order_id',
+//   as: 'order',
+// });
 
 Address.belongsTo(User, {
   foreignKey: 'user_id',
@@ -74,7 +75,7 @@ export {
   ProductVariant,
   ProductImage,
   ProductAttribute,
-  // Order models
+  // Order models (interfaces, not Sequelize models)
   Order,
   OrderItem,
   // User models

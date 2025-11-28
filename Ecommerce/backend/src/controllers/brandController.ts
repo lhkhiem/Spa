@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import sequelize from '../config/database';
 import { QueryTypes } from 'sequelize';
-import { logActivity } from './activityLogController';
+// Activity logging removed - Ecommerce Backend doesn't need activity logs
 
 export const getBrands = async (req: Request, res: Response) => {
   try {
@@ -215,8 +215,7 @@ export const createBrand = async (req: Request, res: Response) => {
 
     const brand = result[0][0];
     
-    // Log activity
-    await logActivity(req, 'create', 'brand', id, name, `Created brand "${name}"`);
+    // Activity logging removed - Ecommerce Backend doesn't need activity logs
 
     res.status(201).json(brand);
   } catch (error) {
@@ -263,8 +262,7 @@ export const updateBrand = async (req: Request, res: Response) => {
 
     const updatedBrand = result[0][0];
     
-    // Log activity
-    await logActivity(req, 'update', 'brand', id, updatedBrand.name, `Updated brand "${updatedBrand.name}"`);
+    // Activity logging removed - Ecommerce Backend doesn't need activity logs
 
     res.json(updatedBrand);
   } catch (error) {
@@ -298,8 +296,7 @@ export const deleteBrand = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Brand not found' });
     }
 
-    // Log activity
-    await logActivity(req, 'delete', 'brand', id, brandName, `Deleted brand "${brandName}"`);
+    // Activity logging removed - Ecommerce Backend doesn't need activity logs
 
     res.json({ message: 'Brand deleted successfully' });
   } catch (error) {

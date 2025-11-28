@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import sequelize from '../config/database';
 import { QueryTypes } from 'sequelize';
-import { logActivity } from './activityLogController';
+// Activity logging removed - Ecommerce Backend doesn't need activity logs
 
 export const getCategories = async (req: Request, res: Response) => {
   try {
@@ -177,8 +177,7 @@ export const createCategory = async (req: Request, res: Response) => {
 
     const category = result[0][0];
     
-    // Log activity
-    await logActivity(req, 'create', 'category', id, name, `Created category "${name}"`);
+    // Activity logging removed - Ecommerce Backend doesn't need activity logs
 
     res.status(201).json(category);
   } catch (error) {
@@ -242,8 +241,7 @@ export const updateCategory = async (req: Request, res: Response) => {
 
     const updatedCategory = result[0][0];
     
-    // Log activity
-    await logActivity(req, 'update', 'category', id, updatedCategory.name, `Updated category "${updatedCategory.name}"`);
+    // Activity logging removed - Ecommerce Backend doesn't need activity logs
 
     res.json(updatedCategory);
   } catch (error) {
@@ -359,8 +357,7 @@ export const deleteCategory = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    // Log activity
-    await logActivity(req, 'delete', 'category', id, categoryName, `Deleted category "${categoryName}"`);
+    // Activity logging removed - Ecommerce Backend doesn't need activity logs
 
     res.json({ message: 'Category deleted successfully' });
   } catch (error) {

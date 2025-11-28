@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import sequelize from '../config/database';
 import { QueryTypes } from 'sequelize';
-import { logActivity } from './activityLogController';
+// Activity logging removed - Ecommerce Backend doesn't need activity logs
 
 const numericOrderFields = [
   'subtotal',
@@ -945,7 +945,7 @@ export const updateOrder = async (req: Request, res: Response) => {
     const statusChange = status ? `Status changed to "${status}"` : '';
     const paymentChange = payment_status ? `Payment status changed to "${payment_status}"` : '';
     const changes = [statusChange, paymentChange].filter(Boolean).join(', ') || 'Updated order';
-    await logActivity(req, 'update', 'order', id, orderNumber, `${changes} - Order #${orderNumber}`);
+    // Activity logging removed - Ecommerce Backend doesn't need activity logs
     
     res.json(normalized);
   } catch (error) {
@@ -995,8 +995,7 @@ export const deleteOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Order not found or already deleted' });
     }
 
-    // Log activity
-    await logActivity(req, 'delete', 'order', id, orderNumber, `Archived (soft deleted) order #${orderNumber}`);
+    // Activity logging removed - Ecommerce Backend doesn't need activity logs
 
     res.json({ 
       success: true, 

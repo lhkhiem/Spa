@@ -3,7 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import NewsletterSubscription from '../models/NewsletterSubscription';
 import { QueryTypes } from 'sequelize';
 import sequelize from '../config/database';
-import { logActivity } from './activityLogController';
+// Activity logging removed - Ecommerce Backend doesn't need activity logs
 
 /**
  * Subscribe to newsletter (public endpoint)
@@ -257,8 +257,7 @@ export const deleteSubscriber = async (req: AuthRequest, res: Response) => {
     const email = subscription.email;
     await subscription.destroy();
 
-    // Log activity
-    await logActivity(req, 'delete', 'newsletter_subscription', id, email, `Deleted newsletter subscription: ${email}`);
+    // Activity logging removed - Ecommerce Backend doesn't need activity logs
 
     res.json({
       success: true,

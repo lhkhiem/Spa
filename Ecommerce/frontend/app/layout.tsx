@@ -5,12 +5,27 @@ import { ToasterProvider } from '@/components/providers/ToasterProvider';
 import Script from 'next/script';
 import { Suspense } from 'react';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
-
+import { FaviconProvider } from '@/components/FaviconProvider';
 const inter = Inter({ 
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
 });
+
+// Get site URL for metadata (must be static value, not function call)
+const getMetadataSiteUrl = (): string => {
+  // Use env var directly for metadata (must be serializable)
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (envUrl) return envUrl;
+  
+  // Fallback for production
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://banyco.vn';
+  }
+  
+  // Development fallback
+  return 'http://localhost:3000';
+};
 
 export const metadata: Metadata = {
   title: {
@@ -23,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_SITE_URL,
+    url: getMetadataSiteUrl(),
     siteName: 'Banyco',
     title: 'Banyco - Spa & Salon Supplies',
     description: 'Leading supplier of spa and salon supplies, products, and equipment',
@@ -62,6 +77,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={inter.className}>
+        <FaviconProvider />
         <Suspense fallback={null}>
           <AnalyticsTracker />
         </Suspense>

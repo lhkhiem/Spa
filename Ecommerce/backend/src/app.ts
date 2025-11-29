@@ -22,6 +22,7 @@ import trackingScriptRoutes from './routes/trackingScripts'; // Tracking scripts
 import menuLocationRoutes from './routes/menuLocations'; // Menu locations (public GET only)
 import menuItemRoutes from './routes/menuItems'; // Menu items (public GET only)
 import healthRoutes from './routes/health';
+import publicSettingsRoutes from './routes/publicSettings'; // Read-only storefront settings (logo, favicon, etc.)
 
 // Public read routes (modify to remove admin CRUD)
 import productCategoryRoutes from './routes/productCategories'; // Only GET routes
@@ -46,7 +47,7 @@ import analyticsRoutes from './routes/analytics'; // Public analytics tracking
 // import aboutSectionRoutes from './routes/aboutSections'; // CMS only
 // import publicPostsRoutes from './routes/publicPosts'; // CMS only
 // import publicHomepageRoutes from './routes/publicHomepage'; // CMS only
-// import publicPageMetadataRoutes from './routes/publicPageMetadata'; // CMS only
+import publicPageMetadataRoutes from './routes/publicPageMetadata'; // Public SEO metadata for pages
 import contactRoutes from './routes/contacts'; // Public contact form submissions
 import consultationRoutes from './routes/consultations'; // Public consultation form submissions
 // import emailRoutes from './routes/email'; // CMS only
@@ -129,6 +130,7 @@ app.use('/api/public/homepage', publicHomepageRoutes); // Homepage data (hero, t
 app.use('/api/public/posts', publicPostsRoutes); // Public blog posts
 app.use('/api/menu-locations', menuLocationRoutes); // Menu locations (public GET only)
 app.use('/api/menu-items', menuItemRoutes); // Menu items (public GET only)
+app.use('/api/public/settings', publicSettingsRoutes); // Public read-only settings (appearance, etc.)
 app.use('/api/orders', orderRoutes); // Create order + lookup (POST, GET)
 app.use('/api/payments', paymentRoutes); // Payment gateway (ZaloPay)
 app.use('/api/auth', publicAuthRoutes); // Customer authentication
@@ -137,6 +139,7 @@ app.use('/api/consultations', consultationRoutes); // Consultation form submissi
 app.use('/api/contacts', contactRoutes); // Contact form submissions (public POST only)
 app.use('/api/analytics', analyticsRoutes); // Analytics tracking (public POST /track only)
 app.use('/api/tracking-scripts', trackingScriptRoutes); // Tracking scripts (analytics) - public endpoint only
+app.use('/api/public/page-metadata', publicPageMetadataRoutes); // Public SEO metadata (used by ecommerce frontend)
 app.use('/api/health', healthRoutes); // Health check
 
 // Ensure upload and temp dirs on boot and serve uploads

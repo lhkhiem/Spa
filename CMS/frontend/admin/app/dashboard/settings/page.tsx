@@ -22,7 +22,20 @@ export default function SettingsPage() {
 
   // Namespaced settings state
   const [general, setGeneral] = useState<any>({ siteName: '', siteDescription: '', siteUrl: '', adminEmail: '', businessInfo: {}, socialLinks: {} });
-  const [appearance, setAppearance] = useState<any>({ themeMode: 'system', primaryColor: '#8b5cf6', logo_asset_id: null, logo_url: '', favicon_asset_id: null, favicon_url: '' });
+  const [appearance, setAppearance] = useState<any>({
+    themeMode: 'system',
+    primaryColor: '#8b5cf6',
+    // CMS branding
+    logo_asset_id: null,
+    logo_url: '',
+    favicon_asset_id: null,
+    favicon_url: '',
+    // Client (ecommerce) branding
+    ecommerce_logo_asset_id: null,
+    ecommerce_logo_url: '',
+    ecommerce_favicon_asset_id: null,
+    ecommerce_favicon_url: '',
+  });
   const [email, setEmail] = useState<any>({ smtpHost: '', smtpPort: 587, encryption: 'tls', fromEmail: '', fromName: 'PressUp CMS', username: '', password: '', enabled: false });
   const [notifications, setNotifications] = useState<any>({ newPost: true, newUser: true, newComment: true, systemUpdates: true });
   const [security, setSecurity] = useState<any>({ twoFactorEnabled: false, sessionTimeout: 60, passwordPolicy: { minLength: 8, uppercase: true, numbers: true, special: false } });
@@ -34,6 +47,8 @@ export default function SettingsPage() {
   });
   const [logoPickerOpen, setLogoPickerOpen] = useState(false);
   const [faviconPickerOpen, setFaviconPickerOpen] = useState(false);
+  const [clientLogoPickerOpen, setClientLogoPickerOpen] = useState(false);
+  const [clientFaviconPickerOpen, setClientFaviconPickerOpen] = useState(false);
 
   const fetchNs = async (ns: string, setter: (v: any)=>void) => {
     try {
@@ -44,6 +59,8 @@ export default function SettingsPage() {
       if (ns === 'appearance') {
         value.logo_url = getAssetUrl(value.logo_url);
         value.favicon_url = getAssetUrl(value.favicon_url);
+        value.ecommerce_logo_url = getAssetUrl(value.ecommerce_logo_url);
+        value.ecommerce_favicon_url = getAssetUrl(value.ecommerce_favicon_url);
       }
       
       setter(value);
@@ -160,6 +177,67 @@ export default function SettingsPage() {
       toast.success('Reset to default');
     } catch (e: any) {
       toast.error('Failed to reset');
+    }
+  };
+
+  // Client (ecommerce) asset selector (Logo/Favicon Client)
+  const handleClientAssetSelect = async (assetId: string | null, type: 'logo' | 'favicon') => {
+    try {
+      let assetData: any = null;
+
+      if (assetId) {
+        const res = await axios.get<any>(buildApiUrl(`/api/assets/${assetId}`), { withCredentials: true });
+        assetData = res.data?.data || res.data;
+        if (!assetData?.id) {
+          toast.error('Selected asset is invalid');
+          return;
+        }
+      }
+
+      const relativeUrl = assetData?.cdn_url || assetData?.url || '';
+      const displayUrl = relativeUrl ? getAssetUrl(relativeUrl) : '';
+
+      const updatedAppearance = {
+        ...appearance,
+        ...(type === 'logo'
+          ? {
+              ecommerce_logo_asset_id: assetData?.id || null,
+              ecommerce_logo_url: displayUrl,
+            }
+          : {
+              ecommerce_favicon_asset_id: assetData?.id || null,
+              ecommerce_favicon_url: displayUrl,
+            }),
+      };
+
+      setAppearance(updatedAppearance);
+      setAppearanceCtx(updatedAppearance);
+
+      const backendData = {
+        ...appearance,
+        ...(type === 'logo'
+          ? {
+              ecommerce_logo_asset_id: assetData?.id || null,
+              ecommerce_logo_url: relativeUrl,
+            }
+          : {
+              ecommerce_favicon_asset_id: assetData?.id || null,
+              ecommerce_favicon_url: relativeUrl,
+            }),
+      };
+
+      await axios.put(buildApiUrl('/api/settings/appearance'), backendData, { withCredentials: true });
+      toast.success(type === 'logo' ? 'Logo Client updated' : 'Favicon Client updated');
+      await fetchNs('appearance', setAppearance);
+    } catch (error: any) {
+      console.error('Failed to update client appearance asset:', error);
+      toast.error('Failed to update client asset. Please try again.');
+    } finally {
+      if (type === 'logo') {
+        setClientLogoPickerOpen(false);
+      } else {
+        setClientFaviconPickerOpen(false);
+      }
     }
   };
 
@@ -387,13 +465,14 @@ export default function SettingsPage() {
                   />
                 </div>
 
+                {/* Logo CMS */}
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Logo</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Logo CMS</label>
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-lg border border-border bg-muted flex items-center justify-center text-2xl font-bold text-primary overflow-hidden">
                       {appearance.logo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={appearance.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                        <img src={appearance.logo_url} alt="Logo CMS" className="w-full h-full object-cover" />
                       ) : (
                         <ImageIcon className="h-6 w-6 text-muted-foreground" />
                       )}
@@ -420,22 +499,22 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Favicon Upload Section */}
+                {/* Favicon CMS */}
                 <div className="border-t border-border pt-4">
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Favicon
+                    Favicon CMS
                   </label>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Icon displayed in browser tab. Recommended: 32x32px .ico, .png, or .svg
+                    Icon trên tab trình duyệt cho trang admin. Recommended: 32x32px .ico, .png, or .svg
                   </p>
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-lg border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
                       {appearance.favicon_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img 
-                          src={appearance.favicon_url} 
-                          alt="Favicon" 
-                          className="w-full h-full object-cover" 
+                        <img
+                          src={appearance.favicon_url}
+                          alt="Favicon CMS"
+                          className="w-full h-full object-cover"
                           onError={(e) => {
                             console.error('Favicon image failed to load:', appearance.favicon_url);
                             e.currentTarget.style.display = 'none';
@@ -457,6 +536,88 @@ export default function SettingsPage() {
                         <button
                           type="button"
                           onClick={() => handleAssetSelect(null, 'favicon')}
+                          className="ml-3 text-sm text-destructive hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Logo Client */}
+                <div className="border-t border-border pt-4">
+                  <label className="block text-sm font-medium text-foreground mb-2">Logo Client</label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-lg border border-border bg-muted flex items-center justify-center text-2xl font-bold text-primary overflow-hidden">
+                      {appearance.ecommerce_logo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={appearance.ecommerce_logo_url}
+                          alt="Logo Client"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Logo dùng cho website client (ecommerce storefront).
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setClientLogoPickerOpen(true)}
+                          className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                        >
+                          Choose from Media
+                        </button>
+                        {appearance.ecommerce_logo_url && (
+                          <button
+                            onClick={() => handleClientAssetSelect(null, 'logo')}
+                            className="text-sm text-destructive hover:underline"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Favicon Client */}
+                <div className="border-t border-border pt-4">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Favicon Client
+                  </label>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Icon trên tab trình duyệt cho website client. Recommended: 32x32px .ico, .png, or .svg
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                      {appearance.ecommerce_favicon_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={appearance.ecommerce_favicon_url}
+                          alt="Favicon Client"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <button
+                        type="button"
+                        onClick={() => setClientFaviconPickerOpen(true)}
+                        className="px-4 py-2 rounded-lg border border-input bg-background text-sm hover:bg-accent transition-colors"
+                      >
+                        Choose from Media
+                      </button>
+                      {appearance.ecommerce_favicon_url && (
+                        <button
+                          type="button"
+                          onClick={() => handleClientAssetSelect(null, 'favicon')}
                           className="ml-3 text-sm text-destructive hover:underline"
                         >
                           Remove
@@ -841,6 +1002,25 @@ export default function SettingsPage() {
       onClose={() => setFaviconPickerOpen(false)}
       value={appearance.favicon_asset_id || ''}
       onChange={(value) => handleAssetSelect((value as string) || null, 'favicon')}
+      multiple={false}
+      modalOnly
+    />
+
+    {/* Client (ecommerce) media pickers */}
+    <MediaPicker
+      isOpen={clientLogoPickerOpen}
+      onClose={() => setClientLogoPickerOpen(false)}
+      value={appearance.ecommerce_logo_asset_id || ''}
+      onChange={(value) => handleClientAssetSelect((value as string) || null, 'logo')}
+      multiple={false}
+      modalOnly
+    />
+
+    <MediaPicker
+      isOpen={clientFaviconPickerOpen}
+      onClose={() => setClientFaviconPickerOpen(false)}
+      value={appearance.ecommerce_favicon_asset_id || ''}
+      onChange={(value) => handleClientAssetSelect((value as string) || null, 'favicon')}
       multiple={false}
       modalOnly
     />

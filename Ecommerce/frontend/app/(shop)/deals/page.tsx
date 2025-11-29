@@ -25,38 +25,18 @@ const resolveImageUrl = (value: any) => {
   return buildFromApiOrigin(value);
 };
 
-const dealCategories = [
-  { id: 'all', name: 'Tất cả ưu đãi', count: 0 },
-  { id: 'clearance', name: 'Xả kho', count: 0 },
-  { id: 'weekly-specials', name: 'Ưu đãi hàng tuần', count: 0 },
-  { id: 'bulk-discounts', name: 'Giảm giá số lượng', count: 0 },
-  { id: 'new-customer', name: 'Ưu đãi khách hàng mới', count: 0 },
-  { id: 'seasonal', name: 'Khuyến mãi theo mùa', count: 0 },
-];
+// TODO: Replace hardcoded mockup data with API calls
+// These should be fetched from CMS/backend API (e.g., /api/deal-categories, /api/promotional-banners)
+// For now, keeping empty arrays to avoid displaying mockup data
+const dealCategories: Array<{ id: string; name: string; count: number }> = [];
 
-const banners = [
-  {
-    title: 'Flash Sale - Giảm 50% nhiều sản phẩm',
-    description: 'Số lượng có hạn. Nhanh tay kẻo hết!',
-    cta: 'Mua ngay Flash Sale',
-    href: '/products?sale=flash',
-    bgColor: 'from-red-600 to-pink-600',
-  },
-  {
-    title: 'Miễn phí vận chuyển cho đơn từ $199+',
-    description: 'Mua nhiều tiết kiệm phí ship. Áp dụng trong tuần này.',
-    cta: 'Mua ngay',
-    href: '/products',
-    bgColor: 'from-purple-600 to-blue-600',
-  },
-  {
-    title: 'Mua số lượng lớn tiết kiệm đến 40%',
-    description: 'Mua càng nhiều càng rẻ. Phù hợp cho spa/salon bận rộn.',
-    cta: 'Xem ưu đãi mua sỉ',
-    href: '/products?category=bulk-discounts',
-    bgColor: 'from-green-600 to-teal-600',
-  },
-];
+const banners: Array<{
+  title: string;
+  description: string;
+  cta: string;
+  href: string;
+  bgColor: string;
+}> = [];
 
 export default async function DealsPage() {
   // Fetch products on sale

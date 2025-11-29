@@ -33,6 +33,7 @@ import { ProductAttribute } from './ProductAttribute';
 // import ValueProp from './ValueProp';
 import ContactMessage from './ContactMessage';
 import ConsultationSubmission from './ConsultationSubmission';
+import PageMetadata from './PageMetadata';
 // import AboutSection from './AboutSection';
 // import PageMetadata from './PageMetadata';
 // import Slider from './Slider';
@@ -87,4 +88,6 @@ export {
   ConsultationSubmission,
   // Contact
   ContactMessage,
+  // SEO Page metadata
+  PageMetadata,
 };

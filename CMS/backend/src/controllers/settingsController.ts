@@ -15,10 +15,16 @@ const DEFAULTS: Record<string, any> = {
   appearance: {
     themeMode: 'system',
     primaryColor: '#8b5cf6',
+    // CMS (Admin) branding
     logo_asset_id: null,
     logo_url: '',
     favicon_asset_id: null,
     favicon_url: '',
+    // Ecommerce storefront branding
+    ecommerce_logo_asset_id: null,
+    ecommerce_logo_url: '',
+    ecommerce_favicon_asset_id: null,
+    ecommerce_favicon_url: '',
   },
   email: {
     smtpHost: '',

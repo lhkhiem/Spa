@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button/Button';
 import ShareButton from './ShareButton';
 import { FiClock, FiUser, FiTag, FiArrowLeft } from 'react-icons/fi';
 import { getPageMetadataFromCMS } from '@/lib/utils/pageMetadata';
+import { buildSiteUrl, getSiteUrl } from '@/config/site';
 
 interface PostDetailPageProps {
   params: { slug: string };
@@ -39,8 +40,8 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
   
   if (cmsMetadata) {
     // CMS has custom metadata → use it
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://banyco.vn';
-    const fullUrl = `${siteUrl}${path}`;
+    const siteUrl = getSiteUrl();
+    const fullUrl = buildSiteUrl(path);
     const imageUrl = cmsMetadata.ogImage?.startsWith('http') 
       ? cmsMetadata.ogImage 
       : `${siteUrl}${cmsMetadata.ogImage}`;
@@ -75,8 +76,8 @@ export async function generateMetadata({ params }: PostDetailPageProps): Promise
     };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://banyco.vn';
-  const fullUrl = `${siteUrl}${path}`;
+  const siteUrl = getSiteUrl();
+  const fullUrl = buildSiteUrl(path);
   const postImageUrl = post.imageUrl?.startsWith('http') 
     ? post.imageUrl 
     : post.imageUrl 
@@ -406,7 +407,7 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
               <ShareButton
                 title={post.title}
                 excerpt={post.excerpt}
-                url={`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/posts/${post.slug}`}
+                url={buildSiteUrl(`/posts/${post.slug}`)}
               />
             </div>
           </article>

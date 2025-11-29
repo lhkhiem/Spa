@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import ProductDetailClient from './ProductDetailClient';
 import { fetchProductDetail, ProductDetailDTO } from '@/lib/api/products';
 import { getPageMetadataFromCMS } from '@/lib/utils/pageMetadata';
+import { buildSiteUrl, getSiteUrl } from '@/config/site';
 
 const FALLBACK_IMAGE = '/images/placeholder-product.jpg';
 
@@ -52,8 +53,8 @@ export async function generateMetadata({
   
   if (cmsMetadata) {
     // CMS has custom metadata → use it
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://banyco.vn';
-    const fullUrl = `${siteUrl}${path}`;
+    const siteUrl = getSiteUrl();
+    const fullUrl = buildSiteUrl(path);
     const imageUrl = cmsMetadata.ogImage?.startsWith('http') 
       ? cmsMetadata.ogImage 
       : `${siteUrl}${cmsMetadata.ogImage}`;
@@ -86,8 +87,8 @@ export async function generateMetadata({
     return { title: 'Product Not Found' };
   }
   
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://banyco.vn';
-  const fullUrl = `${siteUrl}${path}`;
+  const siteUrl = getSiteUrl();
+  const fullUrl = buildSiteUrl(path);
   const productImageUrl = product.images?.[0]?.url 
     ? (product.images[0].url.startsWith('http') 
         ? product.images[0].url 

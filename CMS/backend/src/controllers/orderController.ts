@@ -947,7 +947,56 @@ export const updateOrder = async (req: Request, res: Response) => {
     const changes = [statusChange, paymentChange].filter(Boolean).join(', ') || 'Updated order';
     await logActivity(req, 'update', 'order', id, orderNumber, `${changes} - Order #${orderNumber}`);
     
-    res.json(normalized);
+    // Fetch complete order with items (same as getOrderById)
+    // This ensures frontend receives full order data including items
+    const completeOrderQuery = `
+      SELECT 
+        o.*,
+        COALESCE(SUM(oi.total_price), 0) as calculated_subtotal
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      WHERE o.id = :id
+      GROUP BY o.id
+    `;
+    const completeOrderResult: any = await sequelize.query(completeOrderQuery, {
+      replacements: { id },
+      type: QueryTypes.SELECT
+    });
+    
+    if (!completeOrderResult || completeOrderResult.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    const completeOrder = completeOrderResult[0];
+    normalizeOrderRow(completeOrder);
+    
+    // Fetch order items
+    const itemsQuery = `
+      SELECT 
+        oi.id,
+        oi.product_id,
+        oi.product_name,
+        oi.product_sku as sku,
+        oi.quantity,
+        oi.unit_price,
+        oi.total_price,
+        oi.variant_info
+      FROM order_items oi
+      WHERE oi.order_id = :order_id
+      ORDER BY oi.created_at ASC
+    `;
+    const items: any[] = await sequelize.query(itemsQuery, {
+      replacements: { order_id: id },
+      type: QueryTypes.SELECT
+    });
+    
+    // Attach items to order
+    completeOrder.items = items.map((item: any) => ({
+      ...item,
+      variant_info: item.variant_info ? (typeof item.variant_info === 'string' ? JSON.parse(item.variant_info) : item.variant_info) : null,
+    }));
+    
+    res.json(completeOrder);
   } catch (error) {
     console.error('Failed to update order:', error);
     res.status(500).json({ error: 'Failed to update order' });

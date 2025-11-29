@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import Link from "next/link";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { fetchAppearanceSettings } from "@/lib/api/settings";
 import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX, FiChevronDown, FiPackage } from 'react-icons/fi';
 import { useCartStore } from '@/lib/stores/cartStore';
 import { useAuthStore } from '@/lib/stores/authStore';
@@ -10,12 +11,13 @@ import SimpleDropdownMenu from './SimpleDropdownMenu';
 import { getMenuItems } from '@/lib/cms';
 import type { CMSMenuItem } from '@/lib/types/cms';
 import type { MegaMenuData } from '@/lib/types/megaMenu';
-import {
-  equipmentSuppliesMegaMenu,
-  productsMegaMenu,
-  equipmentMegaMenu,
-  brandsMegaMenu,
-} from '@/lib/data/megaMenuData';
+// TODO: Commented out - no longer used since FALLBACK_NAVIGATION is removed
+// import {
+//   equipmentSuppliesMegaMenu,
+//   productsMegaMenu,
+//   equipmentMegaMenu,
+//   brandsMegaMenu,
+// } from '@/lib/data/megaMenuData';
 
 interface NavigationItem {
   id: string;
@@ -33,34 +35,76 @@ const getMenuIdentifier = (): string | undefined => {
   return process.env.NEXT_PUBLIC_MAIN_MENU_ID;
 };
 
-const FALLBACK_NAVIGATION: NavigationItem[] = [
-  {
-    id: 'equipment-supplies',
-    name: 'Thiết Bị & Vật Tư',
-    href: '/categories',
-    megaMenu: equipmentSuppliesMegaMenu,
-  },
-  {
-    id: 'products',
-    name: 'Sản Phẩm',
-    href: '/products',
-    megaMenu: productsMegaMenu,
-  },
-  {
-    id: 'equipment',
-    name: 'Thiết Bị',
-    href: '/equipment',
-    megaMenu: equipmentMegaMenu,
-  },
-  { id: 'modalities', name: 'Phương Thức', href: '/modalities' },
-  {
-    id: 'brands',
-    name: 'Thương Hiệu',
-    href: '/brands',
-    megaMenu: brandsMegaMenu,
-  },
-  { id: 'deals', name: 'Ưu Đãi!', href: '/deals' },
-];
+// TODO: Removed FALLBACK_NAVIGATION mockup - menu should only load from CMS/backend API
+// If menu fails to load, navigation will remain empty (no mockup fallback)
+// const FALLBACK_NAVIGATION: NavigationItem[] = [
+//   {
+//     id: 'equipment-supplies',
+//     name: 'Thiết Bị & Vật Tư',
+//     href: '/categories',
+//     megaMenu: equipmentSuppliesMegaMenu,
+//   },
+//   {
+//     id: 'products',
+//     name: 'Sản Phẩm',
+//     href: '/products',
+//     megaMenu: productsMegaMenu,
+//   },
+//   {
+//     id: 'equipment',
+//     name: 'Thiết Bị',
+//     href: '/equipment',
+//     megaMenu: equipmentMegaMenu,
+//   },
+//   { id: 'modalities', name: 'Phương Thức', href: '/modalities' },
+//   {
+//     id: 'brands',
+//     name: 'Thương Hiệu',
+//     href: '/brands',
+//     megaMenu: brandsMegaMenu,
+//   },
+//   { id: 'deals', name: 'Ưu Đãi!', href: '/deals' },
+// ];
+
+// Separate logo component that loads URL from Ecommerce backend (via CMS settings)
+const Logo = () => {
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const settings = await fetchAppearanceSettings();
+        if (!settings || !isMounted) return;
+
+        const url = settings.logoUrl || settings.logo_url;
+        if (url) {
+          setLogoUrl(url);
+        }
+      } catch (error) {
+        console.error('[Header Logo] Failed to load appearance settings:', error);
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return (
+    <Image
+      src={logoUrl || '/images/banyco-logo.jpg'}
+      alt="Banyco"
+      width={120}
+      height={60}
+      className="h-auto w-auto max-h-[50px] object-contain"
+      priority
+    />
+  );
+};
 
 const normalizeMenuHref = (raw?: string | null, fallbackSlug?: string) => {
   const trimmed = (raw ?? '').trim();
@@ -210,7 +254,7 @@ const transformCmsMenuItems = (items: CMSMenuItem[]): NavigationItem[] => {
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
-  const [navigation, setNavigation] = useState<NavigationItem[]>(FALLBACK_NAVIGATION);
+  const [navigation, setNavigation] = useState<NavigationItem[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const totalItems = useCartStore((state) => state.getTotalItems());
@@ -249,7 +293,8 @@ export default function Header() {
       } catch (error) {
         if (!isCancelled) {
           console.error('[Header] Failed to load CMS main menu', error);
-          setNavigation(FALLBACK_NAVIGATION);
+          // No fallback to mockup - keep navigation empty if API fails
+          // setNavigation(FALLBACK_NAVIGATION);
         }
       }
     };
@@ -280,14 +325,7 @@ export default function Header() {
           <div className="flex items-center justify-between py-2.5">
             {/* Logo */}
             <Link href="/" className="flex items-center py-2">
-              <Image
-                src="/images/banyco-logo.jpg"
-                alt="Banyco"
-                width={120}
-                height={60}
-                className="h-auto w-auto max-h-[50px] object-contain"
-                priority
-              />
+              <Logo />
             </Link>
 
             {/* Desktop Navigation */}

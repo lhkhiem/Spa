@@ -1,6 +1,7 @@
 'use client';
 
 import { FiShare2 } from 'react-icons/fi';
+import { buildSiteUrl } from '@/config/site';
 
 interface ShareButtonProps {
   title: string;
@@ -9,15 +10,31 @@ interface ShareButtonProps {
 }
 
 export default function ShareButton({ title, excerpt, url }: ShareButtonProps) {
+  // Fix URL if it contains localhost (server-side render issue)
+  const getShareUrl = (): string => {
+    if (typeof window === 'undefined') return url;
+    
+    // If URL contains localhost, replace with current origin
+    if (url.includes('localhost')) {
+      const currentOrigin = window.location.origin;
+      const path = url.replace(/^https?:\/\/[^/]+/, '');
+      return `${currentOrigin}${path}`;
+    }
+    
+    return url;
+  };
+
   const handleShare = async () => {
     if (typeof window === 'undefined') return;
+
+    const shareUrl = getShareUrl();
 
     if (navigator.share) {
       try {
         await navigator.share({
           title,
           text: excerpt || '',
-          url,
+          url: shareUrl,
         });
       } catch (error) {
         // User cancelled or error occurred
@@ -26,7 +43,7 @@ export default function ShareButton({ title, excerpt, url }: ShareButtonProps) {
     } else {
       // Fallback: copy to clipboard
       try {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(shareUrl);
         alert('Đã sao chép link!');
       } catch (error) {
         console.error('Failed to copy:', error);

@@ -8,83 +8,27 @@ export const metadata = {
   description: 'Your One-Stop Solution for Spa Development. Expert Planning, Product Selection, Logistics, and Support.',
 };
 
-const services = {
-  dreamIt: [
-    {
-      id: 1,
-      title: 'Space Planning',
-      description: 'We help you maximize your floor plan. Our consultants help address traffic patterns, cabinets, and furniture elements that optimize your space.',
-      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400',
-    },
-    {
-      id: 2,
-      title: 'Treatment Menu Development',
-      description: 'Our team works with you to develop signature treatments that are both safe, cost effective, and introduce growth potential to your bottom line.',
-      image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=400',
-    },
-    {
-      id: 3,
-      title: 'Custom Furniture Sourcing',
-      description: 'Let us help you find or make your one-of-a-kind furniture solutions and furnishings that enhance your salon and spa brand.',
-      image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600&h=400',
-    },
-  ],
-  buildIt: [
-    {
-      id: 1,
-      title: 'Consignment Coordination',
-      description: 'We offer consolidated consignment solutions allowing you to manage one freight charge and one partial delivery time.',
-      image: 'https://images.unsplash.com/photo-1593642532400-2682810df593?w=400&h=300',
-    },
-    {
-      id: 2,
-      title: 'Installation and Setup',
-      description: 'Need help with the technical aspects of equipment set up? We can help with installation, training and post-installation calls.',
-      image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300',
-    },
-    {
-      id: 3,
-      title: 'Testing and Quality Assurance',
-      description: 'We will test order for quantity and quality before we ship to assure all items are as ordered and in perfect condition.',
-      image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=300',
-    },
-    {
-      id: 4,
-      title: 'Floor Touches',
-      description: 'Need a few extra touches on site even days right before your big opening? We can help.',
-      image: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=400&h=300',
-    },
-  ],
-  runIt: [
-    {
-      id: 1,
-      title: 'Staff Training on Equipment & Protocols',
-      description: 'Extensive training resources and customer support ensure your investment pays off.',
-      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400',
-    },
-    {
-      id: 2,
-      title: 'Ongoing Support',
-      description: 'Our product specialists and inventory sourcing team help you navigate regulatory systems. We provide educational and performance benchmarking resources.',
-      image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=600&h=400',
-    },
-    {
-      id: 3,
-      title: 'Effortless Restocking',
-      description: 'Easily submit drop-ship orders automated with our auto-ship program. We can deliver your spa needs every period.',
-      image: 'https://images.unsplash.com/photo-1556228578-dd4e4e4ff9be?w=600&h=400',
-    },
-  ],
+// TODO: Replace hardcoded mockup data with API calls
+// These should be fetched from CMS/backend API (e.g., /api/services, /api/partners)
+// For now, keeping empty arrays to avoid displaying mockup data
+interface ServiceItem {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+}
+
+const services: {
+  dreamIt: ServiceItem[];
+  buildIt: ServiceItem[];
+  runIt: ServiceItem[];
+} = {
+  dreamIt: [],
+  buildIt: [],
+  runIt: [],
 };
 
-const partners = [
-  'VICEROY',
-  'SUGAR BEACH',
-  'La PLAYA',
-  'HILTON HOTELS',
-  'Fairmont',
-  'Canareef',
-];
+const partners: string[] = [];
 
 export default function ServicesPage() {
   return (
@@ -189,7 +133,7 @@ export default function ServicesPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-              {services.dreamIt.map((service) => (
+              {services.dreamIt.length > 0 && services.dreamIt.map((service) => (
                 <div
                   key={service.id}
                   className="overflow-hidden rounded-xl bg-white shadow-lg transition-shadow hover:shadow-2xl"
@@ -228,7 +172,7 @@ export default function ServicesPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              {services.buildIt.map((service) => (
+              {services.buildIt.length > 0 && services.buildIt.map((service) => (
                 <div
                   key={service.id}
                   className="overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-xl"
@@ -271,7 +215,7 @@ export default function ServicesPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-              {services.runIt.map((service) => (
+              {services.runIt.length > 0 && services.runIt.map((service) => (
                 <div
                   key={service.id}
                   className="overflow-hidden rounded-xl bg-white shadow-lg transition-shadow hover:shadow-2xl"
@@ -336,7 +280,7 @@ export default function ServicesPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-6">
-              {partners.map((partner) => (
+              {partners.length > 0 && partners.map((partner) => (
                 <div
                   key={partner}
                   className="flex items-center justify-center rounded-full bg-gray-300 p-8 shadow-md"

@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getApiUrl, buildFromApiOrigin } from '@/config/site';
+import { getApiUrl, buildFromApiOrigin, getSiteUrl, buildSiteUrl } from '@/config/site';
 
 export interface PageMetadataData {
   title: string;
@@ -78,8 +78,8 @@ export function generatePageMetadata(
   path: string,
   fallback: { title: string; description: string; ogImage?: string }
 ): Metadata {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://banyco.vn';
-  const fullUrl = `${siteUrl}${path}`;
+  const siteUrl = getSiteUrl();
+  const fullUrl = buildSiteUrl(path);
   
   // Use CMS data if available, otherwise use fallback
   const title = data?.title || fallback.title;

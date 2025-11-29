@@ -25,15 +25,31 @@ const toCurrency = (value: number | string | null | undefined) => {
 
 const formatDateTime = (value: string | Date | null | undefined) => {
   if (!value) return '—';
-  const date = typeof value === 'string' ? new Date(value) : value;
+  
+  // Parse date - if string doesn't have timezone, assume UTC from database
+  let date: Date;
+  if (typeof value === 'string') {
+    if (value.includes('Z') || value.includes('+') || (value.includes('-') && value.match(/[+-]\d{2}:\d{2}$/))) {
+      // Has timezone info, parse directly
+      date = new Date(value);
+    } else {
+      // No timezone info, assume UTC from PostgreSQL
+      date = new Date(value + 'Z');
+    }
+  } else {
+    date = value;
+  }
+  
   if (Number.isNaN(date.getTime())) return '—';
+  
+  // Format in Vietnam timezone (UTC+7)
   return date.toLocaleString('vi-VN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'Asia/Ho_Chi_Minh', // UTC+7
+    timeZone: 'Asia/Ho_Chi_Minh',
   });
 };
 

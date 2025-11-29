@@ -1,6 +1,8 @@
 const DEFAULT_SITE_PORT = 3000;
 const DEFAULT_API_PORT = 3012; // Ecommerce Backend port
 const DEFAULT_API_PATH = '/api';
+// Production domain fallback (only used when NEXT_PUBLIC_SITE_URL is not set and NODE_ENV is production)
+const PRODUCTION_DOMAIN = 'https://banyco.vn';
 
 const trimTrailingSlash = (value?: string | null): string => {
   if (!value) return '';
@@ -19,13 +21,33 @@ const buildUrl = (base: string, path = ''): string => {
 };
 
 const resolveSiteUrl = (): string => {
+  // Priority 1: Use explicit env variable
   const envUrl = trimTrailingSlash(process.env.NEXT_PUBLIC_SITE_URL);
   if (envUrl) return envUrl;
 
+  // Priority 2: Client-side - use current origin (always correct)
   if (typeof window !== 'undefined') {
     return trimTrailingSlash(window.location.origin);
   }
 
+  // Priority 3: Server-side rendering
+  // Check if we're in production environment
+  const nodeEnv = process.env.NODE_ENV;
+  const isProduction = nodeEnv === 'production';
+  
+  // In production, always use production domain (never localhost)
+  if (isProduction) {
+    return PRODUCTION_DOMAIN;
+  }
+
+  // Priority 4: Development - check if we can detect production hostname
+  // This handles cases where NODE_ENV might not be set but we're actually in production
+  const hostname = process.env.VERCEL_URL || process.env.HOSTNAME;
+  if (hostname && (hostname.includes('banyco.vn') || hostname.includes('vercel.app'))) {
+    return `https://${hostname}`;
+  }
+
+  // Priority 5: Development fallback (only for local development)
   return `http://localhost:${DEFAULT_SITE_PORT}`;
 };
 

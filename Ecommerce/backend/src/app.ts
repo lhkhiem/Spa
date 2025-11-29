@@ -40,15 +40,15 @@ import brandRoutes from './routes/brands'; // Only GET routes
 // import menuLocationRoutes from './routes/menuLocations'; // CMS only
 // import menuItemRoutes from './routes/menuItems'; // CMS only
 // import trackingScriptRoutes from './routes/trackingScripts'; // CMS only
-// import analyticsRoutes from './routes/analytics'; // CMS only
+import analyticsRoutes from './routes/analytics'; // Public analytics tracking
 // import homepageRoutes from './routes/homepage'; // CMS only
 // import sliderRoutes from './routes/sliders'; // CMS only
 // import aboutSectionRoutes from './routes/aboutSections'; // CMS only
 // import publicPostsRoutes from './routes/publicPosts'; // CMS only
 // import publicHomepageRoutes from './routes/publicHomepage'; // CMS only
 // import publicPageMetadataRoutes from './routes/publicPageMetadata'; // CMS only
-// import contactRoutes from './routes/contacts'; // CMS only
-// import consultationRoutes from './routes/consultations'; // CMS only
+import contactRoutes from './routes/contacts'; // Public contact form submissions
+import consultationRoutes from './routes/consultations'; // Public consultation form submissions
 // import emailRoutes from './routes/email'; // CMS only
 // import inventoryRoutes from './routes/inventory'; // CMS only
 // import activityLogRoutes from './routes/activityLogs'; // CMS only
@@ -133,16 +133,46 @@ app.use('/api/orders', orderRoutes); // Create order + lookup (POST, GET)
 app.use('/api/payments', paymentRoutes); // Payment gateway (ZaloPay)
 app.use('/api/auth', publicAuthRoutes); // Customer authentication
 app.use('/api/newsletter', newsletterRoutes); // Newsletter subscriptions
+app.use('/api/consultations', consultationRoutes); // Consultation form submissions (public POST only)
+app.use('/api/contacts', contactRoutes); // Contact form submissions (public POST only)
+app.use('/api/analytics', analyticsRoutes); // Analytics tracking (public POST /track only)
 app.use('/api/tracking-scripts', trackingScriptRoutes); // Tracking scripts (analytics) - public endpoint only
 app.use('/api/health', healthRoutes); // Health check
 
 // Ensure upload and temp dirs on boot and serve uploads
 (async () => {
   try {
-    const uploadDir = process.env.UPLOAD_PATH || path.resolve(__dirname, '../storage/uploads');
+    // Use absolute path from project root (not relative to dist/)
+    // __dirname in compiled code: /var/www/Spa/Ecommerce/backend/dist
+    // Go up to project root: /var/www/Spa
+    const projectRoot = path.resolve(__dirname, '../../../');
+    const cmsUploadDir = path.join(projectRoot, 'CMS/backend/storage/uploads');
+    const ecommerceUploadDir = process.env.UPLOAD_PATH || path.resolve(__dirname, '../storage/uploads');
     const tempDir = path.resolve(__dirname, '../storage/temp');
-    await fs.mkdir(uploadDir, { recursive: true });
+    
+    // Ensure temp directory exists
     await fs.mkdir(tempDir, { recursive: true });
+    
+    // Check if CMS storage exists and is accessible
+    let uploadDir = cmsUploadDir;
+    try {
+      const stats = await fs.stat(cmsUploadDir);
+      if (stats.isDirectory()) {
+        uploadDir = cmsUploadDir;
+        console.log('[Ecommerce Backend] Serving uploads from CMS storage:', uploadDir);
+      }
+    } catch (e) {
+      // CMS storage not available, try to use ecommerce storage
+      try {
+        await fs.mkdir(ecommerceUploadDir, { recursive: true });
+        uploadDir = ecommerceUploadDir;
+        console.log('[Ecommerce Backend] Serving uploads from ecommerce storage:', uploadDir);
+      } catch (mkdirError) {
+        console.warn('[Ecommerce Backend] Failed to create ecommerce upload dir:', mkdirError);
+      }
+    }
+    
+    // Serve uploads - CMS storage first (shared), then fallbacks
     app.use('/uploads', express.static(uploadDir));
     app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
   } catch (e) {

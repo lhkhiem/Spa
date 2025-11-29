@@ -30,7 +30,16 @@ module.exports = {
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
-        PORT: 3012
+        PORT: 3012,
+        API_DOMAIN: 'ecommerce-api.banyco.vn',
+        FRONTEND_DOMAIN: 'banyco.vn',
+        // ZaloPay configuration - load from .env file or set here
+        // ZP_APP_ID: 'your_app_id',
+        // ZP_KEY1: 'your_key1',
+        // ZP_KEY2: 'your_key2', // Optional, for callback verification
+        // ZP_CALLBACK_URL: 'https://ecommerce-api.banyco.vn/api/payments/zalopay/callback', // Auto-generated if not set
+        // ZP_REDIRECT_URL: 'https://banyco.vn/checkout/result', // Auto-generated if not set
+        // ZP_API_BASE: 'https://openapi.zalopay.vn/v2' // Production, or 'https://sb-openapi.zalopay.vn/v2' for sandbox
       },
       error_file: '/home/pressup-cms/.pm2/logs/ecommerce-backend-error.log',
       out_file: '/home/pressup-cms/.pm2/logs/ecommerce-backend-out.log',

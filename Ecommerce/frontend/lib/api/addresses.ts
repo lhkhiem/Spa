@@ -233,7 +233,7 @@ export const createAddress = async (data: CreateAddressData): Promise<Address> =
       console.error('[createAddress] ⚠️ NETWORK ERROR - Backend server may not be running');
       console.error('[createAddress] API URL:', apiClient.defaults.baseURL);
       console.error('[createAddress] Full URL:', apiClient.defaults.baseURL + API_ENDPOINTS.USER.ADD_ADDRESS);
-      console.error('[createAddress] Please check if backend server is running on port 3011');
+      console.error('[createAddress] Please check if backend server is running');
     }
     
     // Log response body if available

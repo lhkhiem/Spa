@@ -31,8 +31,8 @@ import { ProductAttribute } from './ProductAttribute';
 // import EducationResource from './EducationResource';
 // import Testimonial from './Testimonial';
 // import ValueProp from './ValueProp';
-// import ContactMessage from './ContactMessage';
-// import ConsultationSubmission from './ConsultationSubmission';
+import ContactMessage from './ContactMessage';
+import ConsultationSubmission from './ConsultationSubmission';
 // import AboutSection from './AboutSection';
 // import PageMetadata from './PageMetadata';
 // import Slider from './Slider';
@@ -83,4 +83,8 @@ export {
   Address,
   // Newsletter
   NewsletterSubscription,
+  // Consultation
+  ConsultationSubmission,
+  // Contact
+  ContactMessage,
 };

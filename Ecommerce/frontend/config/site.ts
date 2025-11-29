@@ -41,7 +41,12 @@ const resolveApiUrl = (): string => {
 
   if (typeof window !== 'undefined') {
     const { protocol, hostname } = window.location;
-    // Production: use ecommerce-api.banyco.vn subdomain
+    // Production: use API_DOMAIN from env or construct from hostname
+    const apiDomain = process.env.NEXT_PUBLIC_API_DOMAIN;
+    if (apiDomain) {
+      return `${protocol}//${apiDomain}${DEFAULT_API_PATH}`;
+    }
+    // Fallback: construct API domain from hostname (ecommerce-api.{hostname})
     if (hostname === 'banyco.vn' || hostname === 'www.banyco.vn') {
       return `${protocol}//ecommerce-api.banyco.vn${DEFAULT_API_PATH}`;
     }

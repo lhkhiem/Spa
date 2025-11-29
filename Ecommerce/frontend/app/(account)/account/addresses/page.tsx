@@ -201,7 +201,7 @@ export default function AddressesPage() {
         // Network error - server not running or connection refused
         errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra xem backend server đã chạy chưa.';
       } else if (error?.code === 'ERR_CONNECTION_REFUSED') {
-        errorMessage = 'Kết nối bị từ chối. Vui lòng kiểm tra xem backend server đã chạy trên port 3011 chưa.';
+        errorMessage = 'Kết nối bị từ chối. Vui lòng kiểm tra xem backend server đã chạy chưa.';
       } else if (error?.response?.status === 401) {
         errorMessage = 'Vui lòng đăng nhập để thêm địa chỉ';
       } else if (error?.response?.status === 500) {

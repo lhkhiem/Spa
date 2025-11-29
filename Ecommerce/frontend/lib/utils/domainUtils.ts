@@ -86,7 +86,7 @@ export const normalizeMediaUrl = (raw: unknown): string | null => {
   if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
     url = cleaned;
   } else {
-    // Use buildFromApiOrigin from config/site.ts
+    // Use buildFromApiOrigin from config/site.ts (Ecommerce backend serves images)
     url = buildFromApiOrigin(cleaned);
   }
   

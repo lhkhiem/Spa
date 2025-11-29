@@ -10,3 +10,4 @@ CREATE INDEX IF NOT EXISTS idx_orders_deleted_at ON orders(deleted_at) WHERE del
 -- Add comment
 COMMENT ON COLUMN orders.deleted_at IS 'Timestamp when order was soft deleted (hidden). NULL means order is active.';
 
+

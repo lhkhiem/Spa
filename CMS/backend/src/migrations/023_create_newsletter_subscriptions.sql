@@ -24,3 +24,4 @@ COMMENT ON TABLE newsletter_subscriptions IS 'Newsletter email subscriptions fro
 COMMENT ON COLUMN newsletter_subscriptions.status IS 'Subscription status: active, unsubscribed, bounced';
 COMMENT ON COLUMN newsletter_subscriptions.source IS 'Where the subscription originated (footer, deals page, etc.)';
 
+

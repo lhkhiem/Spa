@@ -133,10 +133,19 @@ export const listPublishedPosts = async (req: Request, res: Response) => {
         createdAt: row.created_at,
         topics,
         tags,
+        // Add imageUrl for frontend compatibility
+        imageUrl: coverImageUrl,
+        // Keep coverAsset for backward compatibility
         coverAsset: coverImageUrl ? {
           id: row.cover_asset_id,
           url: row.cover_asset_url,
           cdnUrl: row.cover_asset_cdn_url,
+        } : null,
+        // Also add cover_asset (snake_case) for frontend that expects this format
+        cover_asset: coverImageUrl ? {
+          id: row.cover_asset_id,
+          url: row.cover_asset_url,
+          cdn_url: row.cover_asset_cdn_url,
         } : null,
       };
     });
@@ -226,10 +235,19 @@ export const getPublishedPostBySlug = async (req: Request, res: Response) => {
       createdAt: row.created_at,
       topics,
       tags,
+      // Add imageUrl for frontend compatibility
+      imageUrl: coverImageUrl,
+      // Keep coverAsset for backward compatibility
       coverAsset: coverImageUrl ? {
         id: row.cover_asset_id,
         url: row.cover_asset_url,
         cdnUrl: row.cover_asset_cdn_url,
+      } : null,
+      // Also add cover_asset (snake_case) for frontend that expects this format
+      cover_asset: coverImageUrl ? {
+        id: row.cover_asset_id,
+        url: row.cover_asset_url,
+        cdn_url: row.cover_asset_cdn_url,
       } : null,
     };
 

@@ -5,12 +5,17 @@
 
 /**
  * Get API domain from environment variable
- * Falls back to constructing from FRONTEND_DOMAIN if API_DOMAIN not set
+ * For Ecommerce Backend, use ecommerce-api.banyco.vn in production
  */
 export const getApiDomain = (): string => {
+  // Production: use ecommerce-api.banyco.vn
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.API_DOMAIN || 'ecommerce-api.banyco.vn';
+  }
+  // Development: use localhost with port
   const apiDomain = process.env.API_DOMAIN || process.env.FRONTEND_DOMAIN;
   if (!apiDomain) {
-    return 'localhost:3011'; // fallback for development
+    return 'localhost:3012'; // Ecommerce backend port
   }
   return apiDomain;
 };
@@ -19,7 +24,20 @@ export const getApiDomain = (): string => {
  * Get frontend domain from environment variable
  */
 export const getFrontendDomain = (): string => {
-  return process.env.FRONTEND_DOMAIN || 'localhost:3000';
+  return process.env.FRONTEND_DOMAIN || process.env.NEXT_PUBLIC_SITE_URL?.replace(/https?:\/\//, '') || 'localhost:3000';
+};
+
+/**
+ * Get site URL (frontend URL) with protocol
+ */
+export const getSiteUrl = (): string => {
+  const domain = getFrontendDomain();
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  // If domain already includes protocol, return as is
+  if (domain.startsWith('http://') || domain.startsWith('https://')) {
+    return domain;
+  }
+  return `${protocol}://${domain}`;
 };
 
 /**
@@ -75,6 +93,7 @@ export const replaceIpWithDomain = (url: string): string => {
 /**
  * Normalize media URL - replace IP with domain and convert HTTP to HTTPS if needed
  * This is the main function to use for normalizing media URLs in backend
+ * Images are served from ecommerce backend, so use ecommerce-api.banyco.vn in production
  */
 export const normalizeMediaUrl = (value: string | null | undefined): string | null => {
   if (!value || typeof value !== 'string') {
@@ -87,11 +106,10 @@ export const normalizeMediaUrl = (value: string | null | undefined): string | nu
   if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
     url = cleaned;
   } else {
-    const baseUrl =
-      process.env.FILE_BASE_URL ||
-      process.env.CMS_BASE_URL ||
-      process.env.API_BASE_URL ||
-      getApiUrl();
+    // Use ecommerce backend URL for serving images
+    // In production: https://ecommerce-api.banyco.vn
+    // In development: http://localhost:3012
+    const baseUrl = getApiUrl();
     url = `${baseUrl}${cleaned.startsWith('/') ? '' : '/'}${cleaned}`;
   }
   
@@ -100,10 +118,10 @@ export const normalizeMediaUrl = (value: string | null | undefined): string | nu
   
   // Convert HTTP to HTTPS for production domains
   if (url.startsWith('http://')) {
-    const isProduction = isProductionDomain(url);
+    const isProduction = isProductionDomain(url) || process.env.NODE_ENV === 'production';
     const isLocalhost = url.includes('localhost') || url.includes('127.0.0.1');
     
-    if (isProduction || (isLocalhost && process.env.FORCE_HTTPS === 'true')) {
+    if (isProduction && !isLocalhost) {
       url = url.replace('http://', 'https://');
     }
   }

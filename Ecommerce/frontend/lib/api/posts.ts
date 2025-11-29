@@ -227,59 +227,7 @@ export const fetchPostBySlug = async (slug: string): Promise<PostDetailDTO | nul
     console.error('[fetchPostBySlug] Public API failed:', handleApiError(error));
   }
 
-  // Try CMS API as fallback (admin route, might need auth)
-  try {
-    const cmsBaseUrl = process.env.NEXT_PUBLIC_CMS_BASE_URL;
-    if (cmsBaseUrl) {
-      const normalizedUrl = cmsBaseUrl.replace(/\/api$/, '');
-      const apiPath = `${normalizedUrl}/api/posts`;
-      
-      const rawPost = await tryFetchPost(slug, apiPath);
-      
-      if (rawPost) {
-        // Handle topics and tags
-        let topic: string | null = null;
-        if ((rawPost as any).topics && Array.isArray((rawPost as any).topics) && (rawPost as any).topics.length > 0) {
-          topic = (rawPost as any).topics[0].name || (rawPost as any).topics[0];
-        } else if (rawPost.topic) {
-          topic = typeof rawPost.topic === 'string' ? rawPost.topic : (rawPost.topic as any)?.name;
-        }
-
-        let tags: string[] = [];
-        if (rawPost.tags && Array.isArray(rawPost.tags)) {
-          tags = rawPost.tags.map((tag: any) => 
-            typeof tag === 'string' ? tag : (tag.name || tag)
-          ).filter(Boolean);
-        }
-
-        return {
-          id: rawPost.id,
-          title: rawPost.title,
-          slug: rawPost.slug,
-          excerpt: rawPost.excerpt || (rawPost as any).description || null,
-          content: rawPost.content || (rawPost as any).body || (rawPost as any).description || null,
-          readTime: (rawPost as any).read_time || (rawPost as any).readTime || null,
-          category: (typeof rawPost.category === 'object' && rawPost.category ? (rawPost.category as any).name : null) || rawPost.category || null,
-          topic,
-          tags,
-          postType: (rawPost as any).post_type || 'blog',
-          imageUrl: normalizeMediaUrl(
-            (rawPost as any).cover_asset?.url || (rawPost as any).cover_asset?.cdn_url || (rawPost as any).image_url || (rawPost as any).cover_image || (rawPost as any).image
-          ),
-          publishedAt: (rawPost as any).published_at || (rawPost as any).publishedAt || (rawPost as any).created_at || null,
-          author: rawPost.author
-            ? {
-                id: (rawPost.author as any).id,
-                name: (rawPost.author as any).name || (rawPost.author as any).username || 'Admin',
-                avatar: normalizeMediaUrl((rawPost.author as any).avatar),
-              }
-            : null,
-        };
-      }
-    }
-  } catch (cmsError) {
-    console.error('[fetchPostBySlug] CMS API failed:', cmsError);
-  }
+  // Note: Removed CMS backend fallback - ecommerce frontend only uses ecommerce backend
 
   // Return mock data for development/testing if all APIs fail
   if (process.env.NODE_ENV === 'development') {

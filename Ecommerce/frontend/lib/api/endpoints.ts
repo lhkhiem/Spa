@@ -76,9 +76,19 @@ export const API_ENDPOINTS = {
     SUGGESTIONS: '/search/suggestions',
   },
 
-  // Newsletter
+  // Newsletter - Ecommerce Backend
   NEWSLETTER: {
     SUBSCRIBE: '/newsletter/subscribe',
+  },
+
+  // Contact - Ecommerce Backend
+  CONTACTS: {
+    SUBMIT: '/contacts',
+  },
+
+  // Analytics - Ecommerce Backend
+  ANALYTICS: {
+    TRACK: '/analytics/track',
   },
 
   // Posts

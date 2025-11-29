@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { QueryTypes } from 'sequelize';
 import sequelize from '../config/database';
 import { createZaloPayOrder, verifyCallbackMac, queryZaloPayOrder, refundZaloPayTransaction, queryZaloPayRefund } from '../services/zalopay';
+import { getSiteUrl } from '../utils/domainUtils';
 
 const router = Router();
 
@@ -450,7 +451,7 @@ router.post('/zalopay/callback', async (req: Request, res: Response) => {
           ? JSON.parse(order.shipping_address) 
           : order.shipping_address;
 
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.WEBSITE_ORIGIN || 'https://banyco.vn';
+        const siteUrl = getSiteUrl();
         const orderUrl = `${siteUrl}/order-lookup`;
 
         const emailData = {
@@ -690,7 +691,7 @@ router.get('/zalopay/query/:appTransId', async (req: Request, res: Response) => 
             ? JSON.parse(order.shipping_address) 
             : order.shipping_address;
 
-          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.WEBSITE_ORIGIN || 'https://banyco.vn';
+          const siteUrl = getSiteUrl();
           const orderUrl = `${siteUrl}/order-lookup`;
 
           const emailData = {

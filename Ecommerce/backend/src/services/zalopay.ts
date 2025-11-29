@@ -54,14 +54,19 @@ export async function createZaloPayOrder(params: CreateOrderParams): Promise<{
 }> {
   const app_id = Number(process.env.ZP_APP_ID);
   const key1 = process.env.ZP_KEY1;
-  const callback_url = process.env.ZP_CALLBACK_URL;
+  // Build callback URL from API domain if not provided
+  const callback_url = process.env.ZP_CALLBACK_URL || `${process.env.API_DOMAIN ? `https://${process.env.API_DOMAIN}` : 'http://localhost:3012'}/api/payments/zalopay/callback`;
 
-  if (!app_id || !key1 || !callback_url) {
+  if (!app_id || !key1) {
     const missing: string[] = [];
     if (!app_id) missing.push('ZP_APP_ID');
     if (!key1) missing.push('ZP_KEY1');
-    if (!callback_url) missing.push('ZP_CALLBACK_URL');
     throw new Error(`ZaloPay configuration missing: ${missing.join(', ')}`);
+  }
+  
+  // callback_url is now auto-generated if not provided
+  if (!callback_url) {
+    throw new Error('ZaloPay callback URL could not be generated. Please set ZP_CALLBACK_URL or API_DOMAIN.');
   }
   
   // Validate app_id is a valid number
@@ -94,8 +99,13 @@ export async function createZaloPayOrder(params: CreateOrderParams): Promise<{
   }
 
   // Embed data includes redirect URL for after payment
+  // Use FRONTEND_DOMAIN or construct from API_DOMAIN
+  const frontendDomain = process.env.FRONTEND_DOMAIN || (process.env.API_DOMAIN ? process.env.API_DOMAIN.replace('ecommerce-api.', '') : 'localhost:3000');
+  const frontendProtocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  const redirectUrl = process.env.ZP_REDIRECT_URL || `${frontendProtocol}://${frontendDomain}/checkout/result`;
+  
   const embed_data = JSON.stringify({
-    redirecturl: process.env.ZP_REDIRECT_URL || `${process.env.WEBSITE_ORIGIN || 'http://localhost:3000'}/checkout/result`,
+    redirecturl: redirectUrl,
     ...(params.embedData || {}),
   });
 

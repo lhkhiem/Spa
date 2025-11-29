@@ -29,7 +29,8 @@ interface NavigationItem {
 // We'll pass undefined to getMenuItems() and let it handle env var lookup internally
 const getMenuIdentifier = (): string | undefined => {
   // Try to get from env vars (available at build time)
-  return process.env.NEXT_PUBLIC_MAIN_MENU_ID || process.env.NEXT_PUBLIC_CMS_MAIN_MENU_ID;
+  // Use environment variable for menu identifier (no CMS fallback)
+  return process.env.NEXT_PUBLIC_MAIN_MENU_ID;
 };
 
 const FALLBACK_NAVIGATION: NavigationItem[] = [

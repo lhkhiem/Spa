@@ -342,10 +342,10 @@ const resolveMenuLocationId = async (identifier?: string): Promise<string | null
 
 export async function getMenuItems(menuIdentifier?: string): Promise<CMSMenuItem[]> {
   // If no identifier provided, try to get from environment variable
-  const identifier = menuIdentifier || process.env.NEXT_PUBLIC_MAIN_MENU_ID || process.env.NEXT_PUBLIC_CMS_MAIN_MENU_ID;
+  const identifier = menuIdentifier || process.env.NEXT_PUBLIC_MAIN_MENU_ID;
   
   if (!identifier) {
-    console.warn('[CMS] Menu identifier not configured. Set NEXT_PUBLIC_MAIN_MENU_ID or NEXT_PUBLIC_CMS_MAIN_MENU_ID environment variable.');
+    console.warn('[CMS] Menu identifier not configured. Set NEXT_PUBLIC_MAIN_MENU_ID environment variable.');
     return [];
   }
 

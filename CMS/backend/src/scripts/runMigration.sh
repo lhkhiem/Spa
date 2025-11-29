@@ -24,3 +24,4 @@ npx ts-node src/scripts/migratePageMetadata.ts
 
 echo "✅ Migration complete!"
 
+

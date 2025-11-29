@@ -25,3 +25,5 @@ COMMENT ON COLUMN newsletter_subscriptions.status IS 'Subscription status: activ
 COMMENT ON COLUMN newsletter_subscriptions.source IS 'Where the subscription originated (footer, deals page, etc.)';
 
 
+
+

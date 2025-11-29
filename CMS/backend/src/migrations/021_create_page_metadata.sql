@@ -22,3 +22,5 @@ COMMENT ON COLUMN page_metadata.path IS 'Unique path identifier for the page (e.
 COMMENT ON COLUMN page_metadata.auto_generated IS 'TRUE for auto-generated metadata (products/posts), FALSE for custom metadata';
 
 
+
+

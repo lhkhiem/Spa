@@ -51,8 +51,8 @@ const WORD_LIKE_PLUGINS = [
 ];
 
 const WORD_LIKE_TOOLBAR = [
-  // Hàng 1: Định dạng (formatting) - gom thành group liền kề
-  'blocks formatselect fontfamily fontsize bold italic underline strikethrough forecolor backcolor superscript subscript removeformat',
+  // Hàng 1: Định dạng (formatting) - thêm clearFont button
+  'blocks formatselect fontfamily clearFont fontsize bold italic underline strikethrough forecolor backcolor superscript subscript removeformat',
   // Hàng 2: Căn chỉnh và danh sách - gom thành group
   'alignleft aligncenter alignright alignjustify outdent indent bullist numlist',
   // Hàng 3: Chèn nội dung - gom thành group
@@ -199,17 +199,57 @@ export default function TinyMCEEditor({
           browser_spellcheck: true,
           promotion: false,
           contextmenu: 'undo redo | copy paste | link image table',
+          // Cấu hình entity encoding để không encode ký tự tiếng Việt
+          entity_encoding: 'raw', // Không encode thành HTML entities (giữ nguyên ký tự)
+          entities: '160,nbsp,38,amp,60,lt,62,gt,8220,ldquo,8221,rdquo,8211,ndash,8212,mdash,8216,lsquo,8217,rsquo', // Chỉ encode các entities cần thiết
+          // Decode entities khi paste
+          paste_preprocess: (plugin, args) => {
+            // Decode HTML entities thành ký tự thường
+            const decodeEntities = (text: string) => {
+              const textarea = document.createElement('textarea');
+              textarea.innerHTML = text;
+              return textarea.value;
+            };
+            args.content = decodeEntities(args.content);
+          },
           content_style: `
+            /* Load đầy đủ các font từ Google Fonts với đầy đủ weights */
+            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Source+Sans+Pro:wght@400;600;700&family=Raleway:wght@400;500;600;700&family=Lato:wght@400;700&family=Ubuntu:wght@400;500;700&family=Lora:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=Pacifico&display=swap&subset=latin,vietnamese');
+            
             body {
               font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
               font-size: 16px;
               line-height: 1.7;
               color: #0f172a;
             }
+            /* Đảm bảo các font được load đầy đủ với các weight */
+            *[style*="font-family: Roboto"], *[style*="font-family:Roboto"],
+            *[style*="font-family: Open Sans"], *[style*="font-family:Open Sans"],
+            *[style*="font-family: Montserrat"], *[style*="font-family:Montserrat"],
+            *[style*="font-family: Poppins"], *[style*="font-family:Poppins"],
+            *[style*="font-family: Nunito Sans"], *[style*="font-family:Nunito Sans"],
+            *[style*="font-family: Be Vietnam Pro"], *[style*="font-family:Be Vietnam Pro"],
+            *[style*="font-family: Source Sans Pro"], *[style*="font-family:Source Sans Pro"],
+            *[style*="font-family: Raleway"], *[style*="font-family:Raleway"],
+            *[style*="font-family: Lato"], *[style*="font-family:Lato"],
+            *[style*="font-family: Ubuntu"], *[style*="font-family:Ubuntu"],
+            *[style*="font-family: Lora"], *[style*="font-family:Lora"],
+            *[style*="font-family: Merriweather"], *[style*="font-family:Merriweather"],
+            *[style*="font-family: Playfair Display"], *[style*="font-family:Playfair Display"],
+            *[style*="font-family: Dancing Script"], *[style*="font-family:Dancing Script"],
+            *[style*="font-family: Pacifico"], *[style*="font-family:Pacifico"] {
+              font-family: inherit !important;
+            }
+            /* Headings có font-weight: 700 (bold) và font-size lớn hơn - đây là lý do trông khác nhau */
             h1, h2, h3, h4, h5, h6 {
               font-weight: 700;
               margin-top: 1.5em;
               margin-bottom: 0.75em;
+            }
+            /* Paragraphs có font-weight: normal (400) và font-size: 16px */
+            p {
+              font-weight: 400;
+              font-size: 16px;
             }
             figure.image {
               display: inline-block;
@@ -248,9 +288,49 @@ export default function TinyMCEEditor({
               padding: 1rem;
               overflow-x: auto;
             }
+            /* Horizontal rule - khoảng cách xa giữa các nội dung */
+            hr {
+              margin-top: 2em;
+              margin-bottom: 2em;
+              border: none;
+              border-top: 1px solid #e5e7eb;
+              height: 0;
+            }
           `,
           font_family_formats:
-            'Inter=Inter,sans-serif;Arial=arial,helvetica,sans-serif;Georgia=georgia,palatino;Times New Roman=times new roman,times;Courier New=courier new,courier;Roboto=Roboto,sans-serif;Lora=Lora,serif;Open Sans=Open Sans,sans-serif;Montserrat=Montserrat,sans-serif',
+            // Sans-serif (không chân) - tốt cho tiếng Việt
+            // Roboto được đặt đầu tiên vì là font phổ biến cho tiếng Việt
+            'Roboto=Roboto,sans-serif;' +
+            'Inter=Inter,sans-serif;' +
+            'Open Sans=Open Sans,sans-serif;' +
+            'Montserrat=Montserrat,sans-serif;' +
+            'Poppins=Poppins,sans-serif;' +
+            'Nunito Sans=Nunito Sans,sans-serif;' +
+            'Be Vietnam Pro=Be Vietnam Pro,sans-serif;' +
+            'Arial=Arial,Helvetica,sans-serif;' +
+            'Helvetica=Helvetica,Arial,sans-serif;' +
+            'Verdana=Verdana,Geneva,sans-serif;' +
+            'Tahoma=Tahoma,Geneva,sans-serif;' +
+            'Trebuchet MS=Trebuchet MS,Helvetica,sans-serif;' +
+            'Source Sans Pro=Source Sans Pro,sans-serif;' +
+            'Raleway=Raleway,sans-serif;' +
+            'Lato=Lato,sans-serif;' +
+            'Ubuntu=Ubuntu,sans-serif;' +
+            // Serif (có chân)
+            'Lora=Lora,serif;' +
+            'Georgia=Georgia,serif;' +
+            'Times New Roman=Times New Roman,Times,serif;' +
+            'Palatino=Palatino,Palatino Linotype,serif;' +
+            'Garamond=Garamond,serif;' +
+            'Merriweather=Merriweather,serif;' +
+            'Playfair Display=Playfair Display,serif;' +
+            // Monospace (đơn cách)
+            'Courier New=Courier New,Courier,monospace;' +
+            'Consolas=Consolas,monaco,monospace;' +
+            'JetBrains Mono=JetBrains Mono,monospace;' +
+            // Display/Decorative
+            'Dancing Script=Dancing Script,cursive;' +
+            'Pacifico=Pacifico,cursive',
           fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 24pt 28pt 32pt 36pt 48pt',
           line_height_formats: '1 1.2 1.4 1.5 1.7 2',
           block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6; Preformatted=pre',
@@ -273,6 +353,59 @@ export default function TinyMCEEditor({
               onAction: () => {
                 editorRef.current = editor;
                 setMediaPickerOpen(true);
+              },
+            });
+
+            // Helper function to decode HTML entities
+            const decodeEntities = (html: string): string => {
+              const textarea = document.createElement('textarea');
+              textarea.innerHTML = html;
+              return textarea.value;
+            };
+
+            // Clear Font button - xóa tất cả font-family và decode entities
+            editor.ui.registry.addButton('clearFont', {
+              text: 'Clear Font',
+              tooltip: 'Xóa font và decode ký tự (dùng font mặc định của trang)',
+              onAction: () => {
+                let content = editor.getContent();
+                
+                // Decode HTML entities trước
+                content = decodeEntities(content);
+                
+                // Remove all inline font-family styles
+                let cleaned = content
+                  .replace(/style\s*=\s*["']([^"']*)["']/gi, (match, styleContent) => {
+                    // Remove font-family và fontFamily
+                    const cleanedStyle = styleContent
+                      .replace(/font-family\s*:\s*[^;]+;?/gi, '')
+                      .replace(/fontFamily\s*:\s*[^;]+;?/gi, '')
+                      .trim()
+                      .replace(/;\s*;/g, ';')
+                      .replace(/^;|;$/g, '');
+                    
+                    if (!cleanedStyle) {
+                      return '';
+                    }
+                    return `style="${cleanedStyle}"`;
+                  })
+                  // Remove <span> tags chỉ có font-family
+                  .replace(/<span\s+style\s*=\s*["']font-family\s*:\s*[^"']+["']\s*>/gi, '<span>')
+                  // Remove empty style attributes
+                  .replace(/\s+style\s*=\s*["']\s*["']/gi, '')
+                  // Remove <font> tags (từ Word)
+                  .replace(/<font[^>]*>/gi, '')
+                  .replace(/<\/font>/gi, '');
+                
+                editor.setContent(cleaned);
+                editor.fire('change');
+                
+                // Show notification
+                editor.notificationManager.open({
+                  text: 'Đã xóa font và decode ký tự. Nội dung sẽ dùng font mặc định của trang.',
+                  type: 'success',
+                  timeout: 3000,
+                });
               },
             });
           },

@@ -169,3 +169,55 @@ figure.align-center img,
   margin-left: auto;
   margin-right: auto;
 }
+
+/* Đảm bảo các font từ Google Fonts được load và render đúng trong content */
+/* Font Sans-serif */
+.prose *[style*="font-family: Roboto"],
+.prose *[style*="font-family:Roboto"],
+.prose *[style*="font-family: 'Open Sans'"],
+.prose *[style*="font-family:Open Sans"],
+.prose *[style*="font-family: Montserrat"],
+.prose *[style*="font-family:Montserrat"],
+.prose *[style*="font-family: Poppins"],
+.prose *[style*="font-family:Poppins"],
+.prose *[style*="font-family: 'Nunito Sans'"],
+.prose *[style*="font-family:Nunito Sans"],
+.prose *[style*="font-family: 'Be Vietnam Pro'"],
+.prose *[style*="font-family:Be Vietnam Pro"],
+.prose *[style*="font-family: 'Source Sans Pro'"],
+.prose *[style*="font-family:Source Sans Pro"],
+.prose *[style*="font-family: Raleway"],
+.prose *[style*="font-family:Raleway"],
+.prose *[style*="font-family: Lato"],
+.prose *[style*="font-family:Lato"],
+.prose *[style*="font-family: Ubuntu"],
+.prose *[style*="font-family:Ubuntu"] {
+  font-family: inherit !important;
+}
+
+/* Font Serif */
+.prose *[style*="font-family: Lora"],
+.prose *[style*="font-family:Lora"],
+.prose *[style*="font-family: Merriweather"],
+.prose *[style*="font-family:Merriweather"],
+.prose *[style*="font-family: 'Playfair Display'"],
+.prose *[style*="font-family:Playfair Display"] {
+  font-family: inherit !important;
+}
+
+/* Font Display/Decorative */
+.prose *[style*="font-family: 'Dancing Script'"],
+.prose *[style*="font-family:Dancing Script"],
+.prose *[style*="font-family: Pacifico"],
+.prose *[style*="font-family:Pacifico"] {
+  font-family: inherit !important;
+}
+
+/* Horizontal rule - khoảng cách xa giữa các nội dung (giống CMS) */
+.prose hr {
+  margin-top: 2em !important;
+  margin-bottom: 2em !important;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  height: 0;
+}

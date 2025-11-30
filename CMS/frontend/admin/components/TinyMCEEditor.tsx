@@ -221,35 +221,169 @@ export default function TinyMCEEditor({
               font-size: 16px;
               line-height: 1.7;
               color: #0f172a;
+              /* Font rendering optimization - làm cho text mượt mà hơn */
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+              font-feature-settings: "kern" 1;
+              font-kerning: normal;
             }
+            /* Inline font-family styles tự động có priority cao nhất */
+            /* Không cần override vì inline styles luôn được tôn trọng */
             /* Đảm bảo các font được load đầy đủ với các weight */
-            *[style*="font-family: Roboto"], *[style*="font-family:Roboto"],
-            *[style*="font-family: Open Sans"], *[style*="font-family:Open Sans"],
-            *[style*="font-family: Montserrat"], *[style*="font-family:Montserrat"],
-            *[style*="font-family: Poppins"], *[style*="font-family:Poppins"],
-            *[style*="font-family: Nunito Sans"], *[style*="font-family:Nunito Sans"],
-            *[style*="font-family: Be Vietnam Pro"], *[style*="font-family:Be Vietnam Pro"],
-            *[style*="font-family: Source Sans Pro"], *[style*="font-family:Source Sans Pro"],
-            *[style*="font-family: Raleway"], *[style*="font-family:Raleway"],
-            *[style*="font-family: Lato"], *[style*="font-family:Lato"],
-            *[style*="font-family: Ubuntu"], *[style*="font-family:Ubuntu"],
-            *[style*="font-family: Lora"], *[style*="font-family:Lora"],
-            *[style*="font-family: Merriweather"], *[style*="font-family:Merriweather"],
-            *[style*="font-family: Playfair Display"], *[style*="font-family:Playfair Display"],
-            *[style*="font-family: Dancing Script"], *[style*="font-family:Dancing Script"],
-            *[style*="font-family: Pacifico"], *[style*="font-family:Pacifico"] {
-              font-family: inherit !important;
-            }
+            /* Inline font-family styles sẽ tự động được áp dụng */
+            /* Không cần override vì inline styles có priority cao hơn CSS */
             /* Headings có font-weight: 700 (bold) và font-size lớn hơn - đây là lý do trông khác nhau */
-            h1, h2, h3, h4, h5, h6 {
+            /* Font-size match với Tailwind config để đồng bộ với frontend */
+            h1 {
+              font-size: 2.25rem; /* 36px - match với text-h1 */
               font-weight: 700;
               margin-top: 1.5em;
               margin-bottom: 0.75em;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+              letter-spacing: -0.01em;
+              line-height: 1.2;
+            }
+            h2 {
+              font-size: 1.875rem; /* 30px - match với text-h2 */
+              font-weight: 700;
+              margin-top: 1.5em;
+              margin-bottom: 0.75em;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+              letter-spacing: -0.01em;
+              line-height: 1.3;
+            }
+            h3 {
+              font-size: 1.5rem; /* 24px - match với text-h3 */
+              font-weight: 700;
+              margin-top: 1.5em;
+              margin-bottom: 0.75em;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+              letter-spacing: -0.01em;
+              line-height: 1.3;
+            }
+            h4 {
+              font-size: 1.25rem; /* 20px - match với text-h4 */
+              font-weight: 700;
+              margin-top: 1.5em;
+              margin-bottom: 0.75em;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+              letter-spacing: -0.01em;
+              line-height: 1.3;
+            }
+            h5, h6 {
+              font-size: 1.125rem; /* 18px */
+              font-weight: 700;
+              margin-top: 1.5em;
+              margin-bottom: 0.75em;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+              letter-spacing: -0.01em;
+              line-height: 1.3;
+            }
+            /* Strong/bold text cũng phải có font-weight: 700 để match với frontend */
+            strong, b {
+              font-weight: 700;
+              /* Font rendering optimization */
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+            }
+            /* Đảm bảo headings với inline font-family có các properties giống nhau */
+            h1[style*="font-family"] {
+              font-size: 2.25rem !important;
+              font-weight: 700 !important;
+              letter-spacing: -0.01em !important;
+              line-height: 1.2 !important;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+            }
+            h2[style*="font-family"] {
+              font-size: 1.875rem !important;
+              font-weight: 700 !important;
+              letter-spacing: -0.01em !important;
+              line-height: 1.3 !important;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+            }
+            h3[style*="font-family"] {
+              font-size: 1.5rem !important;
+              font-weight: 700 !important;
+              letter-spacing: -0.01em !important;
+              line-height: 1.3 !important;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+            }
+            h4[style*="font-family"] {
+              font-size: 1.25rem !important;
+              font-weight: 700 !important;
+              letter-spacing: -0.01em !important;
+              line-height: 1.3 !important;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+            }
+            h5[style*="font-family"],
+            h6[style*="font-family"] {
+              font-size: 1.125rem !important;
+              font-weight: 700 !important;
+              letter-spacing: -0.01em !important;
+              line-height: 1.3 !important;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+            }
+            /* Strong/bold với inline font-family */
+            strong[style*="font-family"],
+            b[style*="font-family"] {
+              font-weight: 700 !important;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+            }
+            /* Font rendering optimization cho tất cả elements có inline font-family */
+            *[style*="font-family"] {
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+            }
+            /* Đặc biệt cho Open Sans và các font khác */
+            *[style*="font-family: 'Open Sans'"],
+            *[style*="font-family:Open Sans"],
+            *[style*="font-family: 'Open Sans',"],
+            *[style*="font-family:Open Sans,"],
+            *[style*="font-family: Roboto"],
+            *[style*="font-family:Roboto"],
+            *[style*="font-family: Montserrat"],
+            *[style*="font-family:Montserrat"],
+            *[style*="font-family: Poppins"],
+            *[style*="font-family:Poppins"] {
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
+              font-feature-settings: "kern" 1;
+              font-kerning: normal;
             }
             /* Paragraphs có font-weight: normal (400) và font-size: 16px */
             p {
               font-weight: 400;
               font-size: 16px;
+              /* Font rendering optimization */
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-rendering: optimizeLegibility;
             }
             figure.image {
               display: inline-block;

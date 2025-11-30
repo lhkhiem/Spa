@@ -60,11 +60,12 @@ build_backend() {
     [ -f tsconfig.json ] && cp tsconfig.json "$publish_path/" || true
     
     # Copy storage/uploads directory (images and media files)
-    if [ -d "storage/uploads" ]; then
-        echo "Copying storage/uploads..."
-        mkdir -p "$publish_path/storage/uploads"
-        rsync -av --delete storage/uploads/ "$publish_path/storage/uploads/"
-    fi
+    # SKIPPED: Not copying uploads as requested
+    # if [ -d "storage/uploads" ]; then
+    #     echo "Copying storage/uploads..."
+    #     mkdir -p "$publish_path/storage/uploads"
+    #     rsync -av --delete storage/uploads/ "$publish_path/storage/uploads/"
+    # fi
     
     # Copy storage/temp directory structure
     [ -d "storage/temp" ] && mkdir -p "$publish_path/storage/temp" || true
@@ -102,6 +103,8 @@ build_frontend() {
     
     # Copy build output (.next)
     if [ -d ".next" ]; then
+        # Remove old .next directory if exists
+        [ -d "$publish_path/.next" ] && rm -rf "$publish_path/.next"
         cp -r .next "$publish_path/"
     fi
     

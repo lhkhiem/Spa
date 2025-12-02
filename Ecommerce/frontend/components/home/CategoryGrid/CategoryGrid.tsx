@@ -94,56 +94,56 @@ export default function CategoryGrid() {
   }, []);
 
   return (
-    <section className="bg-gradient-to-br from-white via-purple-50/30 to-pink-50/30 py-16">
+    <section className="bg-white py-20 relative">
       <div className="container-custom">
-        <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
+        <div className="mb-14 text-center">
+          <h2 className="mb-4 text-4xl font-bold text-gray-900 md:text-5xl">
             Mua Sắm Theo Danh Mục
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg font-medium text-gray-700">
             Khám phá bộ sưu tập toàn diện các sản phẩm spa và salon
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((category, index) => (
             <Link
               key={category.id}
               href={`/categories/${category.slug}`}
-              className="group relative overflow-hidden rounded-xl bg-white shadow-lg transition-all duration-500 hover:shadow-2xl"
+              className="group relative overflow-hidden rounded-2xl bg-white shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2"
               onMouseEnter={() => setHoveredId(category.id)}
               onMouseLeave={() => setHoveredId(null)}
               style={{
                 animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
               }}
             >
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-56 overflow-hidden">
                 <Image
                   src={category.image}
                   alt={category.name}
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-500 group-hover:opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-500 group-hover:from-black/90" />
                 
                 {/* Shimmer effect */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 ${
+                  className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-1000 ${
                     hoveredId === category.id ? 'translate-x-full' : '-translate-x-full'
                   }`}
                 />
               </div>
 
-              <div className="relative p-6 transition-colors duration-300 group-hover:bg-gradient-to-br group-hover:from-purple-50 group-hover:to-pink-50">
-                <h3 className="mb-2 text-xl font-semibold text-gray-900 transition-transform duration-300 group-hover:scale-105">
+              <div className="relative p-7 bg-white transition-colors duration-300 group-hover:bg-slate-50">
+                <h3 className="mb-3 text-2xl font-bold text-gray-900 transition-transform duration-300 group-hover:scale-105">
                   {category.name}
                 </h3>
-                <p className="text-sm text-gray-600">{category.description}</p>
+                <p className="text-sm font-medium text-gray-700 mb-4">{category.description}</p>
 
-                <div className="mt-4 flex items-center text-brand-purple-600 transition-all duration-300 group-hover:text-brand-purple-700">
-                  <span className="text-sm font-medium">Mua Ngay</span>
+                <div className="flex items-center text-[#98131b] font-semibold transition-all duration-300 group-hover:text-[#7a0f16]">
+                  <span className="text-base">Mua Ngay</span>
                   <svg
-                    className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-2"
+                    className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -151,17 +151,13 @@ export default function CategoryGrid() {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
+                      strokeWidth={2.5}
                       d="M9 5l7 7-7 7"
                     />
                   </svg>
                 </div>
               </div>
 
-              {/* Animated border */}
-              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                <div className="absolute inset-0 rounded-xl border-2 border-brand-purple-400/50 animate-pulse" />
-              </div>
             </Link>
           ))}
         </div>
@@ -169,7 +165,7 @@ export default function CategoryGrid() {
         <div className="mt-12 text-center">
           <Link
             href="/categories"
-            className="group inline-flex items-center rounded-lg border-2 border-brand-purple-600 bg-white px-8 py-3 font-medium text-brand-purple-600 transition-all duration-300 hover:bg-brand-purple-600 hover:text-white hover:shadow-lg"
+            className="group inline-flex items-center rounded-lg border-2 border-[#98131b] bg-white px-8 py-3 font-semibold text-[#98131b] transition-all duration-300 hover:bg-[#98131b] hover:text-white hover:shadow-lg"
           >
             <span>Xem Tất Cả Danh Mục</span>
             <svg 

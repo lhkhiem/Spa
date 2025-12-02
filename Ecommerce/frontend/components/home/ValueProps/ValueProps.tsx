@@ -132,41 +132,47 @@ export default function ValueProps() {
   const visibleItems = valueProps.slice(startIndex, startIndex + itemsPerSlide);
 
   return (
-    <section className="bg-gradient-to-br from-amber-50 via-stone-50 to-amber-50 py-12 overflow-hidden">
-      <div className="container-custom">
+    <section className="bg-gradient-to-br from-red-50 via-white to-red-50 py-20 overflow-hidden relative">
+      {/* Decorative elements for spa aesthetic */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-red-200 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-red-300 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div className="container-custom relative z-10">
         <div className="relative">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             {visibleItems.map((feature, index) => {
               const Icon = feature.Icon;
               return (
                 <div
                   key={feature.id}
-                  className="flex flex-col items-center rounded-lg bg-white/60 backdrop-blur-sm p-6 text-center shadow-sm transition-all hover:bg-white/80 hover:shadow-md animate-fade-in border border-stone-100"
+                  className="flex flex-col items-center rounded-2xl bg-white p-8 text-center shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 animate-fade-in"
                   style={{
                     animationDelay: `${index * 100}ms`,
                   }}
                 >
                   <div
-                    className="mb-4 rounded-full p-4"
+                    className="mb-5 rounded-full p-5 transition-transform duration-300 hover:scale-110 shadow-md"
                     style={{ backgroundColor: feature.iconBackground }}
                   >
-                    <Icon className="h-6 w-6" style={{ color: feature.iconColor }} />
+                    <Icon className="h-8 w-8" style={{ color: feature.iconColor }} />
                   </div>
-                  <h3 className="mb-1 font-semibold text-gray-800">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.subtitle}</p>
+                  <h3 className="mb-2 text-lg font-bold text-gray-900">{feature.title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{feature.subtitle}</p>
                 </div>
               );
             })}
           </div>
 
           {/* Dots indicator */}
-          <div className="flex justify-center gap-2 mt-6">
+          <div className="flex justify-center gap-2 mt-10">
             {Array.from({ length: Math.ceil(valueProps.length / itemsPerSlide) }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`h-2 rounded-full transition-all ${
-                  currentSlide === index ? 'w-8 bg-amber-400' : 'w-2 bg-amber-200'
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  currentSlide === index ? 'w-10 bg-[#98131b] shadow-md' : 'w-2.5 bg-red-300'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />

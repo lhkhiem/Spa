@@ -255,22 +255,22 @@ export default function ValueProps() {
           animation: slideIn 0.5s ease-out forwards;
         }
       `}</style>
-      <section className="bg-white py-20 overflow-hidden">
+      <section className="bg-white -mt-1 pb-4 sm:pb-6 md:pb-8 lg:pb-12 overflow-hidden relative z-10">
         <div className="container-custom">
           <div className="relative">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
               {visibleItems.map((feature, index) => {
                 const IconComponent = ICON_COMPONENTS[feature.iconType] || TruckIcon;
                 return (
                   <div
                     key={`${feature.id}-${currentIndex}-${index}`}
-                    className="group flex flex-col items-center rounded-2xl bg-white p-8 text-center shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-slide-in"
+                    className="group flex flex-col items-center rounded-2xl bg-white p-4 sm:p-6 md:p-8 text-center shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-slide-in"
                   >
-                    <div className="mb-6 flex items-center justify-center">
+                    <div className="mb-3 sm:mb-4 md:mb-6 flex items-center justify-center">
                       <IconComponent />
                     </div>
-                    <h3 className="mb-3 text-xl font-bold text-gray-900">{feature.title}</h3>
-                    <p className="text-sm text-gray-500 leading-relaxed">{feature.subtitle}</p>
+                    <h3 className="mb-2 sm:mb-2 md:mb-3 text-lg sm:text-xl font-bold text-gray-900">{feature.title}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">{feature.subtitle}</p>
                   </div>
                 );
               })}
@@ -279,7 +279,7 @@ export default function ValueProps() {
 
           {/* Dots indicator */}
           {valueProps.length > 3 && (
-            <div className="flex justify-center gap-2 mt-12">
+            <div className="flex justify-center gap-2 mt-6 sm:mt-8 md:mt-12">
               {Array.from({ length: totalSlides }).map((_, index) => (
                 <button
                   key={index}

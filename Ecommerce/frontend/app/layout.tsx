@@ -101,7 +101,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-white`}>
         <FaviconProvider />
         <Suspense fallback={null}>
           <AnalyticsTracker />

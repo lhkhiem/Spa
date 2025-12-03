@@ -109,7 +109,7 @@ export default function HeroSlider() {
     <div className="relative w-full overflow-hidden pt-[120px]">
       {/* TRUE Parallax Hero - Single Block with background-attachment: fixed */}
       <section
-        className="parallax-section relative w-full min-h-[60vh] md:min-h-[60vh] sm:min-h-[50vh] overflow-hidden"
+        className="parallax-section relative w-full min-h-[60vh] md:min-h-[60vh] sm:min-h-[50vh] overflow-hidden mb-0"
         style={{
           backgroundImage: `url(${currentSlideData.image})`,
           backgroundPosition: 'center',
@@ -124,7 +124,7 @@ export default function HeroSlider() {
         <div className="parallax-inner relative z-20 flex items-center">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
             <div className="py-16">
-              <div className="text-white">
+              <div className="text-white pl-8 sm:pl-12 md:pl-16 lg:pl-24 xl:pl-32">
                 <h1 className="mb-4 text-3xl font-bold md:text-5xl lg:text-6xl leading-tight max-w-2xl">
                   {currentSlideData.title}
                 </h1>

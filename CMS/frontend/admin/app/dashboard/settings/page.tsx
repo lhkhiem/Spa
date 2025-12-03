@@ -22,8 +22,10 @@ export default function SettingsPage() {
 
   // Namespaced settings state
   const [general, setGeneral] = useState<any>({ siteName: '', siteDescription: '', siteUrl: '', adminEmail: '', businessInfo: {}, socialLinks: {} });
+  // Theme mode is managed separately from the rest of appearance to avoid stale state bugs
+  // and to ensure the selected option is always what gets applied & saved.
+  const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'system'>('light');
   const [appearance, setAppearance] = useState<any>({
-    themeMode: 'system',
     primaryColor: '#8b5cf6',
     // CMS branding
     logo_asset_id: null,
@@ -35,6 +37,8 @@ export default function SettingsPage() {
     ecommerce_logo_url: '',
     ecommerce_favicon_asset_id: null,
     ecommerce_favicon_url: '',
+    // Top Banner Text
+    topBannerText: '',
   });
   const [email, setEmail] = useState<any>({ smtpHost: '', smtpPort: 587, encryption: 'tls', fromEmail: '', fromName: 'PressUp CMS', username: '', password: '', enabled: false });
   const [notifications, setNotifications] = useState<any>({ newPost: true, newUser: true, newComment: true, systemUpdates: true });
@@ -65,7 +69,14 @@ export default function SettingsPage() {
       
       setter(value);
       if (ns === 'appearance') {
+        // Keep context in sync (logo, favicon, etc.)
         setAppearanceCtx(value);
+        // Initialize theme mode from settings (fallback to light)
+        if (value && typeof value.themeMode === 'string') {
+          const m = value.themeMode as 'light' | 'dark' | 'system';
+          setThemeMode(m);
+          setTheme(m);
+        }
       }
     } catch (e: any) {
       // silent for initial load
@@ -98,23 +109,34 @@ export default function SettingsPage() {
 
         const appearancePayload = {
           ...appearance,
+          themeMode,
           logo_url: stripBase(appearance.logo_url),
           favicon_url: stripBase(appearance.favicon_url),
+          topBannerText: appearance.topBannerText || '',
         };
 
         await axios.put(buildApiUrl('/api/settings/appearance'), appearancePayload, { withCredentials: true });
         await axios.put(buildApiUrl('/api/settings/homepage_metrics'), homepageMetrics, { withCredentials: true });
 
-        if (appearance.themeMode === 'dark' || appearance.themeMode === 'light' || appearance.themeMode === 'system') {
-          setTheme(appearance.themeMode);
+        if (themeMode === 'dark' || themeMode === 'light' || themeMode === 'system') {
+          setTheme(themeMode);
         }
         if (appearance.primaryColor) {
           document.documentElement.style.setProperty('--color-primary', appearance.primaryColor);
-          document.documentElement.style.setProperty('--primary', appearance.primaryColor);
+          // Only set --primary in dark mode, or if color is dark enough for light mode
+          // In light mode, keep default dark purple to ensure button visibility
+          const isDarkMode = themeMode === 'dark' || (themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDarkMode) {
+            document.documentElement.style.setProperty('--primary', appearance.primaryColor);
+          } else {
+            // Light mode: use default dark purple, don't override with light colors
+            document.documentElement.style.removeProperty('--primary');
+          }
         }
         try {
-          localStorage.setItem('cms_appearance', JSON.stringify(appearance));
-          window.dispatchEvent(new StorageEvent('storage', { key: 'cms_appearance', newValue: JSON.stringify(appearance) } as any));
+          const stored = JSON.stringify({ ...appearance, themeMode });
+          localStorage.setItem('cms_appearance', stored);
+          window.dispatchEvent(new StorageEvent('storage', { key: 'cms_appearance', newValue: stored } as any));
           window.dispatchEvent(new CustomEvent('appearanceUpdated'));
         } catch {}
         toast.success('Settings saved and applied successfully!');
@@ -309,7 +331,11 @@ export default function SettingsPage() {
             <ArrowLeft className="h-4 w-4" />
             Back
           </Link>
-          <button onClick={onSave} disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+          <button 
+            onClick={onSave} 
+            disabled={saving} 
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
             <Save className="h-4 w-4" />
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -321,14 +347,15 @@ export default function SettingsPage() {
         <div className="space-y-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  isActive
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -434,11 +461,12 @@ export default function SettingsPage() {
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Theme Mode</label>
                   <select
-                    value={appearance.themeMode || 'system'}
+                    value={themeMode}
                     onChange={(e)=>{
                       const mode = e.target.value as 'light'|'dark'|'system';
-                      setAppearance({ ...appearance, themeMode: mode });
-                      // Apply immediately
+                      // Cập nhật state riêng cho theme mode để tránh việc state appearance bị stale
+                      setThemeMode(mode);
+                      // Áp dụng theme ngay lập tức
                       setTheme(mode);
                     }}
                     className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -459,7 +487,14 @@ export default function SettingsPage() {
                       setAppearance({ ...appearance, primaryColor: c });
                       // Apply immediately
                       document.documentElement.style.setProperty('--color-primary', c);
-                      document.documentElement.style.setProperty('--primary', c);
+                      // Only set --primary in dark mode to ensure buttons are always visible in light mode
+                      const isDarkMode = themeMode === 'dark' || (themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                      if (isDarkMode) {
+                        document.documentElement.style.setProperty('--primary', c);
+                      } else {
+                        // Light mode: keep default dark purple, don't override with potentially light colors
+                        document.documentElement.style.removeProperty('--primary');
+                      }
                     }}
                     className="h-10 px-2 rounded-lg border border-input bg-background cursor-pointer"
                   />
@@ -625,6 +660,22 @@ export default function SettingsPage() {
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* Top Banner Text */}
+                <div className="border-t border-border pt-4">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Top Banner Text
+                  </label>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Nội dung hiển thị trên banner phía trên cùng của website (ecommerce storefront).
+                  </p>
+                  <textarea
+                    value={appearance.topBannerText || ''}
+                    onChange={(e) => setAppearance({ ...appearance, topBannerText: e.target.value })}
+                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px]"
+                    placeholder="Miễn phí vận chuyển cho đơn hàng trên 749.000₫+ | 4.990₫ vận chuyển cho đơn hàng trên 199.000₫+"
+                  />
                 </div>
 
                 <div className="border-t border-border pt-4 space-y-4">

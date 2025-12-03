@@ -11,8 +11,16 @@
     @apply border-gray-300;
   }
 
+  html {
+    @apply bg-white;
+  }
+
   body {
     @apply bg-white text-gray-900 antialiased;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
   }
 
   h1 {

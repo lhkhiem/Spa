@@ -8,6 +8,7 @@ export interface AppearanceSettings {
   favicon_url: string | null;
   logoUrl: string | null;
   faviconUrl: string | null;
+  topBannerText: string | null;
 }
 
 interface AppearanceSettingsResponse {

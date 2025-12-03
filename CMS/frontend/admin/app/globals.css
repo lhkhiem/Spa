@@ -102,3 +102,18 @@
   }
 }
 
+/* Force primary color to be purple in light mode to ensure buttons are always visible */
+/* This ensures all primary buttons (like "Thêm giá trị cốt lõi") have purple background with white text */
+:root:not(.dark),
+:root:not(.dark) * {
+  --primary: 262 83% 58% !important; /* Purple - always dark enough for light mode */
+  --primary-foreground: 0 0% 100% !important; /* White text on dark primary */
+}
+
+/* Override any inline style overrides in light mode */
+:root:not(.dark) [style*="--color-primary"],
+:root:not(.dark) [style*="--primary"] {
+  --primary: 262 83% 58% !important;
+  --primary-foreground: 0 0% 100% !important;
+}
+

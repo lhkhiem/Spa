@@ -34,7 +34,7 @@ export default function HomePage() {
       </FadeInSection>
 
       {/* Category Grid */}
-      <FadeInSection delay={200}>
+      <FadeInSection delay={200} className="-mt-4 sm:-mt-6 md:-mt-8">
         <CategoryGrid />
       </FadeInSection>
 

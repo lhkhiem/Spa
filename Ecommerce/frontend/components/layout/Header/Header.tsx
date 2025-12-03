@@ -66,6 +66,46 @@ const getMenuIdentifier = (): string | undefined => {
 //   { id: 'deals', name: 'Ưu Đãi!', href: '/deals' },
 // ];
 
+// Top Banner component that loads text from Ecommerce backend (via CMS settings)
+const TopBanner = () => {
+  const [bannerText, setBannerText] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const settings = await fetchAppearanceSettings();
+        if (!settings || !isMounted) return;
+
+        const text = settings.topBannerText;
+        if (text) {
+          setBannerText(text);
+        }
+      } catch (error) {
+        console.error('[TopBanner] Failed to load appearance settings:', error);
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Don't render if no banner text
+  if (!bannerText) {
+    return null;
+  }
+
+  return (
+    <div className="w-full bg-white py-2 text-center text-sm text-[#98131b] font-medium">
+      {bannerText}
+    </div>
+  );
+};
+
 // Separate logo component that loads URL from Ecommerce backend (via CMS settings)
 const Logo = () => {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -315,9 +355,7 @@ export default function Header() {
       }`}
     >
       {/* Top Banner - Always visible */}
-      <div className="w-full bg-white py-2 text-center text-sm text-[#98131b] font-medium">
-        Miễn phí vận chuyển cho đơn hàng trên 749.000₫+ | 4.990₫ vận chuyển cho đơn hàng trên 199.000₫+
-      </div>
+      <TopBanner />
 
       {/* Main Header - Full Width Red Background */}
       <div className="w-full bg-[#98131b]">

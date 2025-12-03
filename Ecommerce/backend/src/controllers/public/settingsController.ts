@@ -24,6 +24,7 @@ interface AppearanceSettingsRow {
     ecommerce_logo_url?: string | null;
     ecommerce_favicon_asset_id?: string | null;
     ecommerce_favicon_url?: string | null;
+    topBannerText?: string | null;
     // Other appearance fields exist but are not used here
     [key: string]: any;
   };
@@ -57,6 +58,7 @@ export const getAppearanceSettings = async (_req: Request, res: Response) => {
       favicon_asset_id: rawValue.ecommerce_favicon_asset_id || rawValue.favicon_asset_id || null,
       logo_url: logoUrl,
       favicon_url: faviconUrl,
+      topBannerText: rawValue.topBannerText || null,
       // Normalized URLs for direct use on the storefront
       logoUrl: normalizeMediaUrl(logoUrl),
       faviconUrl: normalizeMediaUrl(faviconUrl),

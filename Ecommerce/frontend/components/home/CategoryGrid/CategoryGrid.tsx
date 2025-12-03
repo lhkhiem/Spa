@@ -94,7 +94,7 @@ export default function CategoryGrid() {
   }, []);
 
   return (
-    <section className="bg-white py-20 relative">
+    <section className="bg-white pt-8 pb-20 sm:pt-10 sm:pb-20 md:pt-12 md:pb-20 lg:pt-16 lg:pb-20 relative">
       <div className="container-custom">
         <div className="mb-14 text-center">
           <h2 className="mb-4 text-4xl font-bold text-gray-900 md:text-5xl">

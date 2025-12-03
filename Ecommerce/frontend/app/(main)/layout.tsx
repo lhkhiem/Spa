@@ -11,7 +11,7 @@ export default function MainLayout({
   return (
     <>
       <Header />
-      <main className="min-h-screen pt-[120px]">{children}</main>
+      <main className="min-h-screen pt-[120px] bg-white">{children}</main>
       <ContactFormSection />
       <Footer />
       <ScrollToTop />

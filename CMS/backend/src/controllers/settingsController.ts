@@ -25,6 +25,8 @@ const DEFAULTS: Record<string, any> = {
     ecommerce_logo_url: '',
     ecommerce_favicon_asset_id: null,
     ecommerce_favicon_url: '',
+    // Top Banner text for storefront
+    topBannerText: 'Miễn phí vận chuyển cho đơn hàng trên 749.000₫+ | 4.990₫ vận chuyển cho đơn hàng trên 199.000₫+',
   },
   email: {
     smtpHost: '',

@@ -21,7 +21,7 @@ export default function SettingsPage() {
   const backendBase = getNormalizedBackendUrl();
 
   // Namespaced settings state
-  const [general, setGeneral] = useState<any>({ siteName: '', siteDescription: '', siteUrl: '', adminEmail: '', businessInfo: {}, socialLinks: {} });
+  const [general, setGeneral] = useState<any>({ siteName: '', siteDescription: '', siteUrl: '', adminEmail: '', businessInfo: {}, socialLinks: {}, workingHours: {} });
   // Theme mode is managed separately from the rest of appearance to avoid stale state bugs
   // and to ensure the selected option is always what gets applied & saved.
   const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'system'>('light');
@@ -446,6 +446,63 @@ export default function SettingsPage() {
                       <input type="url" value={general.socialLinks?.[k] || ''} onChange={(e)=>setGeneral({ ...general, socialLinks: { ...general.socialLinks, [k]: e.target.value } })} className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm" />
                     </div>
                   ))}
+                </div>
+
+                {/* Working Hours */}
+                <div className="border-t border-border pt-4">
+                  <h4 className="text-sm font-semibold text-foreground mb-4">Giờ làm việc</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Thứ 2 - Thứ 6</label>
+                      <input
+                        type="text"
+                        value={general.workingHours?.mondayFriday || ''}
+                        onChange={(e)=>setGeneral({ ...general, workingHours: { ...general.workingHours, mondayFriday: e.target.value } })}
+                        className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm"
+                        placeholder="9:00 - 18:00 EST"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Thứ 7</label>
+                      <input
+                        type="text"
+                        value={general.workingHours?.saturday || ''}
+                        onChange={(e)=>setGeneral({ ...general, workingHours: { ...general.workingHours, saturday: e.target.value } })}
+                        className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm"
+                        placeholder="10:00 - 16:00 EST"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Chủ nhật</label>
+                      <input
+                        type="text"
+                        value={general.workingHours?.sunday || ''}
+                        onChange={(e)=>setGeneral({ ...general, workingHours: { ...general.workingHours, sunday: e.target.value } })}
+                        className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm"
+                        placeholder="Nghỉ"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Giờ làm việc (Điện thoại)</label>
+                      <input
+                        type="text"
+                        value={general.workingHours?.phoneHours || ''}
+                        onChange={(e)=>setGeneral({ ...general, workingHours: { ...general.workingHours, phoneHours: e.target.value } })}
+                        className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm"
+                        placeholder="Thứ 2-6, 9:00-18:00 EST"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Thời gian phản hồi Email</label>
+                      <input
+                        type="text"
+                        value={general.workingHours?.emailResponse || ''}
+                        onChange={(e)=>setGeneral({ ...general, workingHours: { ...general.workingHours, emailResponse: e.target.value } })}
+                        className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm"
+                        placeholder="Phản hồi trong 24 giờ"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

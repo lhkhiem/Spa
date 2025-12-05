@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import Button from '@/components/ui/Button/Button';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
@@ -8,6 +8,7 @@ import ParallaxSection from '@/components/ui/ParallaxSection/ParallaxSection';
 import { FiMail, FiPhone, FiMapPin, FiClock, FiCheckCircle } from 'react-icons/fi';
 import { submitContactForm } from '@/lib/api/contacts';
 import { handleApiError } from '@/lib/api/client';
+import { fetchGeneralSettings, GeneralSettings } from '@/lib/api/settings';
 import toast from 'react-hot-toast';
 
 // Disable static generation for this page (client component with dynamic content)
@@ -24,11 +25,20 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettings | null>(null);
 
   const breadcrumbItems = [
     { label: 'Trang chủ', href: '/' },
     { label: 'Liên hệ', href: '/contact' },
   ];
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const settings = await fetchGeneralSettings();
+      setGeneralSettings(settings);
+    };
+    loadSettings();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -258,8 +268,12 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">Điện thoại</p>
-                      <p className="text-gray-600">1-800-123-4567</p>
-                      <p className="text-sm text-gray-500">Thứ 2-6, 9:00-18:00 EST</p>
+                      <p className="text-gray-600">
+                        {generalSettings?.businessInfo?.phone || '1-800-123-4567'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {generalSettings?.workingHours?.phoneHours || 'Thứ 2-6, 9:00-18:00 EST'}
+                      </p>
                     </div>
                   </div>
 
@@ -269,8 +283,12 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">Email</p>
-                      <p className="text-gray-600">support@universalcompanies.com</p>
-                      <p className="text-sm text-gray-500">Phản hồi trong 24 giờ</p>
+                      <p className="text-gray-600">
+                        {generalSettings?.businessInfo?.email || 'support@universalcompanies.com'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {generalSettings?.workingHours?.emailResponse || 'Phản hồi trong 24 giờ'}
+                      </p>
                     </div>
                   </div>
 
@@ -280,12 +298,9 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">Địa chỉ</p>
-                      <p className="text-gray-600">
-                        Tầng 5, Toà nhà Thể thao Mai Thế Hệ
-                        <br />
-                        Số 142, đường Nam Thành
-                        <br />
-                        Phường Hoa Lư, Tỉnh Ninh Bình, Việt Nam
+                      <p className="text-gray-600 whitespace-pre-line">
+                        {generalSettings?.businessInfo?.address || 
+                          'Tầng 5, Toà nhà Thể thao Mai Thế Hệ\nSố 142, đường Nam Thành\nPhường Hoa Lư, Tỉnh Ninh Bình, Việt Nam'}
                       </p>
                     </div>
                   </div>
@@ -297,11 +312,33 @@ export default function ContactPage() {
                     <div>
                       <p className="font-semibold text-gray-900">Giờ làm việc</p>
                       <p className="text-gray-600">
-                        Thứ 2 - Thứ 6: 9:00 - 18:00 EST
-                        <br />
-                        Thứ 7: 10:00 - 16:00 EST
-                        <br />
-                        Chủ nhật: Nghỉ
+                        {generalSettings?.workingHours?.mondayFriday ? (
+                          <>
+                            Thứ 2 - Thứ 6: {generalSettings.workingHours.mondayFriday}
+                            <br />
+                          </>
+                        ) : (
+                          <>
+                            Thứ 2 - Thứ 6: 9:00 - 18:00 EST
+                            <br />
+                          </>
+                        )}
+                        {generalSettings?.workingHours?.saturday ? (
+                          <>
+                            Thứ 7: {generalSettings.workingHours.saturday}
+                            <br />
+                          </>
+                        ) : (
+                          <>
+                            Thứ 7: 10:00 - 16:00 EST
+                            <br />
+                          </>
+                        )}
+                        {generalSettings?.workingHours?.sunday ? (
+                          <>Chủ nhật: {generalSettings.workingHours.sunday}</>
+                        ) : (
+                          <>Chủ nhật: Nghỉ</>
+                        )}
                       </p>
                     </div>
                   </div>

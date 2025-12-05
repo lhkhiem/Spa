@@ -82,4 +82,61 @@ export const getAppearanceSettings = async (_req: Request, res: Response) => {
   }
 };
 
+interface GeneralSettingsRow {
+  value?: {
+    businessInfo?: {
+      company?: string;
+      address?: string;
+      taxCode?: string;
+      phone?: string;
+      email?: string;
+    };
+    workingHours?: {
+      mondayFriday?: string;
+      saturday?: string;
+      sunday?: string;
+      phoneHours?: string;
+      emailResponse?: string;
+    };
+    [key: string]: any;
+  };
+}
+
+export const getGeneralSettings = async (_req: Request, res: Response) => {
+  try {
+    const result = await sequelize.query<GeneralSettingsRow>(
+      'SELECT value FROM settings WHERE namespace = :ns',
+      {
+        type: QueryTypes.SELECT,
+        replacements: { ns: 'general' },
+      }
+    );
+
+    const row = result[0];
+    const rawValue = row?.value || {};
+
+    // Only expose business info and working hours for public use
+    const responsePayload = {
+      businessInfo: rawValue.businessInfo || {},
+      workingHours: rawValue.workingHours || {},
+    };
+
+    return res.json({
+      success: true,
+      data: responsePayload,
+    });
+  } catch (error: any) {
+    console.error('[PublicSettings] Failed to load general settings:', {
+      message: error?.message,
+      stack: error?.stack,
+      code: error?.code,
+    });
+
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to load general settings',
+    });
+  }
+};
+
 

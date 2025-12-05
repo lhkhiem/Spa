@@ -11,6 +11,13 @@ const DEFAULTS: Record<string, any> = {
     adminEmail: 'admin@pressup.com',
     businessInfo: { company: '', address: '', taxCode: '', phone: '', email: '' },
     socialLinks: { facebook: '', youtube: '', tiktok: '', linkedin: '', twitter: '' },
+    workingHours: {
+      mondayFriday: '9:00 - 18:00 EST',
+      saturday: '10:00 - 16:00 EST',
+      sunday: 'Nghỉ',
+      phoneHours: 'Thứ 2-6, 9:00-18:00 EST',
+      emailResponse: 'Phản hồi trong 24 giờ',
+    },
   },
   appearance: {
     themeMode: 'system',

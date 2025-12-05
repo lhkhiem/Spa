@@ -196,7 +196,7 @@ export default function TinyMCEEditor({
           autosave_restore_when_empty: true,
           autosave_ask_before_unload: true,
           branding: false,
-          browser_spellcheck: true,
+          browser_spellcheck: false, // Tắt spell checking để không hiển thị gạch chân đỏ cho tiếng Việt
           promotion: false,
           contextmenu: 'undo redo | copy paste | link image table',
           // Cấu hình entity encoding để không encode ký tự tiếng Việt

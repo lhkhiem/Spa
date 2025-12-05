@@ -155,9 +155,11 @@ export default function NewsletterForm({
       className={className} 
       style={{ 
         display: 'flex', 
+        flexDirection: 'row',
         position: 'relative', 
         zIndex: 10,
         isolation: 'isolate',
+        width: '100%',
       }}
       onClick={(e) => {
         console.log('[NewsletterForm] Form clicked:', e.target);
@@ -175,7 +177,8 @@ export default function NewsletterForm({
         className={inputClassName}
         required
         style={{ 
-          flex: 1, 
+          flex: '1 1 auto',
+          minWidth: 0,
           position: 'relative', 
           zIndex: 1,
         }}
@@ -205,6 +208,7 @@ export default function NewsletterForm({
           userSelect: 'none',
           touchAction: 'manipulation',
           WebkitTapHighlightColor: 'transparent',
+          flexShrink: 0,
         }}
         onMouseDown={(e) => {
           console.log('[NewsletterForm] Button mouse down');

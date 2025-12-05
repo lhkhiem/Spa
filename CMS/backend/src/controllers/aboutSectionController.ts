@@ -6,11 +6,14 @@ import { Op } from 'sequelize';
 // Get all about sections
 export const getAllAboutSections = async (req: Request, res: Response) => {
   try {
-    const { active_only } = req.query;
+    const { active_only, section_key } = req.query;
     
     const where: any = {};
     if (active_only === 'true') {
       where.is_active = true;
+    }
+    if (section_key) {
+      where.section_key = section_key;
     }
     
     const sections = await AboutSection.findAll({
@@ -18,10 +21,11 @@ export const getAllAboutSections = async (req: Request, res: Response) => {
       order: [['order_index', 'ASC'], ['created_at', 'DESC']],
     });
     
-    res.json({ data: sections });
+    res.json({ success: true, data: sections });
   } catch (error: any) {
     console.error('[getAllAboutSections] Error:', error.message);
     res.status(500).json({ 
+      success: false,
       error: 'Failed to fetch about sections',
       message: error.message 
     });

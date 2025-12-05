@@ -31,6 +31,7 @@ import {
   Mail,
   PhoneCall,
   Info,
+  HelpCircle,
 } from 'lucide-react';
 
 // Sidebar Context
@@ -179,6 +180,11 @@ const navigation = [
         title: 'Newsletter',
         href: '/dashboard/newsletter',
         icon: Mail,
+      },
+      {
+        title: 'FAQs',
+        href: '/dashboard/faqs',
+        icon: HelpCircle,
       },
       // Disabled: Customer management features not needed
       // {

@@ -169,13 +169,32 @@ export const fetchOrder = async (orderId: string): Promise<Order> => {
  * Create a new order
  */
 export const createOrder = async (payload: CreateOrderPayload): Promise<Order> => {
-  const response = await apiClient.post<OrderDTO | OrderResponse>(API_ENDPOINTS.ORDERS.CREATE, payload);
+  console.log('[API] Creating order, endpoint:', API_ENDPOINTS.ORDERS.CREATE);
+  console.log('[API] Payload:', {
+    customer_email: payload.customer_email,
+    customer_name: payload.customer_name,
+    payment_method: payload.payment_method,
+    items_count: payload.items.length,
+  });
   
-  // Backend returns OrderDTO directly (not wrapped in { data: ... })
-  // Handle both cases: direct OrderDTO or wrapped OrderResponse
-  const orderDTO: OrderDTO = 'data' in response.data ? response.data.data : response.data as OrderDTO;
-  
-  return mapOrderDTOToOrder(orderDTO);
+  try {
+    const response = await apiClient.post<OrderDTO | OrderResponse>(API_ENDPOINTS.ORDERS.CREATE, payload);
+    
+    console.log('[API] Order created, response:', {
+      hasData: !!response.data,
+      orderNumber: 'data' in response.data ? response.data.data?.order_number : (response.data as OrderDTO)?.order_number,
+    });
+    
+    // Backend returns OrderDTO directly (not wrapped in { data: ... })
+    // Handle both cases: direct OrderDTO or wrapped OrderResponse
+    const orderDTO: OrderDTO = 'data' in response.data ? response.data.data : response.data as OrderDTO;
+    
+    return mapOrderDTOToOrder(orderDTO);
+  } catch (error) {
+    console.error('[API] Error creating order:', error);
+    console.error('[API] Error response:', error instanceof Error ? error.message : String(error));
+    throw error;
+  }
 };
 
 /**

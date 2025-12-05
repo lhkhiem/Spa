@@ -81,16 +81,47 @@ export const getHeroSliders = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: (slides as any[]).map((slide) => ({
-        id: slide.id,
-        title: slide.title,
-        description: slide.description,
-        ctaText: slide.button_text,
-        ctaLink: slide.button_link,
-        imageUrl: normalizeMediaUrl(slide.image_url),
-        order: slide.order_index,
-        isActive: slide.is_active,
-      })),
+      data: (slides as any[]).map((slide) => {
+        const originalUrl = slide.image_url;
+        const normalizedUrl = normalizeMediaUrl(slide.image_url);
+        
+        // Log for debugging
+        if (originalUrl && (originalUrl.includes('localhost') || originalUrl.includes('127.0.0.1'))) {
+          console.warn(`[getHeroSliders] Found localhost in slide ${slide.id}:`, originalUrl);
+          console.warn(`[getHeroSliders] Normalized to:`, normalizedUrl);
+        }
+        
+        // Safety check: if normalized URL still has localhost, force replace
+        if (normalizedUrl && (normalizedUrl.includes('localhost') || normalizedUrl.includes('127.0.0.1'))) {
+          console.error(`[getHeroSliders] CRITICAL: Normalized URL still has localhost!`, normalizedUrl);
+          // Force replace one more time
+          const forcedUrl = normalizedUrl
+            .replace(/https?:\/\/localhost(:\d+)?/gi, 'https://ecommerce-api.banyco.vn')
+            .replace(/https?:\/\/127\.0\.0\.1(:\d+)?/gi, 'https://ecommerce-api.banyco.vn');
+          console.error(`[getHeroSliders] Forced replacement:`, forcedUrl);
+          return {
+            id: slide.id,
+            title: slide.title,
+            description: slide.description,
+            ctaText: slide.button_text,
+            ctaLink: slide.button_link,
+            imageUrl: forcedUrl,
+            order: slide.order_index,
+            isActive: slide.is_active,
+          };
+        }
+        
+        return {
+          id: slide.id,
+          title: slide.title,
+          description: slide.description,
+          ctaText: slide.button_text,
+          ctaLink: slide.button_link,
+          imageUrl: normalizedUrl,
+          order: slide.order_index,
+          isActive: slide.is_active,
+        };
+      }),
     });
   } catch (error) {
     console.error('[public] Failed to fetch hero sliders:', error);
@@ -215,18 +246,39 @@ export const getBestSellerProducts = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: (products as any[]).map((product) => ({
-        id: product.id,
-        name: product.name,
-        slug: product.slug,
-        price: Number(product.price) || 0,
-        salePrice: product.compare_price ? Number(product.compare_price) : null,
-        imageUrl: normalizeMediaUrl(product.image_url),
-        rating: product.average_rating ? Number(product.average_rating) : null,
-        reviewCount: Number(product.review_count) || 0,
-        inStock: Number(product.stock) > 0,
-        badge: 'Best Seller',
-      })),
+      data: (products as any[]).map((product) => {
+        const rawPrice = product.price !== null && product.price !== undefined
+          ? Number(product.price)
+          : 0;
+        const rawCompare =
+          product.compare_price !== null && product.compare_price !== undefined
+            ? Number(product.compare_price)
+            : null;
+
+        // Chuẩn TMĐT:
+        // - rawPrice: giá đang bán (discounted)
+        // - rawCompare: giá gốc (cao hơn) nếu có
+        const hasDiscount = rawCompare !== null && rawCompare > rawPrice;
+
+        // ProductCard mong đợi:
+        // - price: giá gốc (để gạch ngang)
+        // - salePrice: giá giảm (hiển thị lớn + dùng để order)
+        const displayPrice = hasDiscount ? rawCompare! : rawPrice;
+        const salePrice = hasDiscount ? rawPrice : null;
+
+        return {
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          price: displayPrice,
+          salePrice,
+          imageUrl: normalizeMediaUrl(product.image_url),
+          rating: product.average_rating ? Number(product.average_rating) : null,
+          reviewCount: Number(product.review_count) || 0,
+          inStock: Number(product.stock) > 0,
+          badge: 'Best Seller',
+        };
+      }),
     });
   } catch (error) {
     console.error('[public] Failed to fetch best seller products:', error);

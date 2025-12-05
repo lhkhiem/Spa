@@ -528,11 +528,11 @@ export const createOrder = async (req: Request, res: Response) => {
           const movementQuery = `
             INSERT INTO stock_movements (
               id, product_id, variant_id, quantity, previous_stock, new_stock,
-              reference_type, reference_id, notes, user_id, created_at
+              reference_type, reference_id, notes, created_by, created_at
             )
             VALUES (
               gen_random_uuid(), :product_id, :variant_id, :quantity, :previous_stock, :new_stock,
-              :reference_type, :reference_id, :notes, :user_id, CURRENT_TIMESTAMP
+              :reference_type, :reference_id, :notes, :created_by, CURRENT_TIMESTAMP
             )
           `;
           await sequelize.query(movementQuery, {
@@ -545,7 +545,7 @@ export const createOrder = async (req: Request, res: Response) => {
               reference_type: 'order',
               reference_id: orderId,
               notes: `Order ${orderNumber} - Sale`,
-              user_id: userId || null
+              created_by: userId || null
             },
             type: QueryTypes.INSERT
           });
@@ -574,6 +574,76 @@ export const createOrder = async (req: Request, res: Response) => {
       });
       fullOrder.items = orderItems.map((item: any) => normalizeOrderItem(item));
       normalizeOrderRow(fullOrder);
+
+      // Send order confirmation email for COD and other non-ZaloPay payments.
+      // For ZaloPay, email will be sent AFTER payment is confirmed in the callback.
+      try {
+        if (payment_method === 'zalopay') {
+          console.log('[createOrder] Payment method is ZaloPay, email will be sent after payment confirmation');
+        } else {
+          console.log('[createOrder] Attempting to send order confirmation email (Ecommerce backend)...');
+
+          const { emailService } = await import('../services/email');
+          const { getOrderConfirmationTemplate } = await import('../utils/emailTemplates');
+          const { getSiteUrl } = await import('../utils/domainUtils');
+
+          if (emailService.isEnabled()) {
+            const shippingAddress =
+              typeof fullOrder.shipping_address === 'string'
+                ? JSON.parse(fullOrder.shipping_address)
+                : fullOrder.shipping_address;
+
+            const siteUrl = getSiteUrl();
+            const orderUrl = `${siteUrl}/order-lookup`;
+
+            const emailData = {
+              customerName: fullOrder.customer_name,
+              customerEmail: fullOrder.customer_email,
+              orderNumber: fullOrder.order_number,
+              orderDate: fullOrder.created_at || new Date(),
+              total: Number(fullOrder.total),
+              paymentMethod: fullOrder.payment_method,
+              items: orderItems.map((item: any) => ({
+                name: item.product_name,
+                quantity: item.quantity,
+                price: Number(item.unit_price),
+                subtotal: Number(item.total_price),
+              })),
+              shippingAddress: {
+                name: shippingAddress?.name || fullOrder.customer_name,
+                phone: shippingAddress?.phone || fullOrder.customer_phone,
+                address: shippingAddress?.address || shippingAddress?.street || '',
+                city: shippingAddress?.city || '',
+                district: shippingAddress?.district || '',
+                ward: shippingAddress?.ward || '',
+              },
+              orderUrl,
+            };
+
+            console.log('[createOrder] Preparing to send email to:', fullOrder.customer_email);
+            const emailHtml = getOrderConfirmationTemplate(emailData);
+            const emailSent = await emailService.sendEmail({
+              to: fullOrder.customer_email,
+              subject: `Xác nhận đơn hàng ${fullOrder.order_number} - Banyco`,
+              html: emailHtml,
+            });
+
+            if (emailSent) {
+              console.log('[createOrder] ✅ Order confirmation email sent successfully (Ecommerce backend)');
+            } else {
+              console.error('[createOrder] ❌ Failed to send order confirmation email (Ecommerce backend)');
+            }
+          } else {
+            console.warn('[createOrder] Email service is not enabled in Ecommerce backend, skipping email send');
+          }
+        }
+      } catch (emailError: any) {
+        console.error('[createOrder] Error sending order confirmation email (Ecommerce backend):', {
+          message: emailError?.message,
+          stack: emailError?.stack,
+        });
+        // Do not fail order creation if email sending fails
+      }
 
       // If payment method is ZaloPay, return order with payment_redirect flag
       // Frontend should call /api/payments/zalopay/create to get order_url

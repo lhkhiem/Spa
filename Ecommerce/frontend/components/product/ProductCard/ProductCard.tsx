@@ -1,8 +1,8 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils/formatters';
 import Badge from '@/components/ui/Badge/Badge';
 import AddToCartButton from '@/components/product/AddToCartButton/AddToCartButton';
+import SafeImage from '@/components/ui/SafeImage/SafeImage';
 
 interface ProductCardProps {
   product: {
@@ -45,7 +45,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Product Image - Perfect Square */}
       <Link href={`/products/${product.slug}`}>
         <div className="relative w-full aspect-square overflow-hidden bg-gray-100">
-          <Image
+          <SafeImage
             src={product.image || '/images/placeholder-product.jpg'}
             alt={product.name}
             fill

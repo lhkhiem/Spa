@@ -46,6 +46,7 @@ import activityLogRoutes from './routes/activityLogs'; // Activity tracking
 import syncMetadataRoutes from './routes/syncMetadata'; // Metadata sync
 import debugSeoRoutes from './routes/debugSeo'; // Debug SEO
 import pageMetadataRoutes from './routes/pageMetadata'; // Page metadata CRUD
+import faqRoutes from './routes/faqs'; // FAQ management
 // Ecommerce routes - COMMENTED (moved to Ecommerce Backend)
 // import newsletterRoutes from './routes/newsletter'; // Moved to Ecommerce Backend
 // import publicUserRoutes from './routes/publicUser'; // Disabled: Customer user management not needed
@@ -128,6 +129,30 @@ const buildAllowedOrigins = (): string[] => {
     }
   }
   
+  // Explicitly add banyco.vn domains (production)
+  origins.push(
+    'https://banyco.vn',
+    'http://banyco.vn',
+    'https://www.banyco.vn',
+    'http://www.banyco.vn',
+    'https://ecommerce-api.banyco.vn',
+    'http://ecommerce-api.banyco.vn',
+    'https://api.banyco.vn',
+    'http://api.banyco.vn',
+    'https://admin.banyco.vn',
+    'http://admin.banyco.vn'
+  );
+  
+  // Demo domains (temporary - for testing/transition)
+  origins.push(
+    'https://admin.banyco-demo.pressup.vn',
+    'http://admin.banyco-demo.pressup.vn',
+    'https://banyco-demo.pressup.vn',
+    'http://banyco-demo.pressup.vn',
+    'https://api.banyco-demo.pressup.vn',
+    'http://api.banyco-demo.pressup.vn'
+  );
+  
   // Remove duplicates
   return [...new Set(origins)];
 };
@@ -186,6 +211,7 @@ app.use('/api/about-sections', aboutSectionRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/debug', debugSeoRoutes);
 app.use('/api/page-metadata', pageMetadataRoutes);
+app.use('/api/faqs', faqRoutes);
 
 // Ecommerce routes - COMMENTED (moved to Ecommerce Backend)
 // These routes are now handled by Ecommerce Backend (port 3012)
@@ -206,10 +232,22 @@ app.use('/api/orders', orderRoutes); // Admin order management (public routes ha
     const tempDir = path.resolve(__dirname, '../storage/temp');
     await fs.mkdir(uploadDir, { recursive: true });
     await fs.mkdir(tempDir, { recursive: true });
+    
+    // Add CORS headers for static files (images) - allow all origins for images
+    const staticOptions = {
+      setHeaders: (res: express.Response, filePath: string) => {
+        // Allow all origins for images (no CORS restrictions for static assets)
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+      }
+    };
+    
     // Static: serve uploads from storage/uploads to keep public URL stable as /uploads
-    app.use('/uploads', express.static(uploadDir));
+    app.use('/uploads', express.static(uploadDir, staticOptions));
     // Fallback to legacy uploads dir if file not found in storage
-    app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
+    app.use('/uploads', express.static(path.resolve(__dirname, '../uploads'), staticOptions));
   } catch (e) {
     // eslint-disable-next-line no-console
     console.warn('Failed to ensure upload/temp dirs:', e);

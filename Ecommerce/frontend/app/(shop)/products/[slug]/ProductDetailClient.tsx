@@ -1,12 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
-import { FiHeart, FiShare2, FiStar } from 'react-icons/fi';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FiShare2, FiStar, FiCopy, FiFacebook, FiTwitter } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/ui/Breadcrumb/Breadcrumb';
 import AddToCartButton from '@/components/product/AddToCartButton/AddToCartButton';
 import ProductCard from '@/components/product/ProductCard/ProductCard';
+import SafeImage from '@/components/ui/SafeImage/SafeImage';
 
 const FALLBACK_IMAGE = '/images/placeholder-product.jpg';
 
@@ -113,6 +113,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'details' | 'reviews'>('details');
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
 
   const defaultVariant = useMemo(() => {
     if (!variants.length) {
@@ -488,6 +490,81 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   const imageForCart = images[selectedImage]?.url ?? productImagesFallback(product);
 
+  // Close share menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false);
+      }
+    };
+
+    if (showShareMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showShareMenu]);
+
+  // Get current product URL
+  const productUrl = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.href;
+    }
+    return '';
+  }, []);
+
+  // Share functions
+  const handleShare = useCallback(async () => {
+    const shareData = {
+      title: product.name,
+      text: product.description || `Xem sản phẩm ${product.name}`,
+      url: productUrl,
+    };
+
+    // Try Web Share API first (mobile browsers)
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        setShowShareMenu(false);
+        return;
+      } catch (err) {
+        // User cancelled or error occurred
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+    }
+
+    // Fallback: show share menu
+    setShowShareMenu(!showShareMenu);
+  }, [product.name, product.description, productUrl, showShareMenu]);
+
+  const copyToClipboard = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(productUrl);
+      setShowShareMenu(false);
+      // You could add a toast notification here
+      alert('Đã sao chép link vào clipboard!');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      alert('Không thể sao chép link');
+    }
+  }, [productUrl]);
+
+  const shareOnFacebook = useCallback(() => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+    setShowShareMenu(false);
+  }, [productUrl]);
+
+  const shareOnTwitter = useCallback(() => {
+    const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(productUrl)}&text=${encodeURIComponent(product.name)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+    setShowShareMenu(false);
+  }, [productUrl, product.name]);
+
   const renderDescription = () => {
     if (!product.description) {
       return (
@@ -530,12 +607,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   Tiết kiệm {discountPercentage}%
                 </div>
               )}
-              <Image
+              <SafeImage
                 src={images[selectedImage]?.url ?? FALLBACK_IMAGE}
                 alt={product.name}
                 fill
                 className="object-cover"
                 priority
+                fallbackSrc={FALLBACK_IMAGE}
               />
             </div>
 
@@ -550,11 +628,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <Image
+                  <SafeImage
                     src={image.url ?? FALLBACK_IMAGE}
                     alt={`${product.name} ${index + 1}`}
                     fill
                     className="object-cover"
+                    fallbackSrc={FALLBACK_IMAGE}
                   />
                 </button>
               ))}
@@ -574,7 +653,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   </span>
                 )}
               </div>
-              <h1 className="mb-4 text-3xl font-bold text-gray-900">
+              <h1 className="mb-4 break-words text-2xl font-bold text-gray-900 sm:text-3xl">
                 {productTitleForDisplay}
               </h1>
 
@@ -584,7 +663,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     <FiStar
                       key={i}
                       className={`h-5 w-5 ${
-                        i < Math.round(product.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                        i < Math.round(product.rating || 5) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
                       }`}
                     />
                   ))}
@@ -672,12 +751,43 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 />
                 <div className="flex gap-3">
                   <button className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-300 px-4 py-3 text-gray-700 hover:bg-gray-50">
-                    <FiHeart className="h-5 w-5" />
-                    Lưu vào danh sách yêu thích
+                    Mua ngay
                   </button>
-                  <button className="flex items-center justify-center gap-2 rounded-md border border-gray-300 px-4 py-3 text-gray-700 hover:bg-gray-50">
-                    <FiShare2 className="h-5 w-5" />
-                  </button>
+                  <div className="relative" ref={shareMenuRef}>
+                    <button
+                      onClick={handleShare}
+                      className="flex items-center justify-center gap-2 rounded-md border border-gray-300 px-4 py-3 text-gray-700 hover:bg-gray-50"
+                    >
+                      <FiShare2 className="h-5 w-5" />
+                    </button>
+                    {showShareMenu && (
+                      <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
+                        <div className="py-1">
+                          <button
+                            onClick={copyToClipboard}
+                            className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            <FiCopy className="h-4 w-4" />
+                            <span>Sao chép link</span>
+                          </button>
+                          <button
+                            onClick={shareOnFacebook}
+                            className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            <FiFacebook className="h-4 w-4" />
+                            <span>Chia sẻ Facebook</span>
+                          </button>
+                          <button
+                            onClick={shareOnTwitter}
+                            className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            <FiTwitter className="h-4 w-4" />
+                            <span>Chia sẻ Twitter</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

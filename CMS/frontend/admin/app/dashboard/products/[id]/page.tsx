@@ -490,7 +490,7 @@ export default function ProductFormPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Giá so sánh
+                  Giá so sánh (Giá gốc)
                 </label>
                 <input
                   type="number"
@@ -513,7 +513,7 @@ export default function ProductFormPage() {
                     setFormData((prev) => ({ ...prev, compare_price: value }));
                   }}
                   className="w-full px-4 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  placeholder="Giá so sánh (VNĐ, không có số thập phân)"
+                  placeholder="Giá so sánh (Giá gốc, VNĐ, không có số thập phân)"
                 />
               </div>
             </div>

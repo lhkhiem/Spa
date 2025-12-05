@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button/Button';
 import { fetchHeroSlides, HeroSlideDTO } from '@/lib/api/publicHomepage';
+import { normalizeMediaUrl } from '@/lib/utils/domainUtils';
 
 interface Slide {
   id: string;
@@ -62,29 +63,54 @@ export default function HeroSlider() {
     const loadSlides = async () => {
       try {
         const data = await fetchHeroSlides();
-        if (!isMounted || !data.length) {
+        console.log('[HeroSlider] Fetched slides:', data);
+        
+        if (!isMounted) {
+          return;
+        }
+
+        if (!data || !data.length) {
+          console.warn('[HeroSlider] No slides returned from API, using fallback slides');
           return;
         }
 
         const mapped: Slide[] = data
-          .map((slide: HeroSlideDTO) => ({
-            id: slide.id,
-            image: slide.imageUrl ?? '',
-            title: slide.title,
-            description: slide.description ?? '',
-            ctaText: slide.ctaText ?? 'Learn More',
-            ctaLink: slide.ctaLink ?? '#',
-          }))
-          .filter((slide) => Boolean(slide.image));
+          .map((slide: HeroSlideDTO) => {
+            // CRITICAL: Normalize image URL to remove localhost and ensure correct domain
+            const normalizedImageUrl = normalizeMediaUrl(slide.imageUrl);
+            return {
+              id: slide.id,
+              image: normalizedImageUrl ?? '',
+              title: slide.title,
+              description: slide.description ?? '',
+              ctaText: slide.ctaText ?? 'Learn More',
+              ctaLink: slide.ctaLink ?? '#',
+            };
+          })
+          .filter((slide) => {
+            const hasImage = Boolean(slide.image);
+            if (!hasImage) {
+              console.warn('[HeroSlider] Slide filtered out (no image):', slide.id, slide.title);
+            }
+            // Additional check: reject any slide with localhost in image URL
+            if (hasImage && (slide.image.includes('localhost') || slide.image.includes('127.0.0.1'))) {
+              console.error('[HeroSlider] CRITICAL: Slide image still contains localhost after normalization!', slide.id, slide.image);
+              return false;
+            }
+            return hasImage;
+          });
 
         if (!mapped.length) {
+          console.warn('[HeroSlider] No slides with images after filtering, using fallback slides');
           return;
         }
 
+        console.log('[HeroSlider] Setting slides:', mapped);
         setSlides(mapped);
         setCurrentSlide(0);
       } catch (error) {
         console.error('[HeroSlider] failed to load slides', error);
+        // Keep fallback slides on error
       }
     };
 

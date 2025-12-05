@@ -397,6 +397,23 @@ html body .prose [style*="font-family"] * * {
   padding: 8px !important;
 }
 
+/* Allow tables without borders when border="0" is set or no-border class */
+.prose table[border="0"] td,
+.prose table[border="0"] th,
+.prose table.no-border td,
+.prose table.no-border th,
+.prose table[style*="border: 0"] td,
+.prose table[style*="border:0"] td,
+.prose table[style*="border: 0"] th,
+.prose table[style*="border:0"] th {
+  border: none !important;
+}
+
+.prose table[border="0"],
+.prose table.no-border {
+  border: none !important;
+}
+
 /* Blockquote - match với TinyMCE */
 .prose blockquote {
   border-left: 4px solid #1d4ed8 !important;

@@ -293,6 +293,16 @@ export const getOrderByNumber = async (req: Request, res: Response) => {
 
 // Create new order from cart
 export const createOrder = async (req: Request, res: Response) => {
+  console.log('[createOrder] ========== NEW ORDER REQUEST ==========');
+  console.log('[createOrder] Request received at:', new Date().toISOString());
+  console.log('[createOrder] Request body:', {
+    customer_email: req.body?.customer_email,
+    customer_name: req.body?.customer_name,
+    customer_phone: req.body?.customer_phone,
+    payment_method: req.body?.payment_method,
+    items_count: req.body?.items?.length,
+  });
+  
   try {
     const {
       customer_id,
@@ -574,6 +584,74 @@ export const createOrder = async (req: Request, res: Response) => {
       });
       fullOrder.items = orderItems.map((item: any) => normalizeOrderItem(item));
       normalizeOrderRow(fullOrder);
+
+      // Send order confirmation email (for COD orders or when order is created)
+      // For ZaloPay, email will be sent after payment is confirmed
+      if (payment_method !== 'zalopay') {
+        try {
+          console.log('[createOrder] Attempting to send order confirmation email...');
+          const { emailService } = await import('../services/email');
+          const { getOrderConfirmationTemplate } = await import('../utils/emailTemplates');
+          
+          if (emailService.isEnabled()) {
+            const shippingAddress = typeof fullOrder.shipping_address === 'string' 
+              ? JSON.parse(fullOrder.shipping_address) 
+              : fullOrder.shipping_address;
+
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.WEBSITE_ORIGIN || 'https://banyco.vn';
+            const orderUrl = `${siteUrl}/order-lookup`;
+
+            const emailData = {
+              customerName: fullOrder.customer_name,
+              customerEmail: fullOrder.customer_email,
+              orderNumber: fullOrder.order_number,
+              orderDate: fullOrder.created_at || new Date(),
+              total: Number(fullOrder.total),
+              paymentMethod: fullOrder.payment_method,
+              items: orderItems.map((item: any) => ({
+                name: item.product_name,
+                quantity: item.quantity,
+                price: Number(item.unit_price),
+                subtotal: Number(item.total_price),
+              })),
+              shippingAddress: {
+                name: shippingAddress?.name || fullOrder.customer_name,
+                phone: shippingAddress?.phone || fullOrder.customer_phone,
+                address: shippingAddress?.address || shippingAddress?.street || '',
+                city: shippingAddress?.city || '',
+                district: shippingAddress?.district || '',
+                ward: shippingAddress?.ward || '',
+              },
+              orderUrl,
+            };
+
+            console.log('[createOrder] Preparing to send email to:', fullOrder.customer_email);
+            const emailHtml = getOrderConfirmationTemplate(emailData);
+            const emailSent = await emailService.sendEmail({
+              to: fullOrder.customer_email,
+              subject: `Xác nhận đơn hàng ${fullOrder.order_number} - Banyco`,
+              html: emailHtml,
+            });
+
+            if (emailSent) {
+              console.log('[createOrder] ✅ Order confirmation email sent successfully');
+            } else {
+              console.error('[createOrder] ❌ Failed to send order confirmation email');
+            }
+          } else {
+            console.warn('[createOrder] Email service is not enabled, skipping email send');
+          }
+        } catch (emailError: any) {
+          // Don't fail order creation if email fails
+          console.error('[createOrder] Error sending order confirmation email:', {
+            message: emailError?.message,
+            stack: emailError?.stack,
+            error: emailError,
+          });
+        }
+      } else {
+        console.log('[createOrder] Payment method is ZaloPay, email will be sent after payment confirmation');
+      }
 
       // If payment method is ZaloPay, return order with payment_redirect flag
       // Frontend should call /api/payments/zalopay/create to get order_url

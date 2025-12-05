@@ -138,9 +138,9 @@ export default function Footer() {
               </h3>
               <NewsletterForm
                 source="footer"
-                className="flex flex-col sm:flex-row mb-4"
-                inputClassName="flex-1 rounded-t-md sm:rounded-l-md sm:rounded-tr-none border-0 px-4 py-3 text-gray-900"
-                buttonClassName="rounded-b-md sm:rounded-r-md sm:rounded-bl-none bg-brand-purple-600 px-6 py-3 text-white hover:bg-brand-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex flex-row mb-4 gap-2"
+                inputClassName="flex-1 rounded-md border-0 px-4 py-3 text-gray-900"
+                buttonClassName="rounded-md bg-brand-purple-600 px-6 py-3 text-white hover:bg-brand-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap shrink-0"
                 placeholder="Nhập email của bạn"
                 buttonText="Đăng Ký"
               />

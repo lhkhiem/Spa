@@ -22,6 +22,8 @@ import ConsultationSubmission from './ConsultationSubmission';
 import AboutSection from './AboutSection';
 import PageMetadata from './PageMetadata';
 import NewsletterSubscription from './NewsletterSubscription';
+import FAQCategory from './FAQCategory';
+import FAQQuestion from './FAQQuestion';
 
 // Define all associations here
 // Define explicit through models (no timestamps) for many-to-many junctions
@@ -151,6 +153,17 @@ User.hasMany(ConsultationSubmission, {
   as: 'repliedConsultations',
 });
 
+// FAQ associations
+FAQCategory.hasMany(FAQQuestion, {
+  foreignKey: 'category_id',
+  as: 'questions',
+});
+
+FAQQuestion.belongsTo(FAQCategory, {
+  foreignKey: 'category_id',
+  as: 'category',
+});
+
 // Export all models
 export {
   Post,
@@ -175,5 +188,7 @@ export {
   AboutSection,
   PageMetadata,
   NewsletterSubscription,
+  FAQCategory,
+  FAQQuestion,
 };
 

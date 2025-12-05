@@ -478,15 +478,21 @@ router.post('/zalopay/callback', async (req: Request, res: Response) => {
         };
 
         if (emailService.isEnabled()) {
+          console.log('[ZaloPay Callback] Sending order confirmation email to:', order.customer_email);
           const emailHtml = getOrderConfirmationTemplate(emailData);
-          emailService.sendEmail({
+          const emailSent = await emailService.sendEmail({
             to: order.customer_email,
             subject: `Xác nhận đơn hàng ${order.order_number} - Banyco`,
             html: emailHtml,
-          }).catch((error) => {
-            console.error('[ZaloPay Callback] Failed to send confirmation email:', error);
-            // Don't fail the callback if email fails
           });
+          
+          if (emailSent) {
+            console.log('[ZaloPay Callback] ✅ Order confirmation email sent successfully');
+          } else {
+            console.error('[ZaloPay Callback] ❌ Failed to send order confirmation email');
+          }
+        } else {
+          console.warn('[ZaloPay Callback] Email service is not enabled, skipping email send');
         }
       } catch (emailError: any) {
         console.error('[ZaloPay Callback] Email error:', emailError);
@@ -718,14 +724,21 @@ router.get('/zalopay/query/:appTransId', async (req: Request, res: Response) => 
           };
 
           if (emailService.isEnabled()) {
+            console.log('[Payments] Query - Sending order confirmation email to:', order.customer_email);
             const emailHtml = getOrderConfirmationTemplate(emailData);
-            emailService.sendEmail({
+            const emailSent = await emailService.sendEmail({
               to: order.customer_email,
               subject: `Xác nhận đơn hàng ${order.order_number} - Banyco`,
               html: emailHtml,
-            }).catch((error) => {
-              console.error('[Payments] Query - Failed to send confirmation email:', error);
             });
+            
+            if (emailSent) {
+              console.log('[Payments] Query - ✅ Order confirmation email sent successfully');
+            } else {
+              console.error('[Payments] Query - ❌ Failed to send order confirmation email');
+            }
+          } else {
+            console.warn('[Payments] Query - Email service is not enabled, skipping email send');
           }
         } catch (emailError: any) {
           console.error('[Payments] Query - Email error:', emailError);

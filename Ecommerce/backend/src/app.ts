@@ -48,6 +48,8 @@ import analyticsRoutes from './routes/analytics'; // Public analytics tracking
 // import publicPostsRoutes from './routes/publicPosts'; // CMS only
 // import publicHomepageRoutes from './routes/publicHomepage'; // CMS only
 import publicPageMetadataRoutes from './routes/publicPageMetadata'; // Public SEO metadata for pages
+import publicFAQsRoutes from './routes/publicFAQs'; // Public FAQs
+import publicAboutSectionsRoutes from './routes/publicAboutSections'; // Public About Sections
 import contactRoutes from './routes/contacts'; // Public contact form submissions
 import consultationRoutes from './routes/consultations'; // Public consultation form submissions
 // import emailRoutes from './routes/email'; // CMS only
@@ -140,6 +142,8 @@ app.use('/api/contacts', contactRoutes); // Contact form submissions (public POS
 app.use('/api/analytics', analyticsRoutes); // Analytics tracking (public POST /track only)
 app.use('/api/tracking-scripts', trackingScriptRoutes); // Tracking scripts (analytics) - public endpoint only
 app.use('/api/public/page-metadata', publicPageMetadataRoutes); // Public SEO metadata (used by ecommerce frontend)
+app.use('/api/public/faqs', publicFAQsRoutes); // Public FAQs (used by ecommerce frontend)
+app.use('/api/public/about-sections', publicAboutSectionsRoutes); // Public About Sections (used by ecommerce frontend)
 app.use('/api/health', healthRoutes); // Health check
 
 // Ensure upload and temp dirs on boot and serve uploads
@@ -176,8 +180,19 @@ app.use('/api/health', healthRoutes); // Health check
     }
     
     // Serve uploads - CMS storage first (shared), then fallbacks
-    app.use('/uploads', express.static(uploadDir));
-    app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
+    // Add CORS headers for static files (images) - allow all origins for images
+    const staticOptions = {
+      setHeaders: (res: express.Response, filePath: string) => {
+        // Allow all origins for images (no CORS restrictions for static assets)
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+      }
+    };
+    
+    app.use('/uploads', express.static(uploadDir, staticOptions));
+    app.use('/uploads', express.static(path.resolve(__dirname, '../uploads'), staticOptions));
   } catch (e) {
     console.warn('Failed to ensure upload/temp dirs:', e);
   }

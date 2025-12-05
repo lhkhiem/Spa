@@ -1,0 +1,33 @@
+{
+  // Tắt spell checking
+  "cSpell.enabled": false,
+  "spellright.language": [],
+  "spellright.documentTypes": [],
+  
+  // Tắt underline cho lỗi chính tả
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": false
+  },
+  
+  // Tắt diagnostic cho spelling
+  "diagnostic.disable": true,
+  
+  // Cấu hình cho các file types
+  "[markdown]": {
+    "editor.quickSuggestions": {
+      "other": false,
+      "comments": false,
+      "strings": false
+    }
+  },
+  "[plaintext]": {
+    "editor.quickSuggestions": {
+      "other": false,
+      "comments": false,
+      "strings": false
+    }
+  }
+}
+

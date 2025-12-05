@@ -164,7 +164,22 @@ export default function CheckoutPage() {
     };
 
     try {
+      console.log('[Checkout] Creating order with payload:', {
+        customer_email: payload.customer_email,
+        customer_name: payload.customer_name,
+        customer_phone: payload.customer_phone,
+        payment_method: payload.payment_method,
+        items_count: payload.items.length,
+        total: total,
+      });
+      
       const order = await createOrder(payload);
+      
+      console.log('[Checkout] Order created successfully:', {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        total: order.total,
+      });
       
       // If ZaloPay payment, create payment order and redirect
       if (paymentMethod === 'zalopay') {
@@ -219,6 +234,11 @@ export default function CheckoutPage() {
       // Redirect to success page with order number
       router.push(`/checkout/success?orderNumber=${encodeURIComponent(order.orderNumber)}`);
     } catch (error) {
+      console.error('[Checkout] Error creating order:', error);
+      console.error('[Checkout] Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       toast.dismiss();
       toast.error(handleApiError(error));
       setIsProcessing(false);

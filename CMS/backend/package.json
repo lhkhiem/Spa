@@ -10,6 +10,8 @@
     "build:verbose": "tsc --listFiles | head -20 && echo '...' && echo '✓ Build completed successfully'",
     "watch": "tsc --watch",
     "migrate": "ts-node src/migrations/run-migrations.ts",
+    "migrate:faq": "ts-node src/migrations/run-faq-migration.ts",
+    "migrate:single": "ts-node src/migrations/run-single.ts",
     "seed": "ts-node src/migrations/seed.ts",
     "qa": "ts-node src/scripts/qa.ts"
   },

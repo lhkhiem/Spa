@@ -12,11 +12,13 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Domain cần setup SSL
+# Domain cần setup SSL (Production domains only)
 DOMAINS=(
-    "banyco-demo.pressup.vn"
-    "admin.banyco-demo.pressup.vn"
-    "api.banyco-demo.pressup.vn"
+    "banyco.vn"
+    "www.banyco.vn"
+    "ecommerce-api.banyco.vn"
+    "api.banyco.vn"
+    "admin.banyco.vn"
 )
 
 echo "Các domain sẽ được cấu hình SSL:"
@@ -27,7 +29,7 @@ echo ""
 
 # Tạo SSL certificates
 echo "Đang tạo SSL certificates..."
-certbot certonly --nginx -d banyco-demo.pressup.vn -d admin.banyco-demo.pressup.vn -d api.banyco-demo.pressup.vn --non-interactive --agree-tos --email admin@pressup.vn --expand
+certbot certonly --nginx -d banyco.vn -d www.banyco.vn -d ecommerce-api.banyco.vn -d api.banyco.vn -d admin.banyco.vn --non-interactive --agree-tos --email admin@pressup.vn --expand
 
 if [ $? -eq 0 ]; then
     echo "✅ SSL certificates đã được tạo thành công!"

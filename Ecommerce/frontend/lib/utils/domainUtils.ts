@@ -74,6 +74,7 @@ export const replaceIpWithDomain = (url: string): string => {
 /**
  * Normalize media URL - replace IP with domain and convert HTTP to HTTPS if needed
  * This is the main function to use for normalizing media URLs in frontend
+ * IMPORTANT: All images must be served from ecommerce-api.banyco.vn, not CMS backend
  */
 export const normalizeMediaUrl = (raw: unknown): string | null => {
   if (!raw || typeof raw !== 'string') {
@@ -83,12 +84,84 @@ export const normalizeMediaUrl = (raw: unknown): string | null => {
   const cleaned = raw.replace(/\\/g, '/');
   let url: string;
   
-  if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
-    url = cleaned;
+  if (typeof window !== 'undefined') {
+    const isProduction = window.location.hostname !== 'localhost' && 
+                        !window.location.hostname.includes('127.0.0.1') &&
+                        (window.location.hostname.includes('banyco.vn') || window.location.hostname.includes('vercel.app'));
+    
+    // Get ecommerce API origin (always use ecommerce-api.banyco.vn for images in production)
+    const ecommerceApiOrigin = isProduction 
+      ? 'https://ecommerce-api.banyco.vn'
+      : buildFromApiOrigin('');
+    
+    if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
+      url = cleaned;
+      
+      // CRITICAL: ALWAYS replace localhost/127.0.0.1 - NO EXCEPTIONS
+      // This must happen regardless of production mode to prevent mixed content errors
+      if (url.includes('localhost') || url.includes('127.0.0.1')) {
+        const beforeReplace = url;
+        url = url.replace(/https?:\/\/localhost(:\d+)?/gi, ecommerceApiOrigin);
+        url = url.replace(/https?:\/\/127\.0\.0\.1(:\d+)?/gi, ecommerceApiOrigin);
+        if (beforeReplace !== url) {
+          console.warn(`[normalizeMediaUrl] FORCED localhost replacement: ${beforeReplace} -> ${url}`);
+        }
+      }
+      
+      // IMPORTANT: Replace any CMS backend URLs (api.banyco.vn) with ecommerce-api.banyco.vn
+      // This ensures images are served from ecommerce backend, not CMS
+      if (isProduction && url.includes('banyco.vn')) {
+        // Replace api.banyco.vn with ecommerce-api.banyco.vn
+        if (url.includes('api.banyco.vn') && !url.includes('ecommerce-api.banyco.vn')) {
+          const urlObj = new URL(url);
+          const path = urlObj.pathname + urlObj.search + urlObj.hash;
+          url = `${ecommerceApiOrigin}${path}`;
+          console.log(`[normalizeMediaUrl] Replaced CMS URL with Ecommerce: ${cleaned} -> ${url}`);
+        }
+        // Replace any URL with port 3011 (CMS backend) with ecommerce-api
+        if (url.includes(':3011')) {
+          const urlObj = new URL(url);
+          const path = urlObj.pathname + urlObj.search + urlObj.hash;
+          url = `${ecommerceApiOrigin}${path}`;
+          console.log(`[normalizeMediaUrl] Replaced CMS port 3011 with Ecommerce: ${cleaned} -> ${url}`);
+        }
+      }
+    } else {
+      // Relative path - use ecommerce backend URL
+      url = `${ecommerceApiOrigin}${cleaned.startsWith('/') ? '' : '/'}${cleaned}`;
+    }
   } else {
-    // Use buildFromApiOrigin from config/site.ts (Ecommerce backend serves images)
-    url = buildFromApiOrigin(cleaned);
+    // Server-side: use buildFromApiOrigin
+    if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
+      url = cleaned;
+    } else {
+      url = buildFromApiOrigin(cleaned);
+    }
   }
+  
+  // CRITICAL: Final check - if URL still contains localhost/127.0.0.1, FORCE replace it
+  // This is a safety net to catch any localhost that might have slipped through
+  if (typeof window !== 'undefined') {
+    const isProduction = window.location.hostname !== 'localhost' && 
+                        !window.location.hostname.includes('127.0.0.1') &&
+                        (window.location.hostname.includes('banyco.vn') || window.location.hostname.includes('vercel.app'));
+    
+    const ecommerceApiOrigin = isProduction 
+      ? 'https://ecommerce-api.banyco.vn'
+      : buildFromApiOrigin('');
+    
+    // ABSOLUTE SAFETY: If we're on production domain and URL still has localhost, FORCE replace
+    if (isProduction && (url.includes('localhost') || url.includes('127.0.0.1'))) {
+      console.error(`[normalizeMediaUrl] CRITICAL: Found localhost in production! Forcing replacement: ${url}`);
+      url = url.replace(/https?:\/\/localhost(:\d+)?/gi, ecommerceApiOrigin);
+      url = url.replace(/https?:\/\/127\.0\.0\.1(:\d+)?/gi, ecommerceApiOrigin);
+      console.error(`[normalizeMediaUrl] After forced replacement: ${url}`);
+    }
+  }
+  
+  // Fix common path issues: /upload/ should be /uploads/
+  // This handles cases where database has /upload/ instead of /uploads/
+  url = url.replace(/\/upload\/(?!s)/g, '/uploads/');
   
   // Replace IP with domain
   url = replaceIpWithDomain(url);
@@ -100,6 +173,31 @@ export const normalizeMediaUrl = (raw: unknown): string | null => {
     
     if (isProduction || (!isLocalhost && typeof window !== 'undefined' && window.location.protocol === 'https:')) {
       url = url.replace('http://', 'https://');
+    }
+  }
+  
+  // Final normalization: ensure URL format is exactly https://ecommerce-api.banyco.vn/uploads/...
+  if (typeof window !== 'undefined') {
+    const isProduction = window.location.hostname !== 'localhost' && 
+                        !window.location.hostname.includes('127.0.0.1') &&
+                        window.location.hostname.includes('banyco.vn');
+    
+    if (isProduction) {
+      // Ensure path starts with /uploads/ (not /upload/)
+      url = url.replace(/\/upload\/(?!s)/g, '/uploads/');
+      
+      // Final safety check: if still has localhost, something is very wrong
+      if (url.includes('localhost') || url.includes('127.0.0.1')) {
+        console.error(`[normalizeMediaUrl] ERROR: URL still contains localhost after all processing: ${url}`);
+        // Force replace one more time
+        url = url.replace(/https?:\/\/localhost(:\d+)?/gi, 'https://ecommerce-api.banyco.vn');
+        url = url.replace(/https?:\/\/127\.0\.0\.1(:\d+)?/gi, 'https://ecommerce-api.banyco.vn');
+      }
+      
+      // Log if we made corrections
+      if (url !== cleaned && url.includes('/uploads/')) {
+        console.log(`[normalizeMediaUrl] Final normalized URL: ${cleaned} -> ${url}`);
+      }
     }
   }
   

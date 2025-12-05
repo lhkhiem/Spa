@@ -15,7 +15,13 @@ interface AboutSection {
   image_url?: string | null;
   button_text?: string | null;
   button_link?: string | null;
-  list_items?: Array<{ title: string; description: string }> | null;
+  list_items?: Array<{ 
+    title?: string; 
+    description?: string;
+    icon_type?: string;
+    icon_color?: string;
+    year?: string;
+  }> | null;
   order_index: number;
   is_active: boolean;
   created_at: string;
@@ -25,6 +31,8 @@ interface AboutSection {
 export default function AboutPage() {
   const [welcomeSection, setWelcomeSection] = useState<AboutSection | null>(null);
   const [givingBackSection, setGivingBackSection] = useState<AboutSection | null>(null);
+  const [differencesSection, setDifferencesSection] = useState<AboutSection | null>(null);
+  const [timelineSection, setTimelineSection] = useState<AboutSection | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [showMediaPicker, setShowMediaPicker] = useState<string | null>(null);
@@ -46,6 +54,18 @@ export default function AboutPage() {
     list_items: [] as Array<{ title: string; description: string }>,
   });
 
+  const [differencesForm, setDifferencesForm] = useState({
+    title: '',
+    content: '',
+    list_items: [] as Array<{ icon_type: string; icon_color: string; title: string; description: string }>,
+  });
+
+  const [timelineForm, setTimelineForm] = useState({
+    title: '',
+    content: '',
+    list_items: [] as Array<{ year: string; description: string }>,
+  });
+
   const fetchSections = useCallback(async () => {
     try {
       setLoading(true);
@@ -56,6 +76,8 @@ export default function AboutPage() {
       
       let welcome = sections.find(s => s.section_key === 'welcome');
       let givingBack = sections.find(s => s.section_key === 'giving_back');
+      let differences = sections.find(s => s.section_key === 'differences');
+      let timeline = sections.find(s => s.section_key === 'timeline');
 
       // Create missing sections if they don't exist
       if (!welcome && !creatingSectionsRef.current) {
@@ -129,6 +151,24 @@ export default function AboutPage() {
           content: givingBack.content || '',
           image_url: givingBack.image_url || '',
           list_items: givingBack.list_items || [],
+        });
+      }
+
+      if (differences) {
+        setDifferencesSection(differences);
+        setDifferencesForm({
+          title: differences.title || '',
+          content: differences.content || '',
+          list_items: differences.list_items || [],
+        });
+      }
+
+      if (timeline) {
+        setTimelineSection(timeline);
+        setTimelineForm({
+          title: timeline.title || '',
+          content: timeline.content || '',
+          list_items: timeline.list_items || [],
         });
       }
     } catch (error: any) {
@@ -248,7 +288,7 @@ export default function AboutPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Quản lý trang Giới thiệu</h1>
-        <p className="text-sm text-muted-foreground">Quản lý phần Chào mừng và Giá trị cộng đồng</p>
+        <p className="text-sm text-muted-foreground">Quản lý các phần của trang Giới thiệu</p>
       </div>
 
       {/* Welcome Section */}
@@ -461,6 +501,282 @@ export default function AboutPage() {
         </div>
       </div>
 
+      {/* Differences Section */}
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-foreground">Phần Điều làm chúng tôi khác biệt</h2>
+          <button
+            onClick={async () => {
+              if (!differencesSection) return;
+              try {
+                setSaving('differences');
+                await axios.put(
+                  buildApiUrl(`/api/about-sections/${differencesSection.id}`),
+                  {
+                    title: differencesForm.title,
+                    content: differencesForm.content,
+                    list_items: differencesForm.list_items,
+                  },
+                  { withCredentials: true }
+                );
+                alert('Đã lưu phần Điều làm chúng tôi khác biệt thành công!');
+                fetchSections();
+              } catch (error: any) {
+                console.error('[handleSaveDifferences] Error:', error);
+                alert(error.response?.data?.error || 'Không thể lưu phần Điều làm chúng tôi khác biệt');
+              } finally {
+                setSaving(null);
+              }
+            }}
+            disabled={saving === 'differences'}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {saving === 'differences' ? 'Đang lưu...' : 'Lưu'}
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1 text-foreground">Tiêu đề</label>
+            <input
+              type="text"
+              className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2"
+              value={differencesForm.title}
+              onChange={(e) => setDifferencesForm({ ...differencesForm, title: e.target.value })}
+              placeholder="Tiêu đề phần"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-foreground">Nội dung giới thiệu</label>
+            <textarea
+              className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2"
+              value={differencesForm.content}
+              onChange={(e) => setDifferencesForm({ ...differencesForm, content: e.target.value })}
+              placeholder="Mô tả ngắn gọn về phần này"
+              rows={3}
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-foreground">Các điểm khác biệt</label>
+              <button
+                type="button"
+                onClick={() => {
+                  setDifferencesForm({
+                    ...differencesForm,
+                    list_items: [...differencesForm.list_items, { icon_type: 'shield', icon_color: 'purple', title: '', description: '' }],
+                  });
+                }}
+                className="text-sm text-primary hover:underline"
+              >
+                + Thêm điểm
+              </button>
+            </div>
+            <div className="space-y-3">
+              {differencesForm.list_items.map((item, index) => (
+                <div key={index} className="flex gap-2 p-3 border border-input rounded-lg">
+                  <div className="flex-1 space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <select
+                        className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
+                        value={item.icon_type || 'shield'}
+                        onChange={(e) => {
+                          const newItems = [...differencesForm.list_items];
+                          newItems[index] = { ...newItems[index], icon_type: e.target.value };
+                          setDifferencesForm({ ...differencesForm, list_items: newItems });
+                        }}
+                      >
+                        <option value="shield">Shield</option>
+                        <option value="document">Document</option>
+                        <option value="book">Book</option>
+                        <option value="users">Users</option>
+                      </select>
+                      <select
+                        className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
+                        value={item.icon_color || 'purple'}
+                        onChange={(e) => {
+                          const newItems = [...differencesForm.list_items];
+                          newItems[index] = { ...newItems[index], icon_color: e.target.value };
+                          setDifferencesForm({ ...differencesForm, list_items: newItems });
+                        }}
+                      >
+                        <option value="purple">Purple</option>
+                        <option value="green">Green</option>
+                        <option value="blue">Blue</option>
+                        <option value="pink">Pink</option>
+                      </select>
+                    </div>
+                    <input
+                      type="text"
+                      className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
+                      value={item.title || ''}
+                      onChange={(e) => {
+                        const newItems = [...differencesForm.list_items];
+                        newItems[index] = { ...newItems[index], title: e.target.value };
+                        setDifferencesForm({ ...differencesForm, list_items: newItems });
+                      }}
+                      placeholder="Tiêu đề điểm khác biệt"
+                    />
+                    <textarea
+                      className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
+                      value={item.description || ''}
+                      onChange={(e) => {
+                        const newItems = [...differencesForm.list_items];
+                        newItems[index] = { ...newItems[index], description: e.target.value };
+                        setDifferencesForm({ ...differencesForm, list_items: newItems });
+                      }}
+                      placeholder="Mô tả điểm khác biệt"
+                      rows={3}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newItems = differencesForm.list_items.filter((_, i) => i !== index);
+                      setDifferencesForm({ ...differencesForm, list_items: newItems });
+                    }}
+                    className="px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md"
+                  >
+                    Xóa
+                  </button>
+                </div>
+              ))}
+              {differencesForm.list_items.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Chưa có điểm nào. Nhấp "Thêm điểm" để thêm.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Timeline Section */}
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-foreground">Phần Hành trình phát triển</h2>
+          <button
+            onClick={async () => {
+              if (!timelineSection) return;
+              try {
+                setSaving('timeline');
+                await axios.put(
+                  buildApiUrl(`/api/about-sections/${timelineSection.id}`),
+                  {
+                    title: timelineForm.title,
+                    content: timelineForm.content,
+                    list_items: timelineForm.list_items,
+                  },
+                  { withCredentials: true }
+                );
+                alert('Đã lưu phần Hành trình phát triển thành công!');
+                fetchSections();
+              } catch (error: any) {
+                console.error('[handleSaveTimeline] Error:', error);
+                alert(error.response?.data?.error || 'Không thể lưu phần Hành trình phát triển');
+              } finally {
+                setSaving(null);
+              }
+            }}
+            disabled={saving === 'timeline'}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {saving === 'timeline' ? 'Đang lưu...' : 'Lưu'}
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1 text-foreground">Tiêu đề</label>
+            <input
+              type="text"
+              className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2"
+              value={timelineForm.title}
+              onChange={(e) => setTimelineForm({ ...timelineForm, title: e.target.value })}
+              placeholder="Tiêu đề phần"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-foreground">Nội dung giới thiệu</label>
+            <textarea
+              className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2"
+              value={timelineForm.content}
+              onChange={(e) => setTimelineForm({ ...timelineForm, content: e.target.value })}
+              placeholder="Mô tả ngắn gọn về phần này"
+              rows={3}
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-foreground">Các mốc thời gian</label>
+              <button
+                type="button"
+                onClick={() => {
+                  setTimelineForm({
+                    ...timelineForm,
+                    list_items: [...timelineForm.list_items, { year: '', description: '' }],
+                  });
+                }}
+                className="text-sm text-primary hover:underline"
+              >
+                + Thêm mốc
+              </button>
+            </div>
+            <div className="space-y-3">
+              {timelineForm.list_items.map((item, index) => (
+                <div key={index} className="flex gap-2 p-3 border border-input rounded-lg">
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="text"
+                      className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
+                      value={item.year || ''}
+                      onChange={(e) => {
+                        const newItems = [...timelineForm.list_items];
+                        newItems[index] = { ...newItems[index], year: e.target.value };
+                        setTimelineForm({ ...timelineForm, list_items: newItems });
+                      }}
+                      placeholder="Năm hoặc mốc thời gian (ví dụ: 1982, Hiện tại)"
+                    />
+                    <textarea
+                      className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
+                      value={item.description || ''}
+                      onChange={(e) => {
+                        const newItems = [...timelineForm.list_items];
+                        newItems[index] = { ...newItems[index], description: e.target.value };
+                        setTimelineForm({ ...timelineForm, list_items: newItems });
+                      }}
+                      placeholder="Mô tả sự kiện tại mốc thời gian này"
+                      rows={3}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newItems = timelineForm.list_items.filter((_, i) => i !== index);
+                      setTimelineForm({ ...timelineForm, list_items: newItems });
+                    }}
+                    className="px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md"
+                  >
+                    Xóa
+                  </button>
+                </div>
+              ))}
+              {timelineForm.list_items.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Chưa có mốc nào. Nhấp "Thêm mốc" để thêm.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Media Picker Modal */}
       {showMediaPicker && (
         <MediaPicker
@@ -473,5 +789,3 @@ export default function AboutPage() {
     </div>
   );
 }
-
-

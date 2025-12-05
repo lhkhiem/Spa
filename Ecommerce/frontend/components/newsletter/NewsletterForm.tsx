@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { getApiUrl } from '@/config/site';
+import { getFormStartTime, createHoneypotField } from '@/lib/utils/antiSpam';
+import { executeReCaptcha, isReCaptchaEnabled } from '@/lib/utils/recaptcha';
 
 interface NewsletterFormProps {
   source?: string;
@@ -28,6 +30,8 @@ export default function NewsletterForm({
   const [loading, setLoading] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const formStartTimeRef = useRef<number | null>(null);
+  const honeypotField = createHoneypotField();
 
   useEffect(() => {
     console.log('[NewsletterForm] Component mounted');
@@ -48,6 +52,26 @@ export default function NewsletterForm({
       console.log('[NewsletterForm] Element at button center:', elementAtPoint);
       console.log('[NewsletterForm] Is button at center?', elementAtPoint === buttonRef.current || buttonRef.current.contains(elementAtPoint));
     }
+
+    // Track form start time on first interaction
+    const handleFirstInteraction = () => {
+      if (!formStartTimeRef.current) {
+        formStartTimeRef.current = getFormStartTime();
+      }
+    };
+
+    const form = formRef.current;
+    if (form) {
+      form.addEventListener('focusin', handleFirstInteraction, { once: true });
+      form.addEventListener('input', handleFirstInteraction, { once: true });
+    }
+
+    return () => {
+      if (form) {
+        form.removeEventListener('focusin', handleFirstInteraction);
+        form.removeEventListener('input', handleFirstInteraction);
+      }
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,10 +111,34 @@ export default function NewsletterForm({
       console.log('[NewsletterForm] Request data:', { email: email.trim(), source });
       console.log('[NewsletterForm] Window location:', typeof window !== 'undefined' ? window.location.origin : 'server-side');
 
-      const response = await axios.post(apiUrl, {
+      // Prepare request data with anti-spam fields
+      const requestData: any = {
         email: email.trim(),
         source,
-      }, {
+      };
+
+      // Add honeypot field (should be empty)
+      requestData[honeypotField.name] = '';
+
+      // Add form start time for time-based validation
+      if (formStartTimeRef.current) {
+        requestData._formStartTime = formStartTimeRef.current.toString();
+      }
+
+      // Add reCAPTCHA token if enabled
+      if (isReCaptchaEnabled()) {
+        try {
+          const recaptchaToken = await executeReCaptcha('newsletter_subscribe');
+          if (recaptchaToken) {
+            requestData.recaptchaToken = recaptchaToken;
+          }
+        } catch (error) {
+          console.error('[NewsletterForm] reCAPTCHA error:', error);
+          // Continue without reCAPTCHA if it fails (fail open)
+        }
+      }
+
+      const response = await axios.post(apiUrl, requestData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -165,6 +213,9 @@ export default function NewsletterForm({
         console.log('[NewsletterForm] Form clicked:', e.target);
       }}
     >
+      {/* Honeypot field - hidden from users, bots will fill it */}
+      <input {...honeypotField} />
+      
       <input
         type="email"
         value={email}

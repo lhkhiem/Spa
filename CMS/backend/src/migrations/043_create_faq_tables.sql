@@ -52,3 +52,5 @@ COMMENT ON COLUMN faq_questions.sort_order IS 'Order in which questions are disp
 COMMENT ON COLUMN faq_questions.is_active IS 'Whether the question is active and visible';
 
 
+
+

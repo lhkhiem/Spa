@@ -9,3 +9,5 @@ router.get('/', getFAQs);
 export default router;
 
 
+
+

@@ -541,11 +541,38 @@ html body .prose [style*="font-family:Pacifico"] {
 .prose *[style*="font-family:Roboto"],
 .prose *[style*="font-family: Montserrat"],
 .prose *[style*="font-family:Montserrat"],
-.prose *[style*="font-family: Poppins"],
-.prose *[style*="font-family:Poppins"] {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-feature-settings: "kern" 1;
-  font-kerning: normal;
-}
+  .prose *[style*="font-family: Poppins"],
+  .prose *[style*="font-family:Poppins"] {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1;
+    font-kerning: normal;
+  }
+
+  /* Learning Swiper Pagination - Position dots lower */
+  .learning-swiper-wrapper {
+    position: relative;
+  }
+
+  .learning-swiper .swiper-pagination {
+    position: relative !important;
+    bottom: auto !important;
+    top: auto !important;
+    margin-top: 1.5rem;
+    margin-bottom: 0;
+  }
+
+  .learning-swiper .swiper-pagination-bullet {
+    width: 8px;
+    height: 8px;
+    background: #d1d5db;
+    opacity: 1;
+    transition: all 0.3s;
+  }
+
+  .learning-swiper .swiper-pagination-bullet-active {
+    width: 32px;
+    background: #98131b;
+    border-radius: 4px;
+  }

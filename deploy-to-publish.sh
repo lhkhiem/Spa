@@ -26,3 +26,4 @@ echo "  - $PUBLISH/ecommerce-frontend"
 echo ""
 echo "PM2 services đã được restart tự động."
 
+

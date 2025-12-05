@@ -6,10 +6,16 @@ import Script from 'next/script';
 import { Suspense } from 'react';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import { FaviconProvider } from '@/components/FaviconProvider';
+
+// Optimized font loading - only load Inter with Vietnamese subset and necessary weights
+// Using 'optional' for faster FCP - font will use system fallback if not ready
 const inter = Inter({ 
-  subsets: ['latin'],
+  subsets: ['latin', 'vietnamese'],
   variable: '--font-inter',
-  display: 'swap',
+  display: 'optional', // Faster FCP - won't block rendering
+  preload: true,
+  weight: ['400', '500', '600', '700'],
+  adjustFontFallback: true,
 });
 
 // Get site URL for metadata (must be static value, not function call)
@@ -62,37 +68,21 @@ export default function RootLayout({
   return (
     <html lang="vi" className={inter.variable}>
       <head>
-        {/* Preload Google Fonts for content - Load các font phổ biến với đầy đủ weights */}
-        <link
-          rel="preconnect"
-          href="https://fonts.googleapis.com"
-        />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        {/* Load các font Sans-serif phổ biến cho tiếng Việt */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Source+Sans+Pro:wght@400;600;700&family=Raleway:wght@400;500;600;700&family=Lato:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap&subset=latin,vietnamese"
-          rel="stylesheet"
-        />
-        {/* Load các font Serif */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;500;600;700&display=swap&subset=latin,vietnamese"
-          rel="stylesheet"
-        />
-        {/* Load các font Display/Decorative */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Pacifico&display=swap&subset=latin,vietnamese"
-          rel="stylesheet"
-        />
-        {/* Google Analytics */}
+        {/* Resource hints for API - improve connection speed */}
+        <link rel="dns-prefetch" href="https://ecommerce-api.banyco.vn" />
+        <link rel="preconnect" href="https://ecommerce-api.banyco.vn" crossOrigin="anonymous" />
+        {/* Preconnect for images - critical for LCP */}
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        {/* Preconnect for Google Analytics */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        {/* Google Analytics - Defer to not block rendering */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-XJGRHQTJEF"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}

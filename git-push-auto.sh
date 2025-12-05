@@ -19,13 +19,15 @@ echo "📦 Adding all changes..."
 git add .
 
 # Commit with message
-COMMIT_MSG="feat: Add differences and timeline sections to CMS, disable spell checking
+COMMIT_MSG="feat: Add security features - rate limiting, security headers, anti-spam
 
-- Add migration for differences and timeline sections in about_sections table
-- Update CMS Admin UI to manage differences and timeline sections
-- Update Ecommerce frontend to fetch and display from API
-- Disable spell checking in TinyMCE editor and VS Code settings
-- Fix image URL normalization in about page"
+- Add rate limiting to CMS and Ecommerce backends (100-150 req/15min)
+- Add security headers (X-Frame-Options, CSP, HSTS, etc.)
+- Add anti-spam protection (honeypot, time validation, rate limiting)
+- Add security scripts for VPS (firewall, fail2ban, DDoS protection)
+- Remove hardcoded IP addresses from code
+- Add security documentation and guides
+- Update slider pagination position in EducationResources component"
 
 echo "💾 Committing changes..."
 git commit -m "$COMMIT_MSG" || {
@@ -51,3 +53,4 @@ else
     echo "   To add remote: git remote add origin <repository-url>"
     echo "   Then push: git push -u origin main"
 fi
+

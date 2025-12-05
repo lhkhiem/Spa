@@ -27,3 +27,5 @@ export const getFAQs = async (req: Request, res: Response) => {
 };
 
 
+
+

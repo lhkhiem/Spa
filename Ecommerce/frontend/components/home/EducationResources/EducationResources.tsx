@@ -91,33 +91,35 @@ export default function EducationResources() {
 
           <div className="relative">
             {showSlider ? (
-              <Swiper
-                modules={[Mousewheel, Pagination, Keyboard, Autoplay]}
-                direction="horizontal"
-                slidesPerView={1}
-                slidesPerGroup={1}
-                spaceBetween={24}
-                loop
-                mousewheel={{ forceToAxis: true }}
-                keyboard={{ enabled: true, onlyInViewport: true }}
-                pagination={{ clickable: true }}
-                autoplay={{
-                  delay: 4500,
-                  disableOnInteraction: false,
-                  pauseOnMouseEnter: true,
-                }}
-                speed={650}
-                breakpoints={{
-                  768: { slidesPerView: 2 },
-                }}
-                className="learning-swiper rounded-[32px] bg-gradient-to-r from-white via-purple-50/40 to-white p-4 shadow-xl"
-              >
-                {posts.map((post) => (
-                  <SwiperSlide key={post.id} className="!h-auto">
-                    <ArticleCard post={post} />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+              <div className="learning-swiper-wrapper">
+                <Swiper
+                  modules={[Mousewheel, Pagination, Keyboard, Autoplay]}
+                  direction="horizontal"
+                  slidesPerView={1}
+                  slidesPerGroup={1}
+                  spaceBetween={24}
+                  loop
+                  mousewheel={{ forceToAxis: true }}
+                  keyboard={{ enabled: true, onlyInViewport: true }}
+                  pagination={{ clickable: true }}
+                  autoplay={{
+                    delay: 4500,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                  }}
+                  speed={650}
+                  breakpoints={{
+                    768: { slidesPerView: 2 },
+                  }}
+                  className="learning-swiper rounded-[32px] bg-gradient-to-r from-white via-purple-50/40 to-white p-4 shadow-xl pb-16"
+                >
+                  {posts.map((post) => (
+                    <SwiperSlide key={post.id} className="!h-auto">
+                      <ArticleCard post={post} />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2">
                 {posts.map((post) => (
@@ -144,7 +146,8 @@ function ArticleCard({ post }: { post: LearningPost }) {
           alt={post.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(min-width: 1024px) 35vw, 90vw"
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 35vw"
+          loading="lazy"
         />
         <span className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
           {post.topic || 'Learning'}

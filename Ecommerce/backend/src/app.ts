@@ -124,6 +124,125 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
+// ✅ SECURITY: Rate limiting để chống DDoS và brute force
+const rateLimitStore = new Map<string, { count: number; resetTime: number; blocked?: boolean; blockUntil?: number }>();
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitStore.entries()) {
+    if (entry.resetTime < now && (!entry.blockUntil || entry.blockUntil < now)) {
+      rateLimitStore.delete(key);
+    }
+  }
+}, 5 * 60 * 1000);
+
+app.use((req, res, next) => {
+  const ip = req.ip || 
+    (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || 
+    req.connection.remoteAddress || 
+    'unknown';
+  const now = Date.now();
+  const entry = rateLimitStore.get(ip);
+  
+  // Check if IP is blocked
+  if (entry?.blocked && entry.blockUntil && entry.blockUntil > now) {
+    const remainingTime = Math.ceil((entry.blockUntil - now) / 1000 / 60);
+    console.warn(`[RateLimit] Blocked IP ${ip} - ${remainingTime} minutes remaining`);
+    return res.status(429).json({
+      success: false,
+      error: 'Too many requests. Your IP has been temporarily blocked.',
+      retryAfter: remainingTime,
+    });
+  }
+  
+  // Reset if block expired
+  if (entry?.blocked && entry.blockUntil && entry.blockUntil <= now) {
+    rateLimitStore.delete(ip);
+  }
+  
+  // Rate limiting: 150 requests per 15 minutes for public API (higher than CMS)
+  const maxRequests = 150;
+  const windowMs = 15 * 60 * 1000; // 15 minutes
+  const blockDuration = 60 * 60 * 1000; // 1 hour if exceeded
+  
+  if (entry && entry.resetTime > now) {
+    if (entry.count >= maxRequests) {
+      // Exceeded limit - block IP
+      entry.blocked = true;
+      entry.blockUntil = now + blockDuration;
+      console.warn(`[RateLimit] IP ${ip} exceeded limit - blocked for ${blockDuration / 1000 / 60} minutes`);
+      return res.status(429).json({
+        success: false,
+        error: 'Too many requests. Your IP has been temporarily blocked.',
+        retryAfter: Math.ceil(blockDuration / 1000 / 60),
+      });
+    }
+    entry.count++;
+  } else {
+    rateLimitStore.set(ip, { count: 1, resetTime: now + windowMs });
+  }
+  
+  // Add rate limit headers
+  const currentEntry = rateLimitStore.get(ip);
+  if (currentEntry) {
+    res.setHeader('X-RateLimit-Limit', maxRequests);
+    res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - currentEntry.count));
+    res.setHeader('X-RateLimit-Reset', new Date(currentEntry.resetTime).toISOString());
+  }
+  
+  next();
+});
+
+// ✅ SECURITY: Security headers để chống các tấn công phổ biến
+app.use((req, res, next) => {
+  // Xóa headers có thể leak thông tin server
+  res.removeHeader('X-Powered-By');
+  res.removeHeader('Server');
+  
+  // Prevent clickjacking
+  res.setHeader('X-Frame-Options', 'DENY');
+  
+  // Prevent MIME type sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // Enable XSS protection
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  // Referrer Policy
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // HSTS (chỉ cho HTTPS)
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  }
+  
+  // Content Security Policy
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data: https: http:; " +
+    "connect-src 'self' https:; " +
+    "frame-ancestors 'none';"
+  );
+  
+  // Permissions Policy
+  res.setHeader(
+    'Permissions-Policy',
+    'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()'
+  );
+  
+  // Prevent caching of sensitive data
+  if (req.path.startsWith('/api/auth')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  
+  next();
+});
+
 // Ecommerce Public Routes
 app.use('/api/products', publicProductsRoutes); // Public product listing & detail
 app.use('/api/product-categories', productCategoryRoutes); // Public category listing (GET only)

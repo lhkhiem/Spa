@@ -29,10 +29,12 @@ export default function SafeImage({
   const [hasError, setHasError] = useState(false);
   const imageSrc = hasError || !src ? fallbackSrc : src;
 
-  // Use unoptimized for external images to avoid 404 errors in Next.js Image Optimization
-  // This prevents console errors when image doesn't exist
-  const isExternal = imageSrc.startsWith('http://') || imageSrc.startsWith('https://');
-  const useUnoptimized = isExternal;
+  // Optimize external images through Next.js Image Optimization
+  // Enable optimization for external images - Next.js config handles remotePatterns
+  const useUnoptimized = false;
+
+  // Default sizes for responsive images if not provided
+  const defaultSizes = sizes || '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw';
 
   if (fill) {
     return (
@@ -43,7 +45,7 @@ export default function SafeImage({
           fill
           className={className}
           priority={priority}
-          sizes={sizes}
+          sizes={defaultSizes}
           unoptimized={useUnoptimized}
           onError={() => {
             if (!hasError) {
@@ -63,7 +65,7 @@ export default function SafeImage({
       height={height}
       className={className}
       priority={priority}
-      sizes={sizes}
+      sizes={defaultSizes}
       unoptimized={useUnoptimized}
       onError={() => {
         if (!hasError) {
@@ -73,6 +75,7 @@ export default function SafeImage({
     />
   );
 }
+
 
 
 

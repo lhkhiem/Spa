@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
 import { vietnamProvinces } from '@/lib/data/provinces';
 import { submitConsultationForm } from '@/lib/api/consultations';
 import { handleApiError } from '@/lib/api/client';
 import toast from 'react-hot-toast';
+import { getFormStartTime, createHoneypotField } from '@/lib/utils/antiSpam';
+import { executeReCaptcha, isReCaptchaEnabled } from '@/lib/utils/recaptcha';
 
 export default function ContactFormSection() {
   const [formData, setFormData] = useState({
@@ -16,19 +18,67 @@ export default function ContactFormSection() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const formStartTimeRef = useRef<number | null>(null);
+  const honeypotField = createHoneypotField();
+
+  // Track form start time on first interaction
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      if (!formStartTimeRef.current) {
+        formStartTimeRef.current = getFormStartTime();
+      }
+    };
+
+    const form = document.querySelector('form');
+    if (form) {
+      form.addEventListener('focusin', handleFirstInteraction, { once: true });
+      form.addEventListener('input', handleFirstInteraction, { once: true });
+    }
+
+    return () => {
+      if (form) {
+        form.removeEventListener('focusin', handleFirstInteraction);
+        form.removeEventListener('input', handleFirstInteraction);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
-      const response = await submitConsultationForm({
+      // Include anti-spam data
+      const submitData: any = {
         name: formData.name,
         phone: formData.phone,
         email: formData.email || undefined,
         province: formData.province,
         message: formData.message || undefined,
-      });
+      };
+
+      // Add honeypot field (should be empty)
+      submitData[honeypotField.name] = '';
+
+      // Add form start time for time-based validation
+      if (formStartTimeRef.current) {
+        submitData._formStartTime = formStartTimeRef.current.toString();
+      }
+
+      // Add reCAPTCHA token if enabled
+      if (isReCaptchaEnabled()) {
+        try {
+          const recaptchaToken = await executeReCaptcha('consultation_submit');
+          if (recaptchaToken) {
+            submitData.recaptchaToken = recaptchaToken;
+          }
+        } catch (error) {
+          console.error('[ContactForm] reCAPTCHA error:', error);
+          // Continue without reCAPTCHA if it fails (fail open)
+        }
+      }
+
+      const response = await submitConsultationForm(submitData);
 
       if (response.success) {
         // Reset form
@@ -75,6 +125,9 @@ export default function ContactFormSection() {
           
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Honeypot field - hidden from users, bots will fill it */}
+            <input {...honeypotField} />
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Tên */}
               <div>

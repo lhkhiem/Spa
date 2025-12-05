@@ -282,3 +282,5 @@ Nếu gặp vấn đề, kiểm tra:
 2. Logs của build: Xem output trong terminal
 3. Quyền truy cập thư mục: `ls -la /var/www/publish/spa/`
 4. Trạng thái services: `pm2 list`
+
+

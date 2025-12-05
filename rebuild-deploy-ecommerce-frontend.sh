@@ -110,3 +110,5 @@ echo -e "${BLUE}Deployed to: ${PUBLISH_DIR}${NC}"
 echo ""
 echo "To check logs: pm2 logs ecommerce-frontend --lines 50"
 echo "To start manually: cd $PUBLISH_DIR && npm start"
+
+

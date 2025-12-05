@@ -1,12 +1,34 @@
 import { Metadata } from 'next';
+import dynamicImport from 'next/dynamic';
 import HeroSlider from '@/components/home/HeroSlider/HeroSlider';
 import CategoryGrid from '@/components/home/CategoryGrid/CategoryGrid';
 import BestSellers from '@/components/home/BestSellers/BestSellers';
-import Testimonials from '@/components/home/Testimonials/Testimonials';
-import EducationResources from '@/components/home/EducationResources/EducationResources';
 import ValueProps from '@/components/home/ValueProps/ValueProps';
 import FadeInSection from '@/components/ui/FadeInSection/FadeInSection';
 import { getPageMetadataFromCMS, generatePageMetadata } from '@/lib/utils/pageMetadata';
+
+// Lazy load below-the-fold components for better initial page load
+const Testimonials = dynamicImport(() => import('@/components/home/Testimonials/Testimonials'), {
+  loading: () => (
+    <section className="bg-gradient-to-br from-purple-50 to-pink-50 py-16">
+      <div className="container-custom">
+        <div className="h-64 animate-pulse bg-gray-200 rounded-lg" />
+      </div>
+    </section>
+  ),
+  ssr: true,
+});
+
+const EducationResources = dynamicImport(() => import('@/components/home/EducationResources/EducationResources'), {
+  loading: () => (
+    <section className="bg-white py-16">
+      <div className="container-custom">
+        <div className="h-64 animate-pulse bg-gray-200 rounded-lg" />
+      </div>
+    </section>
+  ),
+  ssr: true,
+});
 
 // Disable static generation (components fetch data client-side)
 export const dynamic = 'force-dynamic';

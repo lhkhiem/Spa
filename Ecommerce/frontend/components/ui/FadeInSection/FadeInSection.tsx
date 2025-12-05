@@ -69,6 +69,8 @@ export default function FadeInSection({
         opacity: isVisible ? 1 : 0,
         transform: getTransform(),
         transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
+        // Prevent layout shift - use will-change for better performance
+        willChange: isVisible ? 'auto' : 'opacity, transform',
       }}
     >
       {children}

@@ -49,3 +49,5 @@ run_script "rebuild-deploy-ecommerce-frontend.sh"
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}All scripts completed successfully!${NC}"
 echo -e "${GREEN}========================================${NC}\n"
+
+

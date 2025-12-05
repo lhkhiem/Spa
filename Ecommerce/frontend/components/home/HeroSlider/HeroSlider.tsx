@@ -57,20 +57,36 @@ export default function HeroSlider() {
     return () => clearInterval(timer);
   }, [slides.length]);
 
+  // Preload first hero image for better LCP - Critical optimization
+  useEffect(() => {
+    const firstImage = FALLBACK_SLIDES[0]?.image;
+    if (firstImage && typeof document !== 'undefined') {
+      // Check if already preloaded
+      const existing = document.querySelector(`link[rel="preload"][href="${firstImage}"]`);
+      if (!existing) {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = firstImage;
+        link.setAttribute('fetchpriority', 'high');
+        // Insert at the beginning of head for highest priority
+        document.head.insertBefore(link, document.head.firstChild);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
     const loadSlides = async () => {
       try {
         const data = await fetchHeroSlides();
-        console.log('[HeroSlider] Fetched slides:', data);
         
         if (!isMounted) {
           return;
         }
 
         if (!data || !data.length) {
-          console.warn('[HeroSlider] No slides returned from API, using fallback slides');
           return;
         }
 
@@ -90,26 +106,36 @@ export default function HeroSlider() {
           .filter((slide) => {
             const hasImage = Boolean(slide.image);
             if (!hasImage) {
-              console.warn('[HeroSlider] Slide filtered out (no image):', slide.id, slide.title);
+              return false;
             }
             // Additional check: reject any slide with localhost in image URL
             if (hasImage && (slide.image.includes('localhost') || slide.image.includes('127.0.0.1'))) {
-              console.error('[HeroSlider] CRITICAL: Slide image still contains localhost after normalization!', slide.id, slide.image);
               return false;
             }
             return hasImage;
           });
 
         if (!mapped.length) {
-          console.warn('[HeroSlider] No slides with images after filtering, using fallback slides');
           return;
         }
 
-        console.log('[HeroSlider] Setting slides:', mapped);
         setSlides(mapped);
         setCurrentSlide(0);
+        
+        // Preload first hero image from API - Critical for LCP
+        if (mapped[0]?.image && typeof document !== 'undefined') {
+          const existing = document.querySelector(`link[rel="preload"][href="${mapped[0].image}"]`);
+          if (!existing) {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'image';
+            link.href = mapped[0].image;
+            link.setAttribute('fetchpriority', 'high');
+            // Insert at the beginning of head for highest priority
+            document.head.insertBefore(link, document.head.firstChild);
+          }
+        }
       } catch (error) {
-        console.error('[HeroSlider] failed to load slides', error);
         // Keep fallback slides on error
       }
     };
@@ -133,14 +159,19 @@ export default function HeroSlider() {
 
   return (
     <div className="relative w-full overflow-hidden pt-[120px]">
-      {/* TRUE Parallax Hero - Single Block with background-attachment: fixed */}
+      {/* Hero with optimized background-image for faster LCP */}
+      {/* Critical: Inline styles for fastest rendering, preloaded image */}
       <section
-        className="parallax-section relative w-full min-h-[60vh] md:min-h-[60vh] sm:min-h-[50vh] overflow-hidden mb-0"
+        className="relative w-full min-h-[60vh] md:min-h-[60vh] sm:min-h-[50vh] overflow-hidden mb-0"
         style={{
           backgroundImage: `url(${currentSlideData.image})`,
           backgroundPosition: 'center',
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
+          // Optimize rendering
+          willChange: 'auto',
+          // Prevent layout shift
+          minHeight: '50vh',
         }}
       >
         {/* Overlay */}

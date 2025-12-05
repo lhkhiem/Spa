@@ -8,6 +8,7 @@ import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX, FiChevronDown, FiPackage
 import { useCartStore } from '@/lib/stores/cartStore';
 import { useAuthStore } from '@/lib/stores/authStore';
 import SimpleDropdownMenu from './SimpleDropdownMenu';
+import SearchModal from './SearchModal';
 import { getMenuItems } from '@/lib/cms';
 import type { CMSMenuItem } from '@/lib/types/cms';
 import type { MegaMenuData } from '@/lib/types/megaMenu';
@@ -297,6 +298,7 @@ export default function Header() {
   const [navigation, setNavigation] = useState<NavigationItem[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const totalItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, user } = useAuthStore();
 
@@ -411,7 +413,11 @@ export default function Header() {
             {/* Actions */}
             <div className="flex items-center space-x-4">
               {/* Search Icon */}
-              <button className="text-white hover:text-gray-200">
+              <button 
+                onClick={() => setIsSearchModalOpen(true)}
+                className="text-white hover:text-gray-200 transition-colors"
+                aria-label="Tìm kiếm sản phẩm"
+              >
                 <FiSearch className="h-5 w-5" />
               </button>
 
@@ -502,6 +508,12 @@ export default function Header() {
           </div>
         </div>
       )}
+
+      {/* Search Modal */}
+      <SearchModal 
+        isOpen={isSearchModalOpen} 
+        onClose={() => setIsSearchModalOpen(false)} 
+      />
     </header>
   );
 }
